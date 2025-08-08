@@ -74,7 +74,8 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 
 #### **Design visual (UX/UI)**
 
-* **Cores**: 
+* **Cores**:
+<img width="1249" height="120" alt="Image" src="https://github.com/user-attachments/assets/46eec31e-7099-4bea-a986-6b73fbac2303" />
 
 * **Logo:**  
 <img width="500" height="500" alt="Image" src="https://github.com/user-attachments/assets/37490923-6c6e-4236-985a-b5e79e4d0e97" />
