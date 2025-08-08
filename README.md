@@ -77,21 +77,19 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 * **Cores**: 
 
 * **Logo:**  
-    
-  **![][image2]**  
-* **Figuras:**
+<img width="500" height="500" alt="Image" src="https://github.com/user-attachments/assets/37490923-6c6e-4236-985a-b5e79e4d0e97" />
 
-**![][image3]**
+* **Figuras:**
+<img width="3561" height="2023" alt="Image" src="https://github.com/user-attachments/assets/b0960053-0191-48cc-bc32-ae4c05cdc3bc" />
 
 * **Imagens:** 
 
-**![][image4]**
+![Image](https://github.com/user-attachments/assets/98566fe7-1587-458f-8ee3-beef819e2e79)
+![Image](https://github.com/user-attachments/assets/42fef7df-eb69-469d-be9e-7a888b3e8b69)
+![Image](https://github.com/user-attachments/assets/6c70a424-4084-4c47-84c6-cc5ba03679c2)
+![Image](https://github.com/user-attachments/assets/f1190b9f-a2b3-4a50-b39a-5e9a40d0f601)
 
-**![][image5]**
-
-**![][image6]**
-
-**![][image7]**
+**Tipografia**: [Inter](https://fonts.google.com/specimen/Inter)
 
 #### d) Justifique as escolhas do grupo descrevendo de que forma os elementos implementados irão se comunicar com o objetivo do projeto e com seu público-alvo.
 
