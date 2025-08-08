@@ -25,6 +25,8 @@
 
 ---
 
+<div align="justify">
+
 ## **Planejamento Inicial Do Projeto Integrador 4°ano**
 
 #### **a) Qual o objetivo do seu projeto?**
@@ -63,6 +65,7 @@ Indivíduos com conhecimento técnico ou prático em música, que tenham interes
 Portanto, a plataforma atende tanto quem quer aprender quanto quem deseja ensinar.
 
 **3\.Possíveis técnicas para atrair o público-alvo**
+
 Para atrair a atenção do público-alvo, a estratégia será focada em canais e formatos que estejam diretamente ligados ao universo da música e da educação online. A divulgação será feita em redes sociais como Instagram, Facebook, TikTok e YouTube, utilizando conteúdos atrativos \- como vídeos curtos de professores tocando, depoimentos de alunos e demonstrações de aulas \- acompanhados de hashtags e palavras-chave relacionadas ao aprendizado musical.  
 Além disso, a plataforma será otimizada para mecanismos de busca (SEO), com títulos, descrições e tags que facilitem ser encontrada por pessoas que pesquisam termos como “aulas de música online”, “professor de violão” ou “aprender canto”. Também serão realizadas parcerias com músicos, escolas de música e influenciadores da área, ampliando o alcance e gerando credibilidade.  
 Para aumentar o engajamento, serão oferecidas promoções de lançamento e conteúdos gratuitos (como dicas de técnica e teoria musical) que incentivem novos usuários a experimentar a plataforma e compartilhá-la com outras pessoas.
@@ -92,15 +95,16 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 
 #### d) Justifique as escolhas do grupo descrevendo de que forma os elementos implementados irão se comunicar com o objetivo do projeto e com seu público-alvo.
 
-**Nome:** O nome “Melofy” é curto e fácil de lembrar, além de possuir uma sonoridade suave e agradável, remetendo diretamente a *melody* (melodia) e *modify* (transformar, melhorar), o que combina com a proposta de aprender e evoluir na música. 
+* **Nome:** O nome “Melofy” é curto e fácil de lembrar, além de possuir uma sonoridade suave e agradável, remetendo diretamente a *melody* (melodia) e *modify* (transformar, melhorar), o que combina com a proposta de aprender e evoluir na música. 
 
-**Cores:** Usamos cores agradáveis, que passam uma ideia de aplicativo relacionado  a música e educação, como tons de azul escuro, preto sendo ideal para gêneros musicais como rock, eletrônica ou jazz, que muitas vezes têm uma estética mais ousada ou minimalista além de ambas as cores garantirem que o foco do cliente não será voltado para outros elementos que não sejam o foco do sistema e o amarelo que irá trazer o destaque energia e cor para o sistema trazendo o destaque para os elementos.  
+* **Cores:** Usamos cores agradáveis, que passam uma ideia de aplicativo relacionado  a música e educação, como tons de azul escuro, preto sendo ideal para gêneros musicais como rock, eletrônica ou jazz, que muitas vezes têm uma estética mais ousada ou minimalista além de ambas as cores garantirem que o foco do cliente não será voltado para outros elementos que não sejam o foco do sistema e o amarelo que irá trazer o destaque energia e cor para o sistema trazendo o destaque para os elementos.  
 
-**Fonte:** A fonte é simples, fácil de ler, para funcionar bem para todas as fachadas reais que podem utilizar os sistemas. Queremos que todo mundo consiga entender o que está escrito sem dificuldade.
+* **Fonte:** A fonte é simples, fácil de ler, para funcionar bem para todas as fachadas reais que podem utilizar os sistemas. Queremos que todo mundo consiga entender o que está escrito sem dificuldade.
 
-**Imagens e ícones:** Utilizamos figuras que mostram pessoas diferentes, de várias idades, para que o usuário se identifique. Ícones de música ajudam a deixar claro do que a plataforma trata e facilitam a navegação.
+* **Imagens e ícones:** Utilizamos figuras que mostram pessoas diferentes, de várias idades, para que o usuário se identifique. Ícones de música ajudam a deixar claro do que a plataforma trata e facilitam a navegação.
 
-**Interface:** A plataforma foi pensada para ser fácil de usar, com menus simples para que o aluno encontre o professor rapidamente e vice-versa. Isso ajuda a cumprir o objetivo principal de conectar quem quer aprender com quem quer ensinar.
+* **Interface:** A plataforma foi pensada para ser fácil de usar, com menus simples para que o aluno encontre o professor rapidamente e vice-versa. Isso ajuda a cumprir o objetivo principal de conectar quem quer aprender com quem quer ensinar.
 
-**Linguagem:** O jeito de falar na plataforma é simples e direto, para deixar o usuário à vontade e interessado, seja ele iniciante ou mais experiente.
+* **Linguagem:** O jeito de falar na plataforma é simples e direto, para deixar o usuário à vontade e interessado, seja ele iniciante ou mais experiente.
 
+</div>
