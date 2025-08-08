@@ -62,7 +62,7 @@ Indivíduos com conhecimento técnico ou prático em música, que tenham interes
 
 Portanto, a plataforma atende tanto quem quer aprender quanto quem deseja ensinar.
 
-Possíveis técnicas para atrair o público-alvo  
+**3\.Possíveis técnicas para atrair o público-alvo**
 Para atrair a atenção do público-alvo, a estratégia será focada em canais e formatos que estejam diretamente ligados ao universo da música e da educação online. A divulgação será feita em redes sociais como Instagram, Facebook, TikTok e YouTube, utilizando conteúdos atrativos \- como vídeos curtos de professores tocando, depoimentos de alunos e demonstrações de aulas \- acompanhados de hashtags e palavras-chave relacionadas ao aprendizado musical.  
 Além disso, a plataforma será otimizada para mecanismos de busca (SEO), com títulos, descrições e tags que facilitem ser encontrada por pessoas que pesquisam termos como “aulas de música online”, “professor de violão” ou “aprender canto”. Também serão realizadas parcerias com músicos, escolas de música e influenciadores da área, ampliando o alcance e gerando credibilidade.  
 Para aumentar o engajamento, serão oferecidas promoções de lançamento e conteúdos gratuitos (como dicas de técnica e teoria musical) que incentivem novos usuários a experimentar a plataforma e compartilhá-la com outras pessoas.
@@ -90,7 +90,7 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 
 **![][image7]**
 
-#### **d) Justifique as escolhas do grupo descrevendo de que forma os elementos implementados irão se comunicar com o objetivo do projeto e com seu público-alvo.**
+#### d) Justifique as escolhas do grupo descrevendo de que forma os elementos implementados irão se comunicar com o objetivo do projeto e com seu público-alvo.
 
 **Nome:** O nome “Melofy” é curto e fácil de lembrar, além de possuir uma sonoridade suave e agradável, remetendo diretamente a *melody* (melodia) e *modify* (transformar, melhorar), o que combina com a proposta de aprender e evoluir na música. 
 
@@ -104,4 +104,3 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 
 **Linguagem:** O jeito de falar na plataforma é simples e direto, para deixar o usuário à vontade e interessado, seja ele iniciante ou mais experiente.
 
-#### 
