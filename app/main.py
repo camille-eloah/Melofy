@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from models import Professor, Aluno, Instrumentos
+from app.models import Professor, Aluno, Instrumento
 from typing import List
 
 app = FastAPI(
@@ -13,7 +13,7 @@ app = FastAPI(
 # 1. Autenticação
 # ----------------------------
 
-@app.post("/user", response_class=HTMLResponse)
+@app.post("/user")
 def cadastrar_user():
     return
     
@@ -25,89 +25,101 @@ def login():
 
 @app.route('/logout')
 def logout():
-    return redirect(url_for('login'))
+    return
 
 
-@app.get("/obter_usuarios", response_class=HTMLResponse)
+@app.get("/obter_usuarios")
 def obter_usuarios():
+    return
+
+@app.get("/professor")
+def listar_professores():
     return
 
 # ----------------------------
 # 2. Gerenciamento de Conta
 # ----------------------------
-@app.post("/editar_perfil", response_class=HTMLResponse)
+@app.post("/editar_perfil")
 def editar_perfil():
     return 
 
-@app.delete("/excluir_conta", response_class=HTMLResponse)
+@app.delete("/excluir_conta")
 def excluir_conta():
     return 
+
 # ----------------------------
-# 3. Aulas
+# 3. Aulas 
 # ----------------------------
 
-@app.post("/", response_class=HTMLResponse)
+@app.post("/aula")
 def cadastrar_aula():
     return 
 
-@app.get("/listar_aulas", response_class=HTMLResponse)
+@app.get("/aula")
 def listar_aulas():
     return
 
-@app.put("/editar_aula", response_class=HTMLResponse)
+@app.put("/aula")
 def editar_aula():
     return 
 
+@app.patch("/aula")
+def definir_valor():
+    return
 
 # ----------------------------
-# 3. Filtragem
+# 4. Pacotes 
+# ----------------------------
+
+@app.post("/pacote")
+def cadastrar_pacote():
+    return 
+
+@app.get("/pacote")
+def listar_pacote():
+    return
+
+@app.put("/pacote")
+def editar_pacote():
+    return 
+
+@app.patch("/pacote")
+def definir_valor():
+    return
+
+# ----------------------------
+# 5. Filtragem
 # ----------------------------
 
 
-@app.get("/filtrar", response_class=HTMLResponse)
+@app.get("/filtrar")
 def filtrar_aula():
     return
 
-@app.get("/listar_professores", response_class=HTMLResponse)
-def listar_professores():
-    return
-
-@app.get("/filtrar", response_class=HTMLResponse)
-def listar_professores():
-    return
-
-@app.get("/filtrar", response_class=HTMLResponse)
+@app.get("/filtrar")
 def ocultar_professores():
     return
 
-@app.get("/filtrar", response_class=HTMLResponse)
+@app.get("/filtrar")
 def filtrar_professor_por_aula():
     return
 
-
 # ----------------------------
-# 4. Agendamento de Aulas
+# 6. Agendamento de Aulas
 # ----------------------------
-@app.get("/listar_hora_aula", response_class=HTMLResponse)
+@app.get("/listar_hora_aula")
 def listar_hora_aula():
     return
 
-@app.post("/agendar-aula", response_class=HTMLResponse)
+@app.post("/agendar-aula")
 def agendar_aula():
     return
 
-@app.post("/cancelar-aula", response_class=HTMLResponse)
+@app.post("/cancelar-aula")
 def cadastrar_aula():
     return
 
 # ----------------------------
-# 5 . Pagamento
+# 7. Pagamento
 # ----------------------------
 
-@app.post("/definir_valor", response_class=HTMLResponse)
-def definir_valor():
-    return
-
-@app.delete("/remover_pacote", response_class=HTMLResponse)
-def remover_pacote():
-    return
