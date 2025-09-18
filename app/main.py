@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from app.models import Professor, Aluno, Instrumento
+from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento
 from typing import List
 
 app = FastAPI(
@@ -27,6 +27,11 @@ router_lessons = APIRouter(
     tags=["aulas"]
 )
 
+router_instruments = APIRouter(
+    prefix="/instruments",
+    tags=["instruments"]
+)
+
 # Router schedule - rotas de agendamento
 router_schedule = APIRouter(
     prefix="/schedule",
@@ -37,6 +42,16 @@ router_schedule = APIRouter(
 router_filter = APIRouter(
     prefix="/filter",
     tags=["filtragem"]
+)
+
+router_finance = APIRouter(
+    prefix="/finance",
+    tags=["finance"]
+)
+
+router_avaliacoes = APIRouter(
+    prefix="/avaliacoes",
+    tags=["avaliacoes"]
 )
 
 # ----------------------------
@@ -137,8 +152,33 @@ def definir_valor(pacote_id: int):
 def excluir_pacote(pacote_id: int):
     return {"msg": f"Pacote {pacote_id} excluído"}
 
+
 # ----------------------------
-# 5. Filtragem
+# 5. Instrumentos musicais
+# ----------------------------
+
+@router_instruments.post("/")
+def criar_instrumento():
+    return {"msg": "Instrumento criado com sucesso!"}
+
+@router_instruments.get("/{instrumento_id}")
+def obter_instrumento(instrumento_id: int):
+    return {"msg": f"Retornando instrumento com ID {instrumento_id}"}
+
+@router_instruments.get("/")
+def listar_instrumentos():
+    return {"msg": "Lista de todos os instrumentos"}
+
+@router_instruments.put("/{instrumento_id}")
+def atualizar_instrumento(instrumento_id: int):
+    return {"msg": f"Instrumento {instrumento_id} atualizado com sucesso!"}
+
+@router_instruments.delete("/{instrumento_id}")
+def deletar_instrumento(instrumento_id: int):
+    return {"msg": f"Instrumento {instrumento_id} removido!"}
+
+# ----------------------------
+# 6. Filtragem
 # ----------------------------
 
 @router_filter.get("/aulas/filtrar")
@@ -154,7 +194,7 @@ def filtrar_professor_por_aula():
     return {"msg": "Filtrando professores por aula"}
 
 # ----------------------------
-# 6. Agendamento de Aulas
+# 7. Agendamento de Aulas
 # ----------------------------
 @router_schedule.get("/agendamentos/")
 def listar_agendamentos(professor_id: int | None = None):
@@ -175,10 +215,97 @@ def cancelar_agendamento(agendamento_id: int):
     return {"msg": f"Agendamento {agendamento_id} cancelado"}
 
 # ----------------------------
-# 7. Pagamento
+# 8. Dados Bancários
 # ----------------------------
+
+@router_finance.post("/dados-bancarios")
+def criar_dados_bancarios():
+    return {"msg": "Dados bancários cadastrados com sucesso!"}
+
+@router_finance.get("/dados-bancarios/{dad_id}")
+def obter_dados_bancarios(dad_id: int):
+    return {"msg": f"Retornando dados bancários com ID {dad_id}"}
+
+@router_finance.put("/dados-bancarios/{dad_id}")
+def atualizar_dados_bancarios(dad_id: int):
+    return {"msg": f"Dados bancários com ID {dad_id} atualizados com sucesso!"}
+
+@router_finance.delete("/dados-bancarios/{dad_id}")
+def deletar_dados_bancarios(dad_id: int):
+    return {"msg": f"Dados bancários com ID {dad_id} removidos!"}
+
+# ----------------------------
+# 9. Pagamentos
+# ----------------------------
+
+@router_finance.post("/pagamentos")
+def criar_pagamento():
+    return {"msg": "Pagamento criado com sucesso!"}
+
+@router_finance.get("/pagamentos/{pag_id}")
+def obter_pagamento(pag_id: int):
+    return {"msg": f"Retornando pagamento com ID {pag_id}"}
+
+@router_finance.get("/pagamentos/")
+def listar_pagamentos():
+    return {"msg": "Lista de pagamentos"}
+
+@router_finance.patch("/pagamentos/{pag_id}/status")
+def atualizar_status_pagamento(pag_id: int):
+    return {"msg": f"Status do pagamento {pag_id} atualizado"}
+
+# ----------------------------
+# 10. Avaliações do Aluno
+# ----------------------------
+
+@router_avaliacoes.post("/aluno")
+def criar_avaliacao_aluno():
+    return {"msg": "Avaliação do aluno criada com sucesso!"}
+
+@router_avaliacoes.get("/aluno/{ava_id}")
+def obter_avaliacao_aluno(ava_id: int):
+    return {"msg": f"Retornando avaliação do aluno com ID {ava_id}"}
+
+@router_avaliacoes.get("/aluno/")
+def listar_avaliacoes_alunos():
+    return {"msg": "Lista de avaliações dos alunos"}
+
+@router_avaliacoes.put("/aluno/{ava_id}")
+def atualizar_avaliacao_aluno(ava_id: int):
+    return {"msg": f"Avaliação do aluno {ava_id} atualizada com sucesso!"}
+
+@router_avaliacoes.delete("/aluno/{ava_id}")
+def deletar_avaliacao_aluno(ava_id: int):
+    return {"msg": f"Avaliação do aluno {ava_id} removida!"}
+
+# ----------------------------
+# 11. Avaliações do Professor
+# ----------------------------
+
+@router_avaliacoes.post("/professor")
+def criar_avaliacao_professor():
+    return {"msg": "Avaliação do professor criada com sucesso!"}
+
+@router_avaliacoes.get("/professor/{ava_id}")
+def obter_avaliacao_professor(ava_id: int):
+    return {"msg": f"Retornando avaliação do professor com ID {ava_id}"}
+
+@router_avaliacoes.get("/professor/")
+def listar_avaliacoes_professores():
+    return {"msg": "Lista de avaliações dos professores"}
+
+@router_avaliacoes.put("/professor/{ava_id}")
+def atualizar_avaliacao_professor(ava_id: int):
+    return {"msg": f"Avaliação do professor {ava_id} atualizada com sucesso!"}
+
+@router_avaliacoes.delete("/professor/{ava_id}")
+def deletar_avaliacao_professor(ava_id: int):
+    return {"msg": f"Avaliação do professor {ava_id} removida!"}
 
 app.include_router(router_user)
 app.include_router(router_auth)
 app.include_router(router_lessons)
+app.include_router(router_instruments)
 app.include_router(router_schedule)
+app.include_router(router_finance)
+app.include_router(router_avaliacoes)
