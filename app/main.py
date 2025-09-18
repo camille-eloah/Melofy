@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from app.models import Professor, Aluno, Instrumento
 from typing import List
@@ -9,117 +9,176 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# Router user - rotas de usuário
+router_user = APIRouter(
+    prefix="/user",
+    tags=["usuário"]
+)
+
+# Router auth - rotas de autenticação
+router_auth = APIRouter(
+    prefix="/auth",
+    tags=["autenticação"]
+)
+
+# Router classes - rotas de aulas e pacotes
+router_lessons = APIRouter(
+    prefix="/lessons",
+    tags=["aulas"]
+)
+
+# Router schedule - rotas de agendamento
+router_schedule = APIRouter(
+    prefix="/schedule",
+    tags=["agendamento"]
+)
+
+# Router filter - rotas de filtragem
+router_filter = APIRouter(
+    prefix="/filter",
+    tags=["filtragem"]
+)
+
+# ----------------------------
+# 0. Usuário
+# ----------------------------
+
+@router_user.post("/")
+def cadastrar_user():
+    return {"msg": "Usuário criado"}
+
+# Listar todos os usuários
+@router_user.get("/")
+def listar_usuarios():
+    return {"msg": "Lista de usuários"}
+
+# Listar professores
+@router_user.get("/professores")
+def listar_professores():
+    return {"msg": "Lista de professores"}
+
 # ----------------------------
 # 1. Autenticação
 # ----------------------------
 
-@app.post("/user")
-def cadastrar_user():
-    return
-    
-
-@app.post("/login", response_class=HTMLResponse)
+@router_auth.post("/login")
 def login():
     return
 
-
-@app.route('/logout')
+@router_auth.post('/logout')
 def logout():
-    return
-
-
-@app.get("/obter_usuarios")
-def obter_usuarios():
-    return
-
-@app.get("/professor")
-def listar_professores():
     return
 
 # ----------------------------
 # 2. Gerenciamento de Conta
 # ----------------------------
-@app.post("/editar_perfil")
-def editar_perfil():
-    return 
 
-@app.delete("/excluir_conta")
-def excluir_conta():
-    return 
+@router_user.patch("/{user_id}")
+def editar_perfil(user_id: int):
+    return {"msg": f"Perfil do usuário {user_id} atualizado parcialmente"}
+
+@router_user.delete("/{user_id}")
+def excluir_conta(user_id: int):
+    return {"msg": f"Conta do usuário {user_id} excluída"}
 
 # ----------------------------
 # 3. Aulas 
 # ----------------------------
 
-@app.post("/aula")
+@router_lessons.post("/aulas/")
 def cadastrar_aula():
-    return 
+    return {"msg": "Aula cadastrada"}
 
-@app.get("/aula")
+@router_lessons.get("/aulas/")
 def listar_aulas():
-    return
+    return {"msg": "Lista de aulas"}
 
-@app.put("/aula")
-def editar_aula():
-    return 
+@router_lessons.get("/aulas/{aula_id}")
+def obter_aula(aula_id: int):
+    return {"msg": f"Aula {aula_id}"}
 
-@app.patch("/aula")
-def definir_valor():
-    return
+@router_lessons.put("/aulas/{aula_id}")
+def editar_aula(aula_id: int):
+    return {"msg": f"Aula {aula_id} atualizada totalmente"}
+
+@router_lessons.patch("/aulas/{aula_id}")
+def definir_valor(aula_id: int):
+    return {"msg": f"Valor da aula {aula_id} atualizado"}
+
+@router_lessons.delete("/aulas/{aula_id}")
+def excluir_aula(aula_id: int):
+    return {"msg": f"Aula {aula_id} excluída"}
 
 # ----------------------------
 # 4. Pacotes 
 # ----------------------------
 
-@app.post("/pacote")
+@router_lessons.post("/pacotes/")
 def cadastrar_pacote():
-    return 
+    return {"msg": "Pacote cadastrado"}
 
-@app.get("/pacote")
-def listar_pacote():
-    return
+@router_lessons.get("/pacotes/")
+def listar_pacotes():
+    return {"msg": "Lista de pacotes"}
 
-@app.put("/pacote")
-def editar_pacote():
-    return 
+@router_lessons.get("/pacotes/{pacote_id}")
+def obter_pacote(pacote_id: int):
+    return {"msg": f"Pacote {pacote_id}"}
 
-@app.patch("/pacote")
-def definir_valor():
-    return
+@router_lessons.put("/pacotes/{pacote_id}")
+def editar_pacote(pacote_id: int):
+    return {"msg": f"Pacote {pacote_id} atualizado totalmente"}
+
+@router_lessons.patch("/pacotes/{pacote_id}")
+def definir_valor(pacote_id: int):
+    return {"msg": f"Valor do pacote {pacote_id} atualizado"}
+
+@router_lessons.delete("/pacotes/{pacote_id}")
+def excluir_pacote(pacote_id: int):
+    return {"msg": f"Pacote {pacote_id} excluído"}
 
 # ----------------------------
 # 5. Filtragem
 # ----------------------------
 
-
-@app.get("/filtrar")
+@router_filter.get("/aulas/filtrar")
 def filtrar_aula():
-    return
+    return {"msg": "Filtrando aulas"}
 
-@app.get("/filtrar")
+@router_filter.get("/professores/ocultar")
 def ocultar_professores():
-    return
+    return {"msg": "Ocultando professores"}
 
-@app.get("/filtrar")
+@router_filter.get("/professores/filtrar_por_aula")
 def filtrar_professor_por_aula():
-    return
+    return {"msg": "Filtrando professores por aula"}
 
 # ----------------------------
 # 6. Agendamento de Aulas
 # ----------------------------
-@app.get("/listar_hora_aula")
-def listar_hora_aula():
-    return
+@router_schedule.get("/agendamentos/")
+def listar_agendamentos(professor_id: int | None = None):
+    if professor_id:
+        return {"msg": f"Lista de agendamentos do professor {professor_id}"}
+    return {"msg": "Lista de todos os agendamentos"}
 
-@app.post("/agendar-aula")
-def agendar_aula():
-    return
+@router_schedule.get("/agendamentos/{agendamento_id}")
+def obter_agendamento(agendamento_id: int):
+    return {"msg": f"Agendamento {agendamento_id}"}
 
-@app.post("/cancelar-aula")
-def cadastrar_aula():
-    return
+@router_schedule.post("/agendamentos/")
+def criar_agendamento():
+    return {"msg": "Agendamento criado"}
+
+@router_schedule.patch("/agendamentos/{agendamento_id}/cancelar")
+def cancelar_agendamento(agendamento_id: int):
+    return {"msg": f"Agendamento {agendamento_id} cancelado"}
 
 # ----------------------------
 # 7. Pagamento
 # ----------------------------
 
+app.include_router(router_user)
+app.include_router(router_auth)
+app.include_router(router_lessons)
+app.include_router(router_schedule)
