@@ -12,13 +12,13 @@ app = FastAPI(
 # Router user - rotas de usuário
 router_user = APIRouter(
     prefix="/user",
-    tags=["usuário"]
+    tags=["usuario"]
 )
 
 # Router auth - rotas de autenticação
 router_auth = APIRouter(
     prefix="/auth",
-    tags=["autenticação"]
+    tags=["autenticacao"]
 )
 
 # Router classes - rotas de aulas e pacotes
@@ -49,8 +49,8 @@ router_finance = APIRouter(
     tags=["finance"]
 )
 
-router_avaliacoes = APIRouter(
-    prefix="/avaliacoes",
+router_ratings = APIRouter(
+    prefix="/ratings",
     tags=["avaliacoes"]
 )
 
@@ -258,23 +258,23 @@ def atualizar_status_pagamento(pag_id: int):
 # 10. Avaliações do Aluno
 # ----------------------------
 
-@router_avaliacoes.post("/aluno")
+@router_ratings.post("/aluno")
 def criar_avaliacao_aluno():
     return {"msg": "Avaliação do aluno criada com sucesso!"}
 
-@router_avaliacoes.get("/aluno/{ava_id}")
+@router_ratings.get("/aluno/{ava_id}")
 def obter_avaliacao_aluno(ava_id: int):
     return {"msg": f"Retornando avaliação do aluno com ID {ava_id}"}
 
-@router_avaliacoes.get("/aluno/")
+@router_ratings.get("/aluno/")
 def listar_avaliacoes_alunos():
     return {"msg": "Lista de avaliações dos alunos"}
 
-@router_avaliacoes.put("/aluno/{ava_id}")
+@router_ratings.put("/aluno/{ava_id}")
 def atualizar_avaliacao_aluno(ava_id: int):
     return {"msg": f"Avaliação do aluno {ava_id} atualizada com sucesso!"}
 
-@router_avaliacoes.delete("/aluno/{ava_id}")
+@router_ratings.delete("/aluno/{ava_id}")
 def deletar_avaliacao_aluno(ava_id: int):
     return {"msg": f"Avaliação do aluno {ava_id} removida!"}
 
@@ -282,23 +282,23 @@ def deletar_avaliacao_aluno(ava_id: int):
 # 11. Avaliações do Professor
 # ----------------------------
 
-@router_avaliacoes.post("/professor")
+@router_ratings.post("/professor")
 def criar_avaliacao_professor():
     return {"msg": "Avaliação do professor criada com sucesso!"}
 
-@router_avaliacoes.get("/professor/{ava_id}")
+@router_ratings.get("/professor/{ava_id}")
 def obter_avaliacao_professor(ava_id: int):
     return {"msg": f"Retornando avaliação do professor com ID {ava_id}"}
 
-@router_avaliacoes.get("/professor/")
+@router_ratings.get("/professor/")
 def listar_avaliacoes_professores():
     return {"msg": "Lista de avaliações dos professores"}
 
-@router_avaliacoes.put("/professor/{ava_id}")
+@router_ratings.put("/professor/{ava_id}")
 def atualizar_avaliacao_professor(ava_id: int):
     return {"msg": f"Avaliação do professor {ava_id} atualizada com sucesso!"}
 
-@router_avaliacoes.delete("/professor/{ava_id}")
+@router_ratings.delete("/professor/{ava_id}")
 def deletar_avaliacao_professor(ava_id: int):
     return {"msg": f"Avaliação do professor {ava_id} removida!"}
 
@@ -308,4 +308,4 @@ app.include_router(router_lessons)
 app.include_router(router_instruments)
 app.include_router(router_schedule)
 app.include_router(router_finance)
-app.include_router(router_avaliacoes)
+app.include_router(router_ratings)
