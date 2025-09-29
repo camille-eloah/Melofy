@@ -54,7 +54,6 @@ CREATE TABLE tb_solicitacao_agendamento (
     CONSTRAINT fk_sol_prof FOREIGN KEY (sol_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_sol_alu FOREIGN KEY (sol_alu_id) REFERENCES tb_aluno(id),
     CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES tb_instrumento(id)
-);
 
 CREATE TABLE tb_avaliacoes_aluno (
     ava_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -78,6 +77,7 @@ CREATE TABLE tb_avaliacoes_professor (
 
     CONSTRAINT fk_avaalu FOREIGN KEY (ava_alu_avaliador) REFERENCES tb_aluno(id),
     CONSTRAINT fk_avaprof FOREIGN KEY (ava_prof_avaliado) REFERENCES tb_professor(id)
+
 );
 
 CREATE TABLE tb_pagamento (
@@ -102,6 +102,7 @@ CREATE TABLE tb_dados_bancarios (
     dad_chave VARCHAR(255) NOT NULL UNIQUE,
     professor_id INT NULL,
     aluno_id INT NULL,
+
     FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
 );
