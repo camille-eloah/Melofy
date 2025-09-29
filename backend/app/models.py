@@ -38,11 +38,11 @@ class Aluno(UserBase, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
     conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)
 
-
     # cada aluno pode ter 1 ou N contas bancárias
     dados_bancarios: list["DadosBancarios"] = Relationship(back_populates="aluno")
 
-
+    # Relacionamento com aulas
+    aulas: list["Aula"] = Relationship(back_populates="aluno")
 
 # ----------------------------
 # Instrumentos
@@ -69,12 +69,12 @@ class Aula(SQLModel, table=True):
     __tablename__ = "tb_aula"
 
     aul_id: Optional[int] = Field(default=None, primary_key=True)
-    aul_prof_id: int = Field(foreign_key="professor.id", nullable=False)
-    aul_alu_id: Optional[int] = Field(foreign_key="aluno.id", default=None)  # aluno pode não estar agendado
+    aul_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    aul_alu_id: Optional[int] = Field(foreign_key="tb_aluno.id", default=None)  # aluno pode não estar agendado
     aul_modalidade: str
     aul_valor: float = Field(nullable=False, sa_type="DECIMAL(10,2)")
     aul_data: datetime
-    aul_inst_id: int = Field(foreign_key="instrumento.id", nullable=False)
+    aul_inst_id: int = Field(foreign_key="tb_instrumento.id", nullable=False)
     aul_status: StatusAula = Field(default=StatusAula.disponivel, nullable=False)
 
     # Relacionamentos
@@ -98,9 +98,9 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     sol_id: Optional[int] = Field(default=None, primary_key=True)
     
     # Relacionamentos
-    sol_prof_id: int = Field(foreign_key="professor.id", nullable=False)
-    sol_alu_id: int = Field(foreign_key="aluno.id", nullable=False)
-    sol_instr_id: int = Field(foreign_key="instrumento.id", nullable=False)
+    sol_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    sol_alu_id: int = Field(foreign_key="tb_aluno.id", nullable=False)
+    sol_instr_id: int = Field(foreign_key="tb_instrumento.id", nullable=False)
     
     # Dados da solicitação
     sol_horario: datetime
@@ -125,8 +125,8 @@ class AvaliacoesDoAluno(SQLModel, table=True):
     ava_nota: int = Field(nullable=False, ge=1, le=5)
 
     # Relacionamentos
-    ava_prof_avaliador: int = Field(foreign_key="professor.id", nullable=False)
-    ava_alu_avaliado: int = Field(foreign_key="aluno.id", nullable=False)
+    ava_prof_avaliador: int = Field(foreign_key="tb_professor.id", nullable=False)
+    ava_alu_avaliado: int = Field(foreign_key="tb_aluno.id", nullable=False)
 
     data_criacao: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
@@ -142,8 +142,8 @@ class AvaliacoesDoProfessor(SQLModel, table=True):
     ava_nota: int = Field(nullable=False, ge=1, le=5)
 
     # Relacionamentos
-    ava_alu_avaliador: int = Field(foreign_key="aluno.id", nullable=False)
-    ava_prof_avaliado: int = Field(foreign_key="professor.id", nullable=False)
+    ava_alu_avaliador: int = Field(foreign_key="tb_aluno.id", nullable=False)
+    ava_prof_avaliado: int = Field(foreign_key="tb_professor.id", nullable=False)
 
     data_criacao: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
@@ -165,9 +165,9 @@ class Pagamento(SQLModel, table=True):
     __tablename__ = "tb_pagamento"
 
     pag_id: Optional[int] = Field(default=None, primary_key=True)
-    pag_aul_id: Optional[int] = Field(default=None, foreign_key="aula.id")
-    pag_alu_id: int = Field(foreign_key="aluno.id", nullable=False)
-    pag_prof_id: int = Field(foreign_key="professor.id", nullable=False)
+    pag_aul_id: Optional[int] = Field(default=None, foreign_key="tb_aula.aul_id")
+    pag_alu_id: int = Field(foreign_key="tb_aluno.id", nullable=False)
+    pag_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
     pag_valor_total: float = Field(nullable=False, sa_type="DECIMAL(10,2)")
     pag_status: StatusPagamento = Field(default=StatusPagamento.pendente, nullable=False)
     pag_criacao: datetime = Field(default_factory=datetime.utcnow, nullable=False)
@@ -191,8 +191,8 @@ class DadosBancarios(SQLModel, table=True):
     dad_chave: str = Field(nullable=False, unique=True) # Chave PIX ou identificador único
 
     # FKs opcionais: só um dos dois será usado
-    professor_id: Optional[int] = Field(default=None, foreign_key="professor.id")
-    aluno_id: Optional[int] = Field(default=None, foreign_key="aluno.id")
+    professor_id: Optional[int] = Field(default=None, foreign_key="tb_professor.id")
+    aluno_id: Optional[int] = Field(default=None, foreign_key="tb_aluno.id")
 
     professor: Optional[Professor] = Relationship(back_populates="dados_bancarios")
     aluno: Optional[Aluno] = Relationship(back_populates="dados_bancarios")

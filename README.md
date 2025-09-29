@@ -32,6 +32,7 @@
 #### **a) Qual o objetivo do seu projeto?**
 
 Este sistema é uma plataforma digital criada para conectar alunos que desejam aprender música a professores que têm conhecimento e paixão por ensinar. De forma simples, acessível e organizada, a plataforma permite que qualquer pessoa interessada em aprender um instrumento, técnica vocal ou teoria musical encontre o professor ideal para seu perfil e objetivos.  
+
 A utilização da plataforma é totalmente gratuita. No entanto, as aulas são pagas diretamente ao professor, com valores definidos por ele — podendo ser contratadas por aulas avulsas ou por pacotes personalizados. A cada transação, uma pequena porcentagem é repassada à plataforma, de forma a sustentar sua manutenção e evolução. Abaixo, estão listada algumas funcionalidades:
 
 * Agendamento de aulas conforme a disponibilidade de aluno e professor;  
@@ -43,7 +44,6 @@ A utilização da plataforma é totalmente gratuita. No entanto, as aulas são p
 Um dos grandes diferenciais é que qualquer pessoa com conhecimento musical pode se cadastrar como professor — mesmo aquelas que, até então, encaravam a música apenas como hobby. Isso transforma a plataforma também em uma oportunidade de renda extra e valorização de talentos.
 
 #### **b) Qual o seu público-alvo? Como o grupo caracteriza esse grupo?**
-
 A plataforma é voltada para dois principais perfis de usuários:  
 	  
 **1\. Alunos de Música**  
@@ -86,8 +86,11 @@ Para aumentar o engajamento, serão oferecidas promoções de lançamento e cont
 * **Imagens:** 
 
 ![Image](https://github.com/user-attachments/assets/98566fe7-1587-458f-8ee3-beef819e2e79)
+
 ![Image](https://github.com/user-attachments/assets/42fef7df-eb69-469d-be9e-7a888b3e8b69)
+
 ![Image](https://github.com/user-attachments/assets/6c70a424-4084-4c47-84c6-cc5ba03679c2)
+
 ![Image](https://github.com/user-attachments/assets/f1190b9f-a2b3-4a50-b39a-5e9a40d0f601)
 
 **Tipografia**: [Inter](https://fonts.google.com/specimen/Inter)

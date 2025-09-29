@@ -1,3 +1,6 @@
+CREATE DATABASE db_melofy;
+USE db_melofy;
+
 CREATE TABLE tb_professor (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
@@ -33,9 +36,9 @@ CREATE TABLE tb_aula (
     aul_inst_id INT NOT NULL,
     aul_status ENUM('Disponível','Indisponível') NOT NULL DEFAULT 'Disponível',
 
-    CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES professor(id),
-    CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES aluno(id),
-    CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES instrumento(id)
+    CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
+    CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES tb_aluno(id),
+    CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)
 );
 
 CREATE TABLE tb_solicitacao_agendamento (
@@ -48,10 +51,9 @@ CREATE TABLE tb_solicitacao_agendamento (
     sol_status ENUM('Pendente','Confirmada','Recusada','Cancelada') NOT NULL DEFAULT 'Pendente',
     sol_mensagem TEXT NULL,
 
-    CONSTRAINT fk_sol_prof FOREIGN KEY (sol_prof_id) REFERENCES professor(id),
-    CONSTRAINT fk_sol_alu FOREIGN KEY (sol_alu_id) REFERENCES aluno(id),
-    CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES instrumento(id)
-);
+    CONSTRAINT fk_sol_prof FOREIGN KEY (sol_prof_id) REFERENCES tb_professor(id),
+    CONSTRAINT fk_sol_alu FOREIGN KEY (sol_alu_id) REFERENCES tb_aluno(id),
+    CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES tb_instrumento(id)
 
 CREATE TABLE tb_avaliacoes_aluno (
     ava_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -61,8 +63,8 @@ CREATE TABLE tb_avaliacoes_aluno (
     ava_alu_avaliado INT NOT NULL,
     data_criacao DATETIME NOT NULL,
 
-    CONSTRAINT fk_ava_prof FOREIGN KEY (ava_prof_avaliador) REFERENCES professor(id),
-    CONSTRAINT fk_ava_alu FOREIGN KEY (ava_alu_avaliado) REFERENCES aluno(id)
+    CONSTRAINT fk_ava_prof FOREIGN KEY (ava_prof_avaliador) REFERENCES tb_professor(id),
+    CONSTRAINT fk_ava_alu FOREIGN KEY (ava_alu_avaliado) REFERENCES tb_aluno(id)
 );
 
 CREATE TABLE tb_avaliacoes_professor (
@@ -73,8 +75,9 @@ CREATE TABLE tb_avaliacoes_professor (
     ava_prof_avaliado INT NOT NULL,
     data_criacao DATETIME NOT NULL,
 
-    CONSTRAINT fk_avaalu FOREIGN KEY (ava_alu_avaliador) REFERENCES aluno(id),
-    CONSTRAINT fk_avaprof FOREIGN KEY (ava_prof_avaliado) REFERENCES professor(id)
+    CONSTRAINT fk_avaalu FOREIGN KEY (ava_alu_avaliador) REFERENCES tb_aluno(id),
+    CONSTRAINT fk_avaprof FOREIGN KEY (ava_prof_avaliado) REFERENCES tb_professor(id)
+
 );
 
 CREATE TABLE tb_pagamento (
@@ -86,9 +89,9 @@ CREATE TABLE tb_pagamento (
     pag_status ENUM('pendente','confirmado','falhou','estornado') NOT NULL DEFAULT 'pendente',
     pag_criacao DATETIME NOT NULL,
 
-    CONSTRAINT fk_pag_aul FOREIGN KEY (pag_aul_id) REFERENCES aula(aul_id),
-    CONSTRAINT fk_pag_alu FOREIGN KEY (pag_alu_id) REFERENCES aluno(id),
-    CONSTRAINT fk_pag_prof FOREIGN KEY (pag_prof_id) REFERENCES professor(id)
+    CONSTRAINT fk_pag_aul FOREIGN KEY (pag_aul_id) REFERENCES tb_aula(aul_id),
+    CONSTRAINT fk_pag_alu FOREIGN KEY (pag_alu_id) REFERENCES tb_aluno(id),
+    CONSTRAINT fk_pag_prof FOREIGN KEY (pag_prof_id) REFERENCES tb_professor(id)
 );
 
 CREATE TABLE tb_dados_bancarios (
@@ -99,6 +102,7 @@ CREATE TABLE tb_dados_bancarios (
     dad_chave VARCHAR(255) NOT NULL UNIQUE,
     professor_id INT NULL,
     aluno_id INT NULL,
-    FOREIGN KEY (professor_id) REFERENCES professor(id),
-    FOREIGN KEY (aluno_id) REFERENCES aluno(id)
+
+    FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
+    FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
 );
