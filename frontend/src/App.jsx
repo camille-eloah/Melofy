@@ -10,6 +10,9 @@ function App() {
     <>
       <h1>Melofy Bem-Vindas</h1>
       <p>Bem Vindas ao sistema Melofy</p>
+
+      <h3>Forms</h3>
+      <input type="text" />
     </>
   )
 }
