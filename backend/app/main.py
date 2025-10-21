@@ -58,19 +58,28 @@ router_ratings = APIRouter(
 # 0. Usuário
 # ----------------------------
 
-@router_user.post("/")
-def cadastrar_user():
-    return {"msg": "Usuário criado"}
+@router_user.post("/", response_model=UserResponse)
+def cadastrar_user(user: UserCreate, db: Session = Depends(get_db)):
+    novo_user = User(
+        nome=user.nome,
+        email=user.email,
+        senha=user.senha,  # tente cptografar 
+        is_professor=user.is_professor # se for professor
+    )
+    db.add(novo_user)
+    db.commit()
+    db.refresh(novo_user)
+    return novo_user
 
 # Listar todos os usuários
-@router_user.get("/")
-def listar_usuarios():
-    return {"msg": "Lista de usuários"}
+@router_user.get("/", response_model=list[UserResponse])
+def listar_usuarios(db: Session = Depends(get_db)):
+    return db.query(User).all()
 
 # Listar professores
-@router_user.get("/professores")
-def listar_professores():
-    return {"msg": "Lista de professores"}
+@router_user.get("/professores", response_model=list[UserResponse])
+def listar_professores(db: Session = Depends(get_db)):
+    return db.query(User).filter(User.is_professor == True).all()
 
 # ----------------------------
 # 1. Autenticação
