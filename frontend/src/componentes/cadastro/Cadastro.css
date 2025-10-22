@@ -1,0 +1,93 @@
+.Conteiner {
+    width: 450px;
+    height: 550px;
+    background-color: rgba(255, 255, 255, 0.041); 
+    backdrop-filter: blur(9px);
+    border: 1px solid rgba(247, 200, 173, 0.3); 
+    border-radius: 15px;
+    padding: 45px;
+    box-shadow: 0 8px 32px rgba(4, 64, 105, 0.3); 
+}
+
+.Conteiner h1 {
+    text-align: center;
+    color: #ffffff;
+    /* color: #0098da;  */
+    margin-bottom: 20px;
+    font-size: 2rem;
+    /* text-shadow: 0 0 10px  #fca311;  */
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: 1px;
+}
+
+.Conteiner form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+
+}
+
+.Conteiner input {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    border: 2px solid rgba(108, 159, 189, 0.5); 
+    background-color: rgba(4, 64, 105, 0.4); 
+    color: #f7c8ad; 
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.Conteiner input:focus {
+    outline: none;
+    border-color: #fca311; 
+    box-shadow: 0 0 10px rgba(192, 170, 165, 0.5); 
+    background-color: rgba(4, 64, 105, 0.6); 
+}
+
+.Conteiner input::placeholder {
+    color: rgba(247, 200, 173, 0.6); 
+}
+
+.Conteiner button {
+    padding: 15px;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(45deg, #044069, #716cbd, #5e24e6c0); 
+    background-size: 200% 200%;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.5s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(4, 64, 105, 0.4); 
+}
+
+.Conteiner button:hover {
+    background-position: right center;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(63, 152, 204, 0.6); 
+}
+
+.Conteiner button:active {
+    transform: translateY(0);
+}
+
+
+p{
+    color: rgb(175, 255, 69);
+}
+
+
+
+body {
+    background-image: url('/src/assets/368363c7-c1e8-43ae-8122-6bfed4127bcb.jpg'); 
+    background-size: cover;         
+    background-position: center;    
+    background-repeat: no-repeat;   
+    background-attachment: fixed;   
+    font-family: Arial, sans-serif; 
+}
