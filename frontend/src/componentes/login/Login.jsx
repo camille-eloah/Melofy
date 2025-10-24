@@ -1,14 +1,23 @@
 import { useState} from 'react'
+import { useNavigate } from 'react-router-dom'
 import './Login.css'
 
 function Login (){
     const [mostrar, setMostrar] = useState(false)  
     const [email, setEmail] = useState('')  
     const [senha, setSenha] = useState('')
+    const navigate = useNavigate()
 
     function cadastrarUsuario(e){
         e.preventDefault()
         console.log('Usuário cadastrado:', { email, senha })
+        
+        if (email && senha) {
+            navigate('/home') // redireciona para a Home
+        } else {
+            alert('Preencha todos os campos!')
+        }
+        
         setMostrar(true)
     }
 

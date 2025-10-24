@@ -1,14 +1,21 @@
 from sqlmodel import SQLModel, create_engine, Session
+from dotenv import load_dotenv
 import os
 
 # -------------------------------------------------
-# Configuração da URL de conexão
+# Carregar variáveis do arquivo .env
 # -------------------------------------------------
-# Exemplo de URL:
-# mysql+mysqlconnector://usuario:senha@localhost:3306/db_melofy
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "mysql+mysqlconnector://root:password@localhost:3306/db_melofy"
+load_dotenv()
+
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "password")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME", "db_melofy")
+
+# Montagem da URL
+DATABASE_URL = (
+    f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 # Criação do engine
