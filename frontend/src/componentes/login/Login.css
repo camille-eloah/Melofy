@@ -1,93 +1,229 @@
+/* Login.css */
+body {
+    background-image: url('/src/assets/368363c7-c1e8-43ae-8122-6bfed4127bcb.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
 .Conteiner {
-    width: 450px;
-    height: 350px;
-    background-color: rgba(255, 255, 255, 0.041); 
-    backdrop-filter: blur(9px);
-    border: 1px solid rgba(247, 200, 173, 0.3); 
-    border-radius: 15px;
-    padding: 45px;
-    box-shadow: 0 8px 32px rgba(4, 64, 105, 0.3); 
+    width: 100%;
+    max-width: 420px;
+    background-color: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(247, 200, 173, 0.2);
+    border-radius: 16px;
+    padding: 35px 30px;
+    box-shadow: 0 8px 32px rgba(4, 64, 105, 0.25);
+    height: auto;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .Conteiner h1 {
     text-align: center;
     color: #ffffff;
-    /* color: #0098da;  */
-    margin-bottom: 20px;
-    font-size: 2rem;
-    /* text-shadow: 0 0 10px  #fca311;  */
-    font-family: 'Arial Black', sans-serif;
-    letter-spacing: 1px;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .Conteiner form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
+    gap: 20px;
+}
 
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-label {
+    color: #e8f4ff;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    opacity: 0.9;
 }
 
 .Conteiner input {
     width: 100%;
-    padding: 11px;
+    padding: 12px 14px;
     border-radius: 8px;
-    border: 2px solid rgba(108, 159, 189, 0.5); 
-    background-color: rgba(4, 64, 105, 0.4); 
-    color: #f7c8ad; 
-    font-size: 1rem;
+    border: 1.5px solid rgba(108, 159, 189, 0.3);
+    background-color: rgba(4, 64, 105, 0.25);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     transition: all 0.3s ease;
+    box-sizing: border-box;
+    height: 46px;
 }
 
 .Conteiner input:focus {
     outline: none;
-    border-color: #fca311; 
-    box-shadow: 0 0 10px rgba(192, 170, 165, 0.5); 
-    background-color: rgba(4, 64, 105, 0.6); 
+    border-color: #fca311;
+    box-shadow: 0 0 0 2px rgba(252, 163, 17, 0.15);
+    background-color: rgba(4, 64, 105, 0.4);
 }
 
 .Conteiner input::placeholder {
-    color: rgba(247, 200, 173, 0.6); 
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .Conteiner button {
-    padding: 15px;
+    width: 100%;
+    padding: 14px;
     border-radius: 8px;
     border: none;
-    background: linear-gradient(45deg, #044069, #716cbd, #5e24e6c0); 
+    background: linear-gradient(45deg, #044069, #4a44a0, #3a16a8);
     background-size: 200% 200%;
     color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
-    transition: all 0.5s ease;
+    transition: all 0.4s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 10px;
-    box-shadow: 0 4px 15px rgba(4, 64, 105, 0.4); 
+    box-shadow: 0 4px 12px rgba(4, 64, 105, 0.25);
+    height: 48px;
 }
 
 .Conteiner button:hover {
     background-position: right center;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(63, 152, 204, 0.6); 
+    box-shadow: 0 6px 16px rgba(63, 152, 204, 0.4);
 }
 
 .Conteiner button:active {
     transform: translateY(0);
 }
 
-
-p{
-    color: rgb(175, 255, 69);
+/* Estilos para lembrar senha */
+.lembrar-senha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -5px;
+    margin-bottom: 5px;
 }
 
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    color: #e8f4ff;
+    font-size: 0.85rem;
+    cursor: pointer;
+    gap: 8px;
+}
 
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
 
-body {
-    background-image: url('/src/assets/368363c7-c1e8-43ae-8122-6bfed4127bcb.jpg'); 
-    background-size: cover;         
-    background-position: center;    
-    background-repeat: no-repeat;   
-    background-attachment: fixed;   
-    font-family: Arial, sans-serif; 
+.checkmark {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(108, 159, 189, 0.5);
+    border-radius: 3px;
+    background-color: rgba(4, 64, 105, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+    background-color: #fca311;
+    border-color: #fca311;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    color: #044069;
+    font-size: 12px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.esqueci-senha {
+    color: #f7c8ad;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.esqueci-senha:hover {
+    color: #fca311;
+    text-decoration: underline;
+}
+
+/* Link para cadastro */
+.cadastro-link {
+    text-align: center;
+    color: #e8f4ff;
+    font-size: 0.9rem;
+    margin-top: 15px;
+}
+
+.cadastro-link a {
+    color: #fca311;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.cadastro-link a:hover {
+    color: #f7c8ad;
+    text-decoration: underline;
+}
+
+/* Mensagem de informação */
+.mensagem-info {
+    color: #7ae582;
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    padding: 10px;
+    background-color: rgba(122, 229, 130, 0.1);
+    border-radius: 6px;
+    border: 1px solid rgba(122, 229, 130, 0.2);
+    font-size: 0.9rem;
+}
+
+/* Responsividade */
+@media (max-height: 600px) {
+    .Conteiner {
+        min-height: 400px;
+        padding: 25px 20px;
+    }
+    
+    .Conteiner form {
+        gap: 15px;
+    }
+    
+    .Conteiner h1 {
+        margin-bottom: 20px;
+        font-size: 1.6rem;
+    }
 }

@@ -1,93 +1,190 @@
+body {
+    background-image: url('/src/assets/368363c7-c1e8-43ae-8122-6bfed4127bcb.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 110vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
 .Conteiner {
-    width: 450px;
-    height: 550px;
-    background-color: rgba(255, 255, 255, 0.041); 
-    backdrop-filter: blur(9px);
-    border: 1px solid rgba(247, 200, 173, 0.3); 
-    border-radius: 15px;
-    padding: 45px;
-    box-shadow: 0 8px 32px rgba(4, 64, 105, 0.3); 
+    width: 100%;
+    min-width: 500px;
+    background-color: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(247, 200, 173, 0.2);
+    border-radius: 16px;
+    /* padding: 30px 25px; */
+    box-shadow: 0 8px 32px rgba(4, 64, 105, 0.2);
+    height: auto;
+    min-height: 530px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .Conteiner h1 {
     text-align: center;
     color: #ffffff;
-    /* color: #0098da;  */
-    margin-bottom: 20px;
-    font-size: 2rem;
-    /* text-shadow: 0 0 10px  #fca311;  */
-    font-family: 'Arial Black', sans-serif;
-    letter-spacing: 1px;
+    margin-bottom: 25px;
+    font-size: 1.7rem;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .Conteiner form {
     display: flex;
     flex-direction: column;
-    gap: 25px;
-
+    gap: 18px;
 }
 
-.Conteiner input {
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-label {
+    color: #e8f4ff;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+.linha-dupla {
+    display: flex;
+    gap: 10px;
     width: 100%;
-    padding: 11px;
-    border-radius: 8px;
-    border: 2px solid rgba(108, 159, 189, 0.5); 
-    background-color: rgba(4, 64, 105, 0.4); 
-    color: #f7c8ad; 
-    font-size: 1rem;
-    transition: all 0.3s ease;
 }
 
-.Conteiner input:focus {
+.linha-dupla .input-group {
+    flex: 1;
+    min-width: 0;
+}
+
+.Conteiner input,
+.Conteiner select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(108, 159, 189, 0.3);
+    background-color: rgba(4, 64, 105, 0.25);
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    height: 42px;
+}
+
+.Conteiner input:focus,
+.Conteiner select:focus {
     outline: none;
-    border-color: #fca311; 
-    box-shadow: 0 0 10px rgba(192, 170, 165, 0.5); 
-    background-color: rgba(4, 64, 105, 0.6); 
+    border-color: #fca311;
+    box-shadow: 0 0 0 2px rgba(252, 163, 17, 0.15);
+    background-color: rgba(4, 64, 105, 0.4);
 }
 
 .Conteiner input::placeholder {
-    color: rgba(247, 200, 173, 0.6); 
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.9rem;
+}
+
+.Conteiner select {
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px;
+    padding-right: 35px;
 }
 
 .Conteiner button {
-    padding: 15px;
+    width: 100%;
+    padding: 12px;
     border-radius: 8px;
     border: none;
-    background: linear-gradient(45deg, #044069, #716cbd, #5e24e6c0); 
+    background: linear-gradient(45deg, #044069, #4a44a0, #3a16a8);
     background-size: 200% 200%;
     color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
+    font-family: 'Montserrat', 'Segoe UI', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: all 0.5s ease;
+    transition: all 0.4s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-top: 10px;
-    box-shadow: 0 4px 15px rgba(4, 64, 105, 0.4); 
+    box-shadow: 0 4px 12px rgba(4, 64, 105, 0.25);
+    height: 46px;
 }
 
 .Conteiner button:hover {
     background-position: right center;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(63, 152, 204, 0.6); 
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(63, 152, 204, 0.4);
 }
 
 .Conteiner button:active {
     transform: translateY(0);
 }
 
-
-p{
-    color: rgb(175, 255, 69);
+.mensagem-sucesso {
+    color: #7ae582;
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 500;
+    padding: 12px;
+    background-color: rgba(122, 229, 130, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(122, 229, 130, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.95rem;
 }
 
+.icone-sucesso {
+    background-color: #7ae582;
+    color: #044069;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
 
-
-body {
-    background-image: url('/src/assets/368363c7-c1e8-43ae-8122-6bfed4127bcb.jpg'); 
-    background-size: cover;         
-    background-position: center;    
-    background-repeat: no-repeat;   
-    background-attachment: fixed;   
-    font-family: Arial, sans-serif; 
+/* Responsividade */
+@media (max-height: 700px) {
+    .Conteiner {
+        min-height: 520px;
+        padding: 25px 20px;
+    }
+    
+    .Conteiner form {
+        gap: 15px;
+    }
+    
+    .Conteiner h1 {
+        margin-bottom: 20px;
+        font-size: 1.6rem;
+    }
 }
