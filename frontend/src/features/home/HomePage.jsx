@@ -4,6 +4,7 @@ import MainSection from './MainSection'
 import Footer from '../../componentes/layout/Footer'
 import './HomePage.css'
 
+
 function HomePage() {
   return (
     <div className="home-container">

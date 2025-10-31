@@ -8,7 +8,7 @@ function Header() {
         <ul className="nav-list">
           <li><a href="/home">Início</a></li>
           <li><a href="/musicas">Músicas</a></li>
-          <li><a href="/perfil">Perfil</a></li>
+          <li><a href="/profile">Perfil</a></li>
         </ul>
       </nav>
     </header>
