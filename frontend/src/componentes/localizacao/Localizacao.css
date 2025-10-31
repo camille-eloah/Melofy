@@ -1,0 +1,212 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.localizacao-container {
+  width: 100vw;
+  height: 100vh;
+  font-family: "Segoe UI", Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  background-color: #f1f5f9;
+}
+
+
+.cabecalho-azul {
+  background-color: #1e3a8a;
+  color: white;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cabecalho-azul h1 {
+  flex: 1;
+  font-size: 1.8rem;
+  font-weight: bold;
+
+}
+
+.botoes-esquerda {
+  display: flex;
+  gap: 1rem;
+}
+
+.botao-cabecalho {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.botao-cabecalho:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+
+.conteudo-principal {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+
+.lado-esquerdo {
+  flex: 6;
+  padding: 2rem 3rem;
+  overflow-y: auto;
+}
+
+.dados-usuario {
+  background: white;
+  padding: 2rem 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.dados-usuario h2 {
+  color: #1e40af;
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0.5rem;
+}
+
+
+.info-item {
+  margin-bottom: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.info-item strong {
+  display: inline-block;
+  width: 90px;
+  color: #1f2937;
+}
+
+
+.info-bloco-distancia {
+  margin-top: 2rem;
+  background-color: #f3f3f3;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+}
+
+
+.info-bloco-distancia p {
+  text-align: right;
+  color: #385092;
+}
+
+.info-bloco-endereco {
+  margin-top: 2rem;
+  background-color: #f3f3f3;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+}
+
+
+.info-bloco-endereco p {
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+.info-bloco-distancia h3 {
+  color: #1e40af;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+
+.info-bloco-endereco h3 {
+  color: #1e40af;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+
+.valor-destaque {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #059669;
+}
+
+
+.total-container {
+  margin-top: 2.5rem;
+  background-color: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  color: #1e3a8a;
+  font-weight: 600;
+}
+
+
+.lado-direito {
+  flex: 4;
+  padding: 2rem;
+  background-color: #ffffff;
+  border-left: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapa-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mapa-container h3 {
+  color: #1e40af;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+#mapa.mapa-placeholder {
+  flex: 1;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
+  min-height: 450px;
+}
+
+
+@media (max-width: 768px) {
+  .conteudo-principal {
+    flex-direction: column;
+  }
+
+  .lado-esquerdo,
+  .lado-direito {
+    flex: none;
+    width: 100%;
+  }
+
+  #mapa.mapa-placeholder {
+    min-height: 300px;
+  }
+
+  .total-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}
