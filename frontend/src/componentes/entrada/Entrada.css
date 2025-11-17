@@ -1,0 +1,232 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
+
+.melofy-container {
+  width: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+}
+
+.melofy-background {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+
+.melofy-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(74, 144, 226, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(198, 65, 225, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(45, 212, 191, 0.05) 0%, transparent 50%);
+  animation: backgroundShift 8s ease-in-out infinite alternate;
+}
+
+@keyframes backgroundShift {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.1);
+  }
+}
+
+.melofy-content {
+  text-align: center;
+  color: white;
+  z-index: 1;
+  max-width: 400px;
+  width: 90%;
+  animation: fadeInUp 1s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.melofy-logo h1 {
+  font-family: 'Nunito', sans-serif;
+  font-size: 5rem;
+  font-weight: 1100;
+  margin-bottom: 2rem;
+  background: linear-gradient(45deg, #724ae2, #4179e1, #d4ad2d);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 3s ease infinite;
+  letter-spacing: 2px;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.melofy-slogan {
+  margin-bottom: 3rem;
+  line-height: 1.6;
+}
+
+.melofy-slogan p {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+  color: #e2e8f0;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+.melofy-slogan p:first-child {
+  font-size: 1.3rem;
+  font-weight: 400;
+}
+
+.melofy-buttons {
+  display: flex;
+  gap: 1rem;
+  min-width: 400px;
+  margin: 0 auto;
+  justify-content: space-around;
+}
+
+.melofy-btn {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 190px;
+}
+
+.cadastrar-btn {
+  background: linear-gradient(45deg, #4a90e2, #c641e1);
+  color: white;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.cadastrar-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+  background: linear-gradient(45deg, #4166e1, #4a90e2);
+}
+
+.logar-btn {
+  background: transparent;
+  color: #e2e8f0;
+  border: 2px solid #4a90e2;
+  position: relative;
+  overflow: hidden;
+}
+
+.logar-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.logar-btn:hover {
+  background: rgba(74, 144, 226, 0.1);
+  border-color: #c641e1;
+  transform: translateY(-2px);
+}
+
+.logar-btn:hover::before {
+  left: 100%;
+}
+
+
+.melody-note {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.1;
+  animation: float 6s ease-in-out infinite;
+}
+
+.melody-note:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
+.melody-note:nth-child(2) { top: 60%; left: 85%; animation-delay: 1s; }
+.melody-note:nth-child(3) { top: 80%; left: 15%; animation-delay: 2s; }
+.melody-note:nth-child(4) { top: 30%; left: 90%; animation-delay: 3s; }
+.melody-note:nth-child(5) { top: 70%; left: 5%; animation-delay: 4s; }
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+  }
+}
+
+
+@media (max-width: 768px) {
+  .melofy-logo h1 {
+    font-size: 2.8rem;
+  }
+  
+  .melofy-slogan p {
+    font-size: 1.1rem;
+  }
+  
+  .melofy-slogan p:first-child {
+    font-size: 1.2rem;
+  }
+  
+  .melofy-btn {
+    padding: 12px 25px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .melofy-logo h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .melofy-slogan {
+    margin-bottom: 2rem;
+  }
+  
+  .melofy-slogan p {
+    font-size: 1rem;
+  }
+  
+  .melody-note {
+    font-size: 1.2rem;
+  }
+}
