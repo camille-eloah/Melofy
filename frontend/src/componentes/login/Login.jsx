@@ -13,7 +13,7 @@ function Login() {
         console.log('Usuário logado:', { email, senha })
         
         if (email && senha) {
-            navigate('/home') // redireciona para a Home
+            navigate('/home') 
         } else {
             alert('Preencha todos os campos!')
         }
