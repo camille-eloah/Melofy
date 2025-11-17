@@ -4,31 +4,35 @@
   box-sizing: border-box;
 }
 
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .localizacao-container {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  min-height: 100vh;
   font-family: "Segoe UI", Arial, sans-serif;
   display: flex;
   flex-direction: column;
-  background-color: #f1f5f9;
+  background-color: #f0f4f8;
 }
 
-
 .cabecalho-azul {
-  background-color: #1e3a8a;
+  background-color: #14213D;
   color: white;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-between;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .cabecalho-azul h1 {
-  flex: 1;
   font-size: 1.8rem;
   font-weight: bold;
-
 }
 
 .botoes-esquerda {
@@ -37,7 +41,7 @@
 }
 
 .botao-cabecalho {
-  background-color: rgba(255, 255, 255, 0.15);
+  background-color: #0099da71;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
@@ -51,18 +55,18 @@
   background-color: rgba(255, 255, 255, 0.25);
 }
 
-
 .conteudo-principal {
   flex: 1;
   display: flex;
-  overflow: hidden;
+  background-color: #f0f4f8;
+  padding: 0;
 }
-
 
 .lado-esquerdo {
   flex: 6;
-  padding: 2rem 3rem;
-  overflow-y: auto;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
 }
 
 .dados-usuario {
@@ -70,6 +74,8 @@
   padding: 2rem 2.5rem;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 600px;
 }
 
 .dados-usuario h2 {
@@ -79,7 +85,6 @@
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 0.5rem;
 }
-
 
 .info-item {
   margin-bottom: 1rem;
@@ -92,63 +97,45 @@
 .info-item strong {
   display: inline-block;
   width: 90px;
-  color: #1f2937;
+  color: #5f7ba1;
 }
-
 
 .info-bloco-distancia {
   margin-top: 2rem;
-  background-color: #f3f3f3;
-  padding: 1rem 1.2rem;
+  background-color: #f8fafc;
+  padding: 1.5rem;
   border-radius: 8px;
-}
-
-
-.info-bloco-distancia p {
-  text-align: right;
-  color: #385092;
 }
 
 .info-bloco-endereco {
   margin-top: 2rem;
-  background-color: #f3f3f3;
-  padding: 1rem 1.2rem;
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  color: #092369;
   border-radius: 8px;
 }
 
-
-.info-bloco-endereco p {
-  font-size: 1rem;
-  color: #4b5563;
-}
-
-.info-bloco-distancia h3 {
-  color: #1e40af;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
-}
-
-
+.info-bloco-distancia h3,
 .info-bloco-endereco h3 {
   color: #1e40af;
   margin-bottom: 0.5rem;
   font-size: 1.1rem;
 }
 
-
 .valor-destaque {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  color: #059669;
+  color: #3589b9;
+  text-align: right;
+  margin-top: 0.5rem;
 }
-
 
 .total-container {
   margin-top: 2.5rem;
-  background-color: #e0f2fe;
-  border: 1px solid #bae6fd;
+  background-color: #f0f9fff1;
+  border: 1px solid #abd1e6;
   border-radius: 8px;
-  padding: 1rem 1.2rem;
+  padding: 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -156,7 +143,6 @@
   color: #1e3a8a;
   font-weight: 600;
 }
-
 
 .lado-direito {
   flex: 4;
@@ -171,7 +157,6 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .mapa-container h3 {
@@ -181,13 +166,45 @@
   text-align: center;
 }
 
-#mapa.mapa-placeholder {
+
+.mapa-wrapper {
   flex: 1;
   border-radius: 10px;
   border: 2px solid #cbd5e1;
-  min-height: 450px;
+  overflow: hidden;
+  position: relative;
+  background-color: #f8fafc;
 }
 
+#mapa {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+}
+
+.mapa-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+  font-style: italic;
+}
+
+.mapa-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #dc2626;
+  text-align: center;
+  padding: 2rem;
+}
+
+.mapa-error p {
+  margin-bottom: 1rem;
+}
 
 @media (max-width: 768px) {
   .conteudo-principal {
@@ -198,15 +215,25 @@
   .lado-direito {
     flex: none;
     width: 100%;
+    padding: 1rem;
   }
 
-  #mapa.mapa-placeholder {
+  .lado-direito {
+    border-left: none;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  #mapa {
     min-height: 300px;
   }
 
-  .total-container {
+  .cabecalho-azul {
     flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .cabecalho-azul h1 {
     text-align: center;
-    gap: 0.5rem;
   }
 }

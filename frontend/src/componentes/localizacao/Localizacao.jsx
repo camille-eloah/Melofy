@@ -1,35 +1,89 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "./Localizacao.css";
 
 function Localizacao() {
+  const [mapStatus, setMapStatus] = useState("loading"); 
+
   useEffect(() => {
     const initMap = () => {
-      const endereco = { lat: -23.561684, lng: -46.656139 }; // São Paulo
+      try {
+        const endereco = { lat: -23.561684, lng: -46.656139 };
 
-      const map = new window.google.maps.Map(document.getElementById("mapa"), {
-        zoom: 15,
-        center: endereco,
-      });
+        const map = new window.google.maps.Map(document.getElementById("mapa"), {
+          zoom: 15,
+          center: endereco,
+          mapTypeControl: true,
+          streetViewControl: true,
+          fullscreenControl: true,
+        });
 
-      new window.google.maps.Marker({
-        position: endereco,
-        map,
-        title: "Rua das Flores, 123 - São Paulo",
-      });
+        new window.google.maps.Marker({
+          position: endereco,
+          map: map,
+          title: "Rua das Flores, 123 - São Paulo",
+        });
+
+        setMapStatus("loaded");
+        console.log("Mapa carregado com sucesso!");
+      } catch (error) {
+        console.error("Erro ao inicializar mapa:", error);
+        setMapStatus("error");
+      }
     };
 
-    if (!window.google) {
+    
+    const loadGoogleMaps = () => {
+      if (document.querySelector('script[src*="maps.googleapis.com"]')) {
+        return;
+      }
+
       const script = document.createElement("script");
-      script.src =
-        "https://maps.googleapis.com/maps/api/js?key=AIzaSyB0pUTdpJmnAIw2cGQpu9SZLmCzKnu5HW4&callback=initMap";
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyB0pUTdpJmnAIw2cGQpu9SZLmCzKnu5HW4`;
       script.async = true;
       script.defer = true;
-      document.body.appendChild(script);
-      window.initMap = initMap;
-    } else {
+      
+      script.onload = () => {
+        console.log("Google Maps API carregada");
+        initMap();
+      };
+      
+      script.onerror = () => {
+        console.error("Erro ao carregar Google Maps API");
+        setMapStatus("error");
+      };
+      
+      document.head.appendChild(script);
+    };
+
+    if (window.google && window.google.maps) {
       initMap();
+    } else {
+      loadGoogleMaps();
     }
+
   }, []);
+
+  const renderMapContent = () => {
+    switch (mapStatus) {
+      case "loading":
+        return (
+          <div className="mapa-loading">
+            <p>Carregando mapa...</p>
+          </div>
+        );
+      case "error":
+        return (
+          <div className="mapa-error">
+            <p>⚠️ Não foi possível carregar o mapa</p>
+            <small>Verifique sua conexão com a internet</small>
+          </div>
+        );
+      case "loaded":
+        return <div id="mapa" style={{ width: '100%', height: '100%' }}></div>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="localizacao-container">
@@ -76,11 +130,12 @@ function Localizacao() {
           </div>
         </div>
 
-
         <div className="lado-direito">
           <div className="mapa-container">
-            <h3>Mapa</h3>
-            <div id="mapa" className="mapa-placeholder"></div>
+            <h3>Localização</h3>
+            <div className="mapa-wrapper">
+              {renderMapContent()}
+            </div>
           </div>
         </div>
       </main>
