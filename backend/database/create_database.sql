@@ -3,8 +3,11 @@ USE db_melofy;
 
 CREATE TABLE tb_professor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    data_nascimento DATE NOT NULL,
+    tipo_usuario ENUM('Professor','Aluno') NOT NULL DEFAULT 'Professor',
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     vacation_mode BOOLEAN NOT NULL DEFAULT FALSE,
@@ -13,8 +16,11 @@ CREATE TABLE tb_professor (
 
 CREATE TABLE tb_aluno (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    cpf VARCHAR(14) NOT NULL UNIQUE,
+    data_nascimento DATE NOT NULL,
+    tipo_usuario ENUM('Professor','Aluno') NOT NULL DEFAULT 'Aluno',
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     conta_status ENUM('Ativo', 'Desativado', 'Exclusão') NOT NULL DEFAULT 'Ativo'

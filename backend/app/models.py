@@ -1,14 +1,21 @@
 from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship 
-from datetime import datetime 
+from datetime import datetime, date
 from enum import Enum
 
 # ----------------------------
 # Usuários
 # ----------------------------
+class TipoUsuario(str, Enum):
+    PROFESSOR = "Professor"
+    ALUNO = "Aluno"
+
+
 class UserBase(SQLModel):
-    username: str = Field(index=True, nullable=False, unique=True)
+    nome: str = Field(nullable=False)
     email: str = Field(index=True, nullable=False, unique=True)
+    cpf: str = Field(index=True, nullable=False, unique=True)
+    data_nascimento: date = Field(nullable=False)
 
 class StatusConta(str, Enum):
     ATIVO = "Ativo"
@@ -19,6 +26,7 @@ class Professor(UserBase, table=True):
     __tablename__ = "tb_professor"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    tipo_usuario: TipoUsuario = Field(default=TipoUsuario.PROFESSOR, nullable=False)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     vacation_mode: bool = Field(default=False, nullable=False)
@@ -34,6 +42,7 @@ class Aluno(UserBase, table=True):
     __tablename__ = "tb_aluno"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    tipo_usuario: TipoUsuario = Field(default=TipoUsuario.ALUNO, nullable=False)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)

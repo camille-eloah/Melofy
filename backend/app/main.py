@@ -1,7 +1,11 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Request
+from datetime import date
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse
-from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento
-from typing import List
+from pydantic import BaseModel, EmailStr, ConfigDict
+from sqlmodel import Session, select
+
+from app.db_connection import get_session
+from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
 
 app = FastAPI(
     title="Melofy",
@@ -54,32 +58,88 @@ router_ratings = APIRouter(
     tags=["avaliacoes"]
 )
 
+
+class UserCreate(BaseModel):
+    nome: str
+    cpf: str
+    data_nascimento: date
+    email: EmailStr
+    senha: str
+    tipo: TipoUsuario
+
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    cpf: str
+    data_nascimento: date
+    email: EmailStr
+    tipo: TipoUsuario
+
+
+def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
+    for model in (Professor, Aluno):
+        if db.exec(select(model).where(model.email == email)).first():
+            raise HTTPException(status_code=400, detail="E-mail ja cadastrado")
+        if db.exec(select(model).where(model.cpf == cpf)).first():
+            raise HTTPException(status_code=400, detail="CPF ja cadastrado")
+
+
+def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    return UserResponse(
+        id=usuario.id,
+        nome=usuario.nome,
+        cpf=usuario.cpf,
+        data_nascimento=usuario.data_nascimento,
+        email=usuario.email,
+        tipo=tipo,
+    )
+
 # ----------------------------
 # 0. Usuário
 # ----------------------------
 
-@router_user.post("/", response_model=UserResponse)
-def cadastrar_user(user: UserCreate, db: Session = Depends(get_db)):
-    novo_user = User(
-        nome=user.nome,
-        email=user.email,
-        senha=user.senha,  # tente cptografar 
-        is_professor=user.is_professor # se for professor
-    )
-    db.add(novo_user)
+@router_user.post("/", response_model=UserResponse, status_code=201)
+def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
+    _verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+
+    if user.tipo == TipoUsuario.PROFESSOR:
+        novo_usuario = Professor(
+            nome=user.nome,
+            email=user.email,
+            cpf=user.cpf,
+            data_nascimento=user.data_nascimento,
+            hashed_password=user.senha,
+        )
+    else:
+        novo_usuario = Aluno(
+            nome=user.nome,
+            email=user.email,
+            cpf=user.cpf,
+            data_nascimento=user.data_nascimento,
+            hashed_password=user.senha,
+        )
+
+    db.add(novo_usuario)
     db.commit()
-    db.refresh(novo_user)
-    return novo_user
+    db.refresh(novo_usuario)
+    return _montar_resposta_usuario(novo_usuario)
 
 # Listar todos os usuários
 @router_user.get("/", response_model=list[UserResponse])
-def listar_usuarios(db: Session = Depends(get_db)):
-    return db.query(User).all()
+def listar_usuarios(db: Session = Depends(get_session)):
+    professores = db.exec(select(Professor)).all()
+    alunos = db.exec(select(Aluno)).all()
+    return [_montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
 
 # Listar professores
 @router_user.get("/professores", response_model=list[UserResponse])
-def listar_professores(db: Session = Depends(get_db)):
-    return db.query(User).filter(User.is_professor == True).all()
+def listar_professores(db: Session = Depends(get_session)):
+    professores = db.exec(select(Professor)).all()
+    return [_montar_resposta_usuario(professor) for professor in professores]
 
 # ----------------------------
 # 1. Autenticação
