@@ -7,8 +7,11 @@ from enum import Enum
 # Usuários
 # ----------------------------
 class TipoUsuario(str, Enum):
-    PROFESSOR = "Professor"
-    ALUNO = "Aluno"
+    PROFESSOR = "PROFESSOR"
+    ALUNO = "ALUNO"
+
+    def label(self) -> str:
+        return self.value.title()
 
 
 class UserBase(SQLModel):

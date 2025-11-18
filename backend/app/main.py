@@ -1,7 +1,7 @@
 from datetime import date
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, EmailStr, ConfigDict
+from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from sqlmodel import Session, select
 
 from app.db_connection import get_session
@@ -67,6 +67,13 @@ class UserCreate(BaseModel):
     senha: str
     tipo: TipoUsuario
 
+    @field_validator("tipo", mode="before")
+    @classmethod
+    def normalizar_tipo(cls, value):
+        if isinstance(value, str):
+            return value.strip().upper()
+        return value
+
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -76,7 +83,7 @@ class UserResponse(BaseModel):
     cpf: str
     data_nascimento: date
     email: EmailStr
-    tipo: TipoUsuario
+    tipo: str
 
 
 def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
@@ -95,7 +102,7 @@ def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
         cpf=usuario.cpf,
         data_nascimento=usuario.data_nascimento,
         email=usuario.email,
-        tipo=tipo,
+        tipo=tipo.label(),
     )
 
 # ----------------------------

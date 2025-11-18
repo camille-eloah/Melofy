@@ -7,7 +7,7 @@ CREATE TABLE tb_professor (
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL,
-    tipo_usuario ENUM('Professor','Aluno') NOT NULL DEFAULT 'Professor',
+    tipo_usuario ENUM('PROFESSOR','ALUNO') NOT NULL DEFAULT 'PROFESSOR',
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     vacation_mode BOOLEAN NOT NULL DEFAULT FALSE,
@@ -20,7 +20,7 @@ CREATE TABLE tb_aluno (
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL,
-    tipo_usuario ENUM('Professor','Aluno') NOT NULL DEFAULT 'Aluno',
+    tipo_usuario ENUM('PROFESSOR','ALUNO') NOT NULL DEFAULT 'ALUNO',
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     conta_status ENUM('Ativo', 'Desativado', 'Exclusão') NOT NULL DEFAULT 'Ativo'
