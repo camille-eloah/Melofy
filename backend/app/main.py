@@ -83,7 +83,13 @@ class UserCreate(BaseModel):
     @classmethod
     def normalizar_tipo(cls, value):
         if isinstance(value, str):
-            return value.strip().upper()
+            upper_value = value.strip().upper()
+            try:
+                return TipoUsuario(upper_value)
+            except ValueError as exc:
+                raise ValueError(
+                    "tipo precisa ser Professor ou Aluno"
+                ) from exc
         return value
 
 
@@ -101,9 +107,9 @@ class UserResponse(BaseModel):
 def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
     for model in (Professor, Aluno):
         if db.exec(select(model).where(model.email == email)).first():
-            raise HTTPException(status_code=400, detail="E-mail ja cadastrado")
+            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
         if db.exec(select(model).where(model.cpf == cpf)).first():
-            raise HTTPException(status_code=400, detail="CPF ja cadastrado")
+            raise HTTPException(status_code=400, detail="CPF já cadastrado")
 
 
 def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
