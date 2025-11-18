@@ -21,9 +21,16 @@ class UserBase(SQLModel):
     data_nascimento: date = Field(nullable=False)
 
 class StatusConta(str, Enum):
-    ATIVO = "Ativo"
-    DESATIVADO = "Desativado"
-    EXCLUSAO = "Exclusão"
+    ATIVO = "ATIVO"
+    DESATIVADO = "DESATIVADO"
+    EXCLUSAO = "EXCLUSAO"
+
+    def label(self) -> str:
+        return {
+            "ATIVO": "Ativo",
+            "DESATIVADO": "Desativado",
+            "EXCLUSAO": "Exclusao",
+        }[self.value]
 
 class Professor(UserBase, table=True):
     __tablename__ = "tb_professor"

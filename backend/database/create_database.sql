@@ -11,7 +11,7 @@ CREATE TABLE tb_professor (
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     vacation_mode BOOLEAN NOT NULL DEFAULT FALSE,
-    conta_status ENUM('Ativo', 'Desativado', 'Exclusão') NOT NULL DEFAULT 'Ativo'
+    conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
 );
 
 CREATE TABLE tb_aluno (
@@ -23,7 +23,7 @@ CREATE TABLE tb_aluno (
     tipo_usuario ENUM('PROFESSOR','ALUNO') NOT NULL DEFAULT 'ALUNO',
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
-    conta_status ENUM('Ativo', 'Desativado', 'Exclusão') NOT NULL DEFAULT 'Ativo'
+    conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
 );
 
 CREATE TABLE tb_instrumento (
