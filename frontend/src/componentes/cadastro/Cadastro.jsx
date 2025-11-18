@@ -174,7 +174,7 @@ function Cadastro() {
 
         {mostrar && (
           <div className="mensagem-sucesso">
-            <span className="icone-sucesso">ão"</span>
+            <span className="icone-sucesso">✓</span>
             Usuário cadastrado com sucesso!
           </div>
         )}
