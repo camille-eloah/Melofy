@@ -12,6 +12,7 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
+  
 }
 
 .localizacao-container {
@@ -65,7 +66,7 @@ html, body, #root {
 .conteudo-principal {
   flex: 1;
   display: flex;
-  background-color: #f0f4f8;
+  background-color: #071735;
   padding: 0;
 }
 
@@ -154,7 +155,7 @@ html, body, #root {
 .lado-direito {
   flex: 4;
   padding: 2rem;
-  background-color: #ffffff;
+  background-color: #071735;;
   border-left: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;

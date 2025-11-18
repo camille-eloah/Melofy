@@ -22,7 +22,7 @@ function Login() {
     }
 
     return(
-       <div className="Conteiner">
+       <div className="Conteiner-login">
            <form onSubmit={fazerLogin}>
                 <h1>Fazer Login</h1>
                 
@@ -31,7 +31,7 @@ function Login() {
                     <input 
                         type="email" 
                         id='email' 
-                        placeholder="seu@email.com" 
+                        placeholder="digite seu email" 
                         onChange={(e) => setEmail(e.target.value)} 
                     />
                 </div>
@@ -49,9 +49,7 @@ function Login() {
                 <div className="lembrar-senha">
                     <label className="checkbox-label">
                         <input type="checkbox" />
-                        <span className="checkmark"></span>
-                        Lembrar minha senha
-                    </label>
+                        <span className="checkmark"></span>Lembrar minha senha</label>
                     <a href="#" className="esqueci-senha">Esqueci a senha</a>
                 </div>
 

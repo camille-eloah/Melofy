@@ -1,56 +1,130 @@
-/* ===== Estrutura geral ===== */
+/* ===== Fundo geral da página ===== */
+.profile-page {
+  background-color: #f5f7fb;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ===== Cabeçalho azul escuro ===== */
+.profile-header {
+  background-color: #020b2b;     /* azul bem escuro */
+  padding: 18px 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 1530px;
+}
+
+/* exemplo: lado esquerdo (logo/nome) */
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-header-left .logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background-color: #0ea5e9;    /* bolinha azul clara (placeholder do logo) */
+}
+
+/* nome do site */
+.profile-header-left .brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+/* links de navegação no topo */
+.profile-header-nav {
+  display: flex;
+  gap: 12px;
+}
+
+.profile-header-nav button,
+.profile-header-nav a {
+  min-width: 120px;
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  background-color: #0ea5e9;    /* botões azul claro, como na imagem */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.profile-header-nav button:hover,
+.profile-header-nav a:hover {
+  opacity: 0.9;
+}
+
+/* ===== Conteúdo abaixo do cabeçalho ===== */
 .profile-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 40px;
-  max-width: 1100px;
+  padding: 40px 80px;
+  max-width: 1200px;
   margin: 0 auto;
-  background-color: #fff;
-  font-family: 'Inter', sans-serif;
+  background-color: #f5f7fb;
+  color: #0f172a;
 }
 
 /* ===== Texto da esquerda ===== */
 .texto-intro {
-  flex: 1 1 70%;
-  max-width: 500px;
+  flex: 1 1 60%;
+  max-width: 600px;
   font-weight: 700;
-  color: #000;
+  color: #020617;
   line-height: 1.6;
-  font-size: 15px;
+  font-size: 18px;
+}
+
+.texto-intro p {
+  margin-bottom: 20px;
 }
 
 /* ===== Card do perfil ===== */
 .card-perfil {
-  flex: 1 1 35%;
-  background-color: #d9d9d9;
-  border-radius: 25px;
-  padding: 25px;
+  flex: 1 1 32%;
+  max-width: 340px;
+  background-color: #ffffff;
+  border-radius: 28px;
+  padding: 28px 24px 22px;
   text-align: center;
-  box-shadow: 2px 4px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .foto-perfil {
-  width: 90px;
-  height: 90px;
-  border-radius: 15px;
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
   object-fit: cover;
-  background-color: #fff;
-  margin-bottom: 15px;
+  background-color: #e2e8f0;
+  margin-bottom: 16px;
 }
 
 .foto-vazia {
-  width: 90px;
-  height: 90px;
-  border-radius: 15px;
-  background-color: #fff;
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
+  background-color: #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  font-weight: 600;
-  margin: 0 auto 15px;
+  font-size: 52px;
+  font-weight: 700;
+  margin: 0 auto 16px;
+  color: #1f2937;
 }
 
 .card-perfil h3 {
@@ -60,62 +134,121 @@
 }
 
 .card-perfil .avaliacao {
-  font-size: 12px;
-  color: #000;
-  margin-bottom: 15px;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 18px;
 }
 
-/* ===== Informações ===== */
+/* Infos: Tarifa, Resposta, Alunos */
+.info {
+  width: 100%;
+  text-align: left;
+  margin-bottom: 18px;
+}
+
 .info p {
   font-size: 12px;
   margin: 4px 0;
-  color: #000;
+  color: #0f172a;
+  display: flex;
+  justify-content: space-between;
 }
 
-/* ===== Botões ===== */
+.info p span:first-child {
+  font-weight: 500;
+}
+
+.info p span:last-child {
+  font-weight: 600;
+}
+
+/* Botões (reaproveitando suas classes) */
 .botoes {
-  margin-top: 15px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .btn-editar,
 .btn-deletar {
   border: none;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
   font-weight: 600;
   cursor: pointer;
   transition: 0.3s ease;
+  font-size: 13px;
 }
 
+/* Botão azul principal */
 .btn-editar {
-  background-color: #3b82f6;
+  background-color: #0284c7;
   color: #fff;
 }
 
 .btn-editar:hover {
-  background-color: #2563eb;
+  background-color: #0369a1;
 }
 
+/* Botão branco com texto azul */
 .btn-deletar {
-  background-color: #ef4444;
-  color: #fff;
+  background-color: #ffffff;
+  color: #0284c7;
+  border: 1px solid #e2e8f0;
 }
 
 .btn-deletar:hover {
-  background-color: #dc2626;
+  background-color: #eff6ff;
 }
 
-/* ===== Avaliações ===== */
+/* Avaliações */
 .avaliacoes {
   width: 100%;
   margin-top: 40px;
 }
 
 .avaliacoes h4 {
-  background-color: #c6c6c6;
-  display: inline-block;
-  padding: 5px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.avaliacoes .avaliacao-card {
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  padding: 16px 18px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #475569;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+  .profile-header {
+    padding: 16px 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .profile-container {
+    padding: 24px 20px;
+  }
+
+  .texto-intro {
+    flex: 1 1 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+
+  .card-perfil {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }

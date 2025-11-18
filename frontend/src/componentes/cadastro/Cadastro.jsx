@@ -1,17 +1,25 @@
 import { useState } from 'react'
 import './Cadastro.css'
+import { useNavigate } from "react-router-dom";
 
 function Cadastro() {
+    const navigate = useNavigate();
     const [mostrar, setMostrar] = useState(false)
     const [nome, setNome] = useState('')
     const [email, setEmail] = useState('')
     const [senha, setSenha] = useState('')
     const [tipo, setTipo] = useState('')
 
+    const handleCadastrar = () => {
+    navigate("/cadastro");
+    };
+
     function cadastrarUsuario(e){
         e.preventDefault()
         console.log('Usuário cadastrado:', { nome, email, senha, tipo })
         setMostrar(true)
+
+        
     }
 
     return(
@@ -83,10 +91,13 @@ function Cadastro() {
                     </select>
                 </div>
 
-                <button type="submit">CADASTRAR</button>
+                 <button className="melofy-btn cadastrar-btn"
+              onClick={handleCadastrar}>
+              Cadastrar
+            </button>
 
                 <div className="cadastro-link">
-                     Já tem uma conta? <a href="/">Faça Login</a>
+                     Já tem uma conta? <a href="/login">Faça Login</a>
                 </div>
                 {mostrar && (
                     <div className="mensagem-sucesso">

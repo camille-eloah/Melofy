@@ -1,15 +1,17 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import './Entrada.css';
+import { useNavigate } from "react-router-dom";
+import "./Entrada.css";
 
-const Entrada = () => {
+function Entrada() {
+  const navigate = useNavigate();
+
   const handleCadastrar = () => {
-    alert('Redirecionando para cadastro...');
+    navigate("/cadastro");
   };
 
   const handleLogar = () => {
-    alert('Redirecionando para login...');
+    navigate("/login");
   };
+
 
   return (
     <div className="melofy-container">
