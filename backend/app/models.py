@@ -30,7 +30,7 @@ class Professor(UserBase, table=True):
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     vacation_mode: bool = Field(default=False, nullable=False)
-    status_conta: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)
+    conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)
 
     aulas: list["Aula"] = Relationship(back_populates="professor")
 

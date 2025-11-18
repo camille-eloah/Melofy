@@ -60,6 +60,7 @@ CREATE TABLE tb_solicitacao_agendamento (
     CONSTRAINT fk_sol_prof FOREIGN KEY (sol_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_sol_alu FOREIGN KEY (sol_alu_id) REFERENCES tb_aluno(id),
     CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES tb_instrumento(id)
+);
 
 CREATE TABLE tb_avaliacoes_aluno (
     ava_id INT AUTO_INCREMENT PRIMARY KEY,
