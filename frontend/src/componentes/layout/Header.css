@@ -1,0 +1,59 @@
+
+/* ===== Cabeçalho azul escuro ===== */
+.profile-header {
+  background-color: #020b2b;     /* azul bem escuro */
+  padding: 18px 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* exemplo: lado esquerdo (logo/nome) */
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-header-left .logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background-color: #0ea5e9;    /* bolinha azul clara (placeholder do logo) */
+}
+
+/* nome do site */
+.profile-header-left .brand {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+/* links de navegação no topo */
+.profile-header-nav {
+  display: flex;
+  gap: 12px;
+}
+
+.profile-header-nav button,
+.profile-header-nav a {
+  min-width: 120px;
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: 1px solid transparent;
+  background-color: #0ea5e9;    /* botões azul claro, como na imagem */
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+}
+
+.profile-header-nav button:hover,
+.profile-header-nav a:hover {
+  opacity: 0.9;
+}

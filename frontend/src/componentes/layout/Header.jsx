@@ -2,15 +2,19 @@ import './Header.css'
 
 function Header() {
   return (
-    <header className="header">
-      <h1 className="logo">Melofy 🎵</h1>
-      <nav>
-        <ul className="nav-list">
-         
-          <li><a href="/musicas">Músicas</a></li>
-          <li><a href="/profile">Perfil</a></li>
-          <li><a href="/localizacao">Localização</a></li>
-        </ul>
+    <header className="profile-header">
+      <div className="profile-header-left">
+
+      <span className="brand">MELOFY</span>
+      </div>
+
+      <nav className="profile-header-nav">
+        {/* <form onClick={()}> */}
+          <a href='#'>Tela Inicial</a>
+          <a href="#">Dar aulas</a>
+          <a href="#">Conectar</a>
+        {/* </form> */}
+
       </nav>
     </header>
   )

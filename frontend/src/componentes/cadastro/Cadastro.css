@@ -11,6 +11,7 @@ body {
 }
 
 /* deixa o form centralizado na tela */
+/* Esse root também está servindo para o Header.jsx */
 #root {
   min-height: 100vh;
   display: flex;
