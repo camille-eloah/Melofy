@@ -1,7 +1,10 @@
-from datetime import date
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+import os
+from datetime import date, datetime, timedelta
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from jose import jwt
+from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from sqlmodel import Session, select
 
@@ -24,6 +27,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+JWT_ALGORITHM = "HS256"
+COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
+COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN")
 
 # Router user - rotas de usuário
 router_user = APIRouter(
@@ -123,6 +135,61 @@ def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
         tipo=tipo.label(),
     )
 
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    senha: str
+
+
+def _hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def _verify_password(password: str, hashed: str) -> bool:
+    return pwd_context.verify(password, hashed)
+
+
+def _create_token(data: dict, expires_delta: timedelta) -> str:
+    to_encode = data.copy()
+    to_encode["exp"] = datetime.utcnow() + expires_delta
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        domain=COOKIE_DOMAIN,
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        path="/",
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        domain=COOKIE_DOMAIN,
+        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
+        path="/",
+    )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    response.delete_cookie("access_token", path="/", domain=COOKIE_DOMAIN)
+    response.delete_cookie("refresh_token", path="/", domain=COOKIE_DOMAIN)
+
+
+def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
+    for model in (Professor, Aluno):
+        usuario = db.exec(select(model).where(model.email == email)).first()
+        if usuario:
+            return usuario
+    return None
+
 # ----------------------------
 # 0. Usuário
 # ----------------------------
@@ -137,7 +204,7 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
-            hashed_password=user.senha,
+            hashed_password=_hash_password(user.senha),
         )
     else:
         novo_usuario = Aluno(
@@ -145,7 +212,7 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
-            hashed_password=user.senha,
+            hashed_password=_hash_password(user.senha),
         )
 
     db.add(novo_usuario)
@@ -170,13 +237,29 @@ def listar_professores(db: Session = Depends(get_session)):
 # 1. Autenticação
 # ----------------------------
 
-@router_auth.post("/login")
-def login():
-    return
+@router_auth.post("/login", response_model=UserResponse)
+def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
+    usuario = _obter_usuario_por_email(db, credenciais.email)
+    if not usuario or not _verify_password(credenciais.senha, usuario.hashed_password):
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-@router_auth.post('/logout')
-def logout():
-    return
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    access_token = _create_token(
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
+        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+    )
+    refresh_token = _create_token(
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
+        timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+    )
+    _set_auth_cookies(response, access_token, refresh_token)
+    return _montar_resposta_usuario(usuario)
+
+
+@router_auth.post("/logout")
+def logout(response: Response):
+    _clear_auth_cookies(response)
+    return {"detail": "Logout realizado com sucesso"}
 
 # ----------------------------
 # 2. Gerenciamento de Conta
