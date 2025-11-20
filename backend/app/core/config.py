@@ -10,6 +10,8 @@ class Settings(BaseModel):
     app_description: str = "O seu app de música."
     app_version: str = "0.1.0"
 
+    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+
     cors_origins: List[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

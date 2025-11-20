@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import logging
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -16,7 +17,29 @@ from app.core.security import (
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
 
+
+def _configure_logging():
+    """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
+    settings_local = get_settings()
+    log_level = logging.DEBUG if settings_local.debug else logging.INFO
+
+    if not logging.getLogger().handlers:
+        logging.basicConfig(level=log_level)
+
+    uvicorn_logger = logging.getLogger("uvicorn.error")
+    handlers = uvicorn_logger.handlers or logging.getLogger().handlers
+
+    for name in ("app", "app.main", "app.core", "app.core.security"):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.handlers.extend(handlers)
+        logger.propagate = False  # evita logs duplicados em hierarquia
+        logger.setLevel(log_level)
+
+
+_configure_logging()
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.app_title,
@@ -192,8 +215,10 @@ def listar_professores(db: Session = Depends(get_session)):
 
 @router_auth.post("/login", response_model=UserResponse)
 def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
+    logger.debug("Tentativa de login", extra={"email": credenciais.email})
     usuario = _obter_usuario_por_email(db, credenciais.email)
     if not usuario or not _verify_password(credenciais.senha, usuario.hashed_password):
+        logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
@@ -206,12 +231,14 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
         timedelta(days=settings.refresh_token_expire_days),
     )
     _set_auth_cookies(response, access_token, refresh_token)
+    logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
     return _montar_resposta_usuario(usuario)
 
 
 @router_auth.post("/logout")
 def logout(response: Response):
     _clear_auth_cookies(response)
+    logger.debug("Logout realizado")
     return {"detail": "Logout realizado com sucesso"}
 
 # ----------------------------
