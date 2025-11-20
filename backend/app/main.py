@@ -20,6 +20,7 @@ from app.services.auth import (
     autenticar_usuario,
     gerar_tokens,
 )
+from app.services.user import montar_resposta_usuario
 
 
 def _configure_logging():
@@ -105,18 +106,6 @@ router_ratings = APIRouter(
 )
 
 
-def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
-    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
-    return UserResponse(
-        id=usuario.id,
-        nome=usuario.nome,
-        cpf=usuario.cpf,
-        data_nascimento=usuario.data_nascimento,
-        email=usuario.email,
-        tipo=tipo.label(),
-    )
-
-
 # ----------------------------
 # 0. Usuário
 # ----------------------------
@@ -150,20 +139,20 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
     db.commit()
     db.refresh(novo_usuario)
     logger.debug("Usuário criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
-    return _montar_resposta_usuario(novo_usuario)
+    return montar_resposta_usuario(novo_usuario)
 
 # Listar todos os usuários
 @router_user.get("/", response_model=list[UserResponse])
 def listar_usuarios(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     alunos = db.exec(select(Aluno)).all()
-    return [_montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
+    return [montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
 
 # Listar professores
 @router_user.get("/professores", response_model=list[UserResponse])
 def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
-    return [_montar_resposta_usuario(professor) for professor in professores]
+    return [montar_resposta_usuario(professor) for professor in professores]
 
 # ----------------------------
 # 1. Autenticação
@@ -182,7 +171,7 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
     _set_auth_cookies(response, access_token, refresh_token)
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
     logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
-    return _montar_resposta_usuario(usuario)
+    return montar_resposta_usuario(usuario)
 
 
 @router_auth.post("/logout")
