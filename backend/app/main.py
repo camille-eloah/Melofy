@@ -1,9 +1,8 @@
-from datetime import date, timedelta
+from datetime import timedelta
 import logging
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from sqlmodel import Session, select
 
 from app.core.config import get_settings
@@ -16,6 +15,8 @@ from app.core.security import (
 )
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
+from app.schemas.user import UserCreate, UserResponse
+from app.schemas.auth import LoginRequest
 
 
 def _configure_logging():
@@ -101,39 +102,6 @@ router_ratings = APIRouter(
 )
 
 
-class UserCreate(BaseModel):
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    senha: str
-    tipo: TipoUsuario
-
-    @field_validator("tipo", mode="before")
-    @classmethod
-    def normalizar_tipo(cls, value):
-        if isinstance(value, str):
-            upper_value = value.strip().upper()
-            try:
-                return TipoUsuario(upper_value)
-            except ValueError as exc:
-                raise ValueError(
-                    "tipo precisa ser Professor ou Aluno"
-                ) from exc
-        return value
-
-
-class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    tipo: str
-
-
 def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
     for model in (Professor, Aluno):
         if db.exec(select(model).where(model.email == email)).first():
@@ -152,11 +120,6 @@ def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
         email=usuario.email,
         tipo=tipo.label(),
     )
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    senha: str
 
 
 def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
