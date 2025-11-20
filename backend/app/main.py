@@ -136,6 +136,7 @@ def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | Non
 @router_user.post("/", response_model=UserResponse, status_code=201)
 def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
     _verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    logger.debug("Iniciando criação de usuário", extra={"email": user.email, "tipo": user.tipo.value})
 
     if user.tipo == TipoUsuario.PROFESSOR:
         novo_usuario = Professor(
@@ -157,6 +158,7 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
+    logger.debug("Usuário criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
     return _montar_resposta_usuario(novo_usuario)
 
 # Listar todos os usuários
