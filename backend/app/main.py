@@ -1,41 +1,64 @@
-import os
-from datetime import date, datetime, timedelta
+from datetime import timedelta
+import logging
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from jose import jwt
-from passlib.context import CryptContext
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from sqlmodel import Session, select
 
+from app.core.config import get_settings
+from app.core.security import (
+    _hash_password,
+    _set_auth_cookies,
+    _clear_auth_cookies,
+)
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
+from app.schemas.user import UserCreate, UserResponse
+from app.schemas.auth import LoginRequest
+from app.services.auth import (
+    verificar_email_cpf_disponiveis,
+    autenticar_usuario,
+    gerar_tokens,
+)
+from app.services.user import montar_resposta_usuario
+
+
+def _configure_logging():
+    """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
+    settings_local = get_settings()
+    log_level = logging.DEBUG if settings_local.debug else logging.INFO
+
+    if not logging.getLogger().handlers:
+        logging.basicConfig(level=log_level)
+
+    uvicorn_logger = logging.getLogger("uvicorn.error")
+    handlers = uvicorn_logger.handlers or logging.getLogger().handlers
+
+    for name in ("app", "app.main", "app.core", "app.core.security"):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.handlers.extend(handlers)
+        logger.propagate = False  # evita logs duplicados em hierarquia
+        logger.setLevel(log_level)
+
+
+settings = get_settings()
+_configure_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Melofy",
-    description="O seu app de música.",
-    version="0.1.0",
+    title=settings.app_title,
+    description=settings.app_description,
+    version=settings.app_version,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-JWT_ALGORITHM = "HS256"
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
-COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN")
 
 # Router user - rotas de usuário
 router_user = APIRouter(
@@ -83,120 +106,17 @@ router_ratings = APIRouter(
 )
 
 
-class UserCreate(BaseModel):
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    senha: str
-    tipo: TipoUsuario
-
-    @field_validator("tipo", mode="before")
-    @classmethod
-    def normalizar_tipo(cls, value):
-        if isinstance(value, str):
-            upper_value = value.strip().upper()
-            try:
-                return TipoUsuario(upper_value)
-            except ValueError as exc:
-                raise ValueError(
-                    "tipo precisa ser Professor ou Aluno"
-                ) from exc
-        return value
-
-
-class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    tipo: str
-
-
-def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
-    for model in (Professor, Aluno):
-        if db.exec(select(model).where(model.email == email)).first():
-            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
-        if db.exec(select(model).where(model.cpf == cpf)).first():
-            raise HTTPException(status_code=400, detail="CPF já cadastrado")
-
-
-def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
-    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
-    return UserResponse(
-        id=usuario.id,
-        nome=usuario.nome,
-        cpf=usuario.cpf,
-        data_nascimento=usuario.data_nascimento,
-        email=usuario.email,
-        tipo=tipo.label(),
-    )
-
-
-class LoginRequest(BaseModel):
-    email: EmailStr
-    senha: str
-
-
-def _hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def _verify_password(password: str, hashed: str) -> bool:
-    return pwd_context.verify(password, hashed)
-
-
-def _create_token(data: dict, expires_delta: timedelta) -> str:
-    to_encode = data.copy()
-    to_encode["exp"] = datetime.utcnow() + expires_delta
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=JWT_ALGORITHM)
-
-
-def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        domain=COOKIE_DOMAIN,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        domain=COOKIE_DOMAIN,
-        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-    )
-
-
-def _clear_auth_cookies(response: Response) -> None:
-    response.delete_cookie("access_token", path="/", domain=COOKIE_DOMAIN)
-    response.delete_cookie("refresh_token", path="/", domain=COOKIE_DOMAIN)
-
-
-def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
-    for model in (Professor, Aluno):
-        usuario = db.exec(select(model).where(model.email == email)).first()
-        if usuario:
-            return usuario
-    return None
-
 # ----------------------------
 # 0. Usuário
 # ----------------------------
 
 @router_user.post("/", response_model=UserResponse, status_code=201)
 def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
-    _verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    try:
+        verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    logger.debug("Iniciando criação de usuário", extra={"email": user.email, "tipo": user.tipo.value})
 
     if user.tipo == TipoUsuario.PROFESSOR:
         novo_usuario = Professor(
@@ -218,20 +138,21 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
-    return _montar_resposta_usuario(novo_usuario)
+    logger.debug("Usuário criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
+    return montar_resposta_usuario(novo_usuario)
 
 # Listar todos os usuários
 @router_user.get("/", response_model=list[UserResponse])
 def listar_usuarios(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     alunos = db.exec(select(Aluno)).all()
-    return [_montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
+    return [montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
 
 # Listar professores
 @router_user.get("/professores", response_model=list[UserResponse])
 def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
-    return [_montar_resposta_usuario(professor) for professor in professores]
+    return [montar_resposta_usuario(professor) for professor in professores]
 
 # ----------------------------
 # 1. Autenticação
@@ -239,26 +160,24 @@ def listar_professores(db: Session = Depends(get_session)):
 
 @router_auth.post("/login", response_model=UserResponse)
 def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
-    usuario = _obter_usuario_por_email(db, credenciais.email)
-    if not usuario or not _verify_password(credenciais.senha, usuario.hashed_password):
+    logger.debug("Tentativa de login", extra={"email": credenciais.email})
+    try:
+        usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
+    except ValueError:
+        logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
-    access_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
-        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-    )
-    refresh_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
-        timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
-    )
+    access_token, refresh_token = gerar_tokens(usuario)
     _set_auth_cookies(response, access_token, refresh_token)
-    return _montar_resposta_usuario(usuario)
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
+    return montar_resposta_usuario(usuario)
 
 
 @router_auth.post("/logout")
 def logout(response: Response):
     _clear_auth_cookies(response)
+    logger.debug("Logout realizado")
     return {"detail": "Logout realizado com sucesso"}
 
 # ----------------------------
