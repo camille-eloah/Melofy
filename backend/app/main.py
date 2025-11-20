@@ -1,41 +1,36 @@
-import os
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from jose import jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 from sqlmodel import Session, select
 
+from app.core.config import get_settings
+from app.core.security import (
+    _hash_password,
+    _verify_password,
+    _create_token,
+    _set_auth_cookies,
+    _clear_auth_cookies,
+)
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
 
+settings = get_settings()
+
 app = FastAPI(
-    title="Melofy",
-    description="O seu app de música.",
-    version="0.1.0",
+    title=settings.app_title,
+    description=settings.app_description,
+    version=settings.app_version,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-me")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
-JWT_ALGORITHM = "HS256"
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
-COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")
-COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN")
 
 # Router user - rotas de usuário
 router_user = APIRouter(
@@ -141,48 +136,6 @@ class LoginRequest(BaseModel):
     senha: str
 
 
-def _hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def _verify_password(password: str, hashed: str) -> bool:
-    return pwd_context.verify(password, hashed)
-
-
-def _create_token(data: dict, expires_delta: timedelta) -> str:
-    to_encode = data.copy()
-    to_encode["exp"] = datetime.utcnow() + expires_delta
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=JWT_ALGORITHM)
-
-
-def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        domain=COOKIE_DOMAIN,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        path="/",
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        domain=COOKIE_DOMAIN,
-        max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
-        path="/",
-    )
-
-
-def _clear_auth_cookies(response: Response) -> None:
-    response.delete_cookie("access_token", path="/", domain=COOKIE_DOMAIN)
-    response.delete_cookie("refresh_token", path="/", domain=COOKIE_DOMAIN)
-
-
 def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
     for model in (Professor, Aluno):
         usuario = db.exec(select(model).where(model.email == email)).first()
@@ -246,11 +199,11 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
     access_token = _create_token(
         {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
-        timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        timedelta(minutes=settings.access_token_expire_minutes),
     )
     refresh_token = _create_token(
         {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
-        timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        timedelta(days=settings.refresh_token_expire_days),
     )
     _set_auth_cookies(response, access_token, refresh_token)
     return _montar_resposta_usuario(usuario)
