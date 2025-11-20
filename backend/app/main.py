@@ -8,8 +8,6 @@ from sqlmodel import Session, select
 from app.core.config import get_settings
 from app.core.security import (
     _hash_password,
-    _verify_password,
-    _create_token,
     _set_auth_cookies,
     _clear_auth_cookies,
 )
@@ -19,7 +17,6 @@ from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
     verificar_email_cpf_disponiveis,
-    obter_usuario_por_email,
     autenticar_usuario,
     gerar_tokens,
 )
@@ -106,14 +103,6 @@ router_ratings = APIRouter(
     prefix="/ratings",
     tags=["avaliacoes"]
 )
-
-
-def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
-    for model in (Professor, Aluno):
-        if db.exec(select(model).where(model.email == email)).first():
-            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
-        if db.exec(select(model).where(model.cpf == cpf)).first():
-            raise HTTPException(status_code=400, detail="CPF já cadastrado")
 
 
 def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
