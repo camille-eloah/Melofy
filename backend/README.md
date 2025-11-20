@@ -27,7 +27,7 @@ DB_PORT=3306
 DB_NAME=db_melofy
 ```
 
-3. Use o arquivo `backend\database\create_database.sql` para criar o database e todas as tabelas necessárias.
+3. Use as queries do arquivo `backend\database\create_database.sql` para criar o database e todas as tabelas necessárias.
 
 ## Instruções
 
