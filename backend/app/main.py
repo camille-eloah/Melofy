@@ -17,6 +17,12 @@ from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.auth import LoginRequest
+from app.services.auth import (
+    verificar_email_cpf_disponiveis,
+    obter_usuario_por_email,
+    autenticar_usuario,
+    gerar_tokens,
+)
 
 
 def _configure_logging():
@@ -122,20 +128,16 @@ def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
     )
 
 
-def _obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
-    for model in (Professor, Aluno):
-        usuario = db.exec(select(model).where(model.email == email)).first()
-        if usuario:
-            return usuario
-    return None
-
 # ----------------------------
 # 0. Usuário
 # ----------------------------
 
 @router_user.post("/", response_model=UserResponse, status_code=201)
 def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
-    _verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    try:
+        verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     logger.debug("Iniciando criação de usuário", extra={"email": user.email, "tipo": user.tipo.value})
 
     if user.tipo == TipoUsuario.PROFESSOR:
@@ -181,21 +183,15 @@ def listar_professores(db: Session = Depends(get_session)):
 @router_auth.post("/login", response_model=UserResponse)
 def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
     logger.debug("Tentativa de login", extra={"email": credenciais.email})
-    usuario = _obter_usuario_por_email(db, credenciais.email)
-    if not usuario or not _verify_password(credenciais.senha, usuario.hashed_password):
+    try:
+        usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
+    except ValueError:
         logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
-    access_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
-        timedelta(minutes=settings.access_token_expire_minutes),
-    )
-    refresh_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
-        timedelta(days=settings.refresh_token_expire_days),
-    )
+    access_token, refresh_token = gerar_tokens(usuario)
     _set_auth_cookies(response, access_token, refresh_token)
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
     logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
     return _montar_resposta_usuario(usuario)
 
