@@ -1,5 +1,34 @@
 # Backend
 
+## Pré-requisitos
+1. Arquivo de variáveis de ambiente (`backend\app\.env`) contendo o conteúdo abaixo
+
+```shell
+DB_USER=root
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=db_melofy
+JWT_SECRET_KEY=melofy-dev-secret
+ACCESS_TOKEN_EXPIRE_MINUTES=15
+REFRESH_TOKEN_EXPIRE_DAYS=7
+COOKIE_SECURE=False
+COOKIE_SAMESITE=Lax
+DEBUG=true
+```
+
+2. Banco de dados MySQL configurado com as mesmas informações descritas no `.env`
+
+```shell
+DB_USER=root
+DB_PASSWORD=
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=db_melofy
+```
+
+3. Use o arquivo `backend\database\create_database.sql` para criar o database e todas as tabelas necessárias.
+
 ## Instruções
 
 1. Clone o repositório
