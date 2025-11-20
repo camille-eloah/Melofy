@@ -37,8 +37,8 @@ def _configure_logging():
         logger.setLevel(log_level)
 
 
-_configure_logging()
 settings = get_settings()
+_configure_logging()
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
