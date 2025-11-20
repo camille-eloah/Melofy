@@ -14,8 +14,10 @@ settings = get_settings()
 def verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
     for model in (Professor, Aluno):
         if db.exec(select(model).where(model.email == email)).first():
+            logger.debug("Email em uso: %s", email)
             raise ValueError("E-mail já cadastrado")
         if db.exec(select(model).where(model.cpf == cpf)).first():
+            logger.debug("CPF em uso: %s", cpf)
             raise ValueError("CPF já cadastrado")
 
 
@@ -23,16 +25,18 @@ def obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None
     for model in (Professor, Aluno):
         usuario = db.exec(select(model).where(model.email == email)).first()
         if usuario:
+            logger.debug("Usuário encontrado por email=%s id=%s", email, usuario.id)
             return usuario
+    logger.debug("Usuário não encontrado por email=%s", email)
     return None
 
 
 def autenticar_usuario(db: Session, email: str, senha: str) -> Professor | Aluno:
     usuario = obter_usuario_por_email(db, email)
     if not usuario or not _verify_password(senha, usuario.hashed_password):
-        logger.debug("Autenticação falhou", extra={"email": email})
+        logger.debug("Autenticação falhou para email=%s", email)
         raise ValueError("Credenciais inválidas")
-    logger.debug("Autenticação bem-sucedida", extra={"email": email, "user_id": usuario.id})
+    logger.debug("Autenticação bem-sucedida email=%s user_id=%s", email, usuario.id)
     return usuario
 
 
@@ -45,5 +49,12 @@ def gerar_tokens(usuario: Professor | Aluno) -> tuple[str, str]:
     refresh_token = _create_token(
         {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
         timedelta(days=settings.refresh_token_expire_days),
+    )
+    logger.debug(
+        "Tokens gerados para usuário id=%s tipo=%s access_exp_min=%s refresh_exp_days=%s",
+        usuario.id,
+        tipo.value,
+        settings.access_token_expire_minutes,
+        settings.refresh_token_expire_days,
     )
     return access_token, refresh_token
