@@ -14,6 +14,7 @@ export default function AppRoutes() {
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/home" element={<Home />} />
       <Route path="/profile" element={<ProfileUser />} />
+      <Route path="/profile/:id" element={<ProfileUser />} />
       <Route path="/localizacao" element={<Localizacao/>} />
         
     </Routes>

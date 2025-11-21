@@ -1,24 +1,57 @@
 import "./ProfileUser.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser = null }) {
-  const [usuario, setUsuario] = useState(usuarioProp);
+function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
+  const [usuario, setUsuario] = useState(usuarioProp || {});
+  const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const navigate = useNavigate();
+  const { id: userIdParam } = useParams();
 
   useEffect(() => {
+    // se houver um id na rota, buscar o perfil correspondente
+    if (!userIdParam) return;
+
+    console.debug("Buscando perfil por id da rota", userIdParam);
+    fetch(`${API_BASE_URL}/user/${userIdParam}`)
+      .then((res) => {
+        console.debug("Resposta /user/:id", res.status);
+        if (res.ok) return res.json();
+        throw new Error("not_found");
+      })
+      .then((data) => {
+        console.debug("Perfil carregado pela rota", data);
+        setUsuario(data);
+      })
+      .catch((err) => {
+        console.debug("Erro ao carregar perfil pela rota", err);
+        if (err.message === "not_found") {
+          navigate("/home");
+        }
+      });
+  }, [userIdParam, navigate]);
+
+  useEffect(() => {
+    console.debug("Buscando usuário logado em /auth/me");
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
       .then((res) => {
+        console.debug("Resposta /auth/me", res.status);
         if (res.ok) return res.json();
         if (res.status === 401) throw new Error("unauthorized");
         throw new Error("erro");
       })
       .then((data) => {
-        setUsuario(data);
+        console.debug("Usuário logado carregado", data);
+        setCurrentUser(data || null);
+        // se estamos no próprio perfil ou sem id na rota, e ainda não temos usuário, preenche
+        if ((!userIdParam || String(userIdParam) === String(data.id)) && !(usuario && usuario.id)) {
+          setUsuario(data || {});
+        }
       })
       .catch((err) => {
+        console.debug("Erro ao carregar /auth/me", err);
         if (err.message === "unauthorized") {
           navigate("/login");
           return;
@@ -26,10 +59,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser =
         // fallback: mantém dados padrão e apenas loga
         console.debug("Não foi possível carregar usuário logado", err);
       });
-  }, [navigate]);
+  }, [navigate, userIdParam]);
 
-  const nomeUsuario = usuario.nome || "Usuário Desconhecido";
-  const profilePicture = usuario.profile_picture || null;
+  const nomeUsuario = usuario?.nome || "Usuário Desconhecido";
+  const profilePicture = usuario?.profile_picture || null;
+  const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
 
   return (
     <div className="profile-page">
@@ -90,7 +124,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser =
             </p>
           </div>
 
-          {currentUser?.id === usuario?.id && (
+          {podeEditar && (
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
               <button className="btn-deletar">Deletar Conta</button>
