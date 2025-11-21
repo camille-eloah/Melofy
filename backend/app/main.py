@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from jose import JWTError
 from sqlmodel import Session, select
 
 from app.core.config import get_settings
@@ -10,17 +11,19 @@ from app.core.security import (
     _hash_password,
     _set_auth_cookies,
     _clear_auth_cookies,
+    _decode_token,
 )
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
     verificar_email_cpf_disponiveis,
     autenticar_usuario,
     gerar_tokens,
+    obter_usuario_por_id_tipo,
 )
-from app.services.user import montar_resposta_usuario
+from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
 
 
 def _configure_logging():
@@ -124,6 +127,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
+            telefone=user.telefone,
+            bio=user.bio,
             hashed_password=_hash_password(user.senha),
         )
     else:
@@ -132,6 +137,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
+            telefone=user.telefone,
+            bio=user.bio,
             hashed_password=_hash_password(user.senha),
         )
 
@@ -154,6 +161,14 @@ def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
 
+
+@router_user.get("/{user_id}", response_model=UserResponse)
+def obter_usuario(user_id: int, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return montar_resposta_usuario(usuario)
+
 # ----------------------------
 # 1. Autenticação
 # ----------------------------
@@ -174,6 +189,26 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
     return montar_resposta_usuario(usuario)
 
 
+@router_auth.get("/me", response_model=UserResponse)
+def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+
+    try:
+        payload = _decode_token(token)
+        user_id = int(payload.get("sub"))
+        tipo = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
+    return montar_resposta_usuario(usuario)
+
+
 @router_auth.post("/logout")
 def logout(response: Response):
     _clear_auth_cookies(response)
@@ -184,9 +219,22 @@ def logout(response: Response):
 # 2. Gerenciamento de Conta
 # ----------------------------
 
-@router_user.patch("/{user_id}")
-def editar_perfil(user_id: int):
-    return {"msg": f"Perfil do usuário {user_id} atualizado parcialmente"}
+@router_user.patch("/{user_id}", response_model=UserResponse)
+def editar_perfil(user_id: int, dados: UserUpdate, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if dados.telefone is not None:
+        usuario.telefone = dados.telefone
+    if dados.bio is not None:
+        usuario.bio = dados.bio
+
+    db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
+    logger.debug("Perfil atualizado id=%s", usuario.id)
+    return montar_resposta_usuario(usuario)
 
 @router_user.delete("/{user_id}")
 def excluir_conta(user_id: int):

@@ -56,7 +56,7 @@ function Login() {
                     <input 
                         type="email" 
                         id='email' 
-                        placeholder="digite seu email" 
+                        placeholder="Digite seu email" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)} 
                     />

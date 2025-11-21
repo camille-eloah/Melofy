@@ -58,3 +58,19 @@ def gerar_tokens(usuario: Professor | Aluno) -> tuple[str, str]:
         settings.refresh_token_expire_days,
     )
     return access_token, refresh_token
+
+
+def obter_usuario_por_id_tipo(db: Session, user_id: int, tipo: str) -> Professor | Aluno | None:
+    try:
+        tipo_enum = TipoUsuario(tipo)
+    except ValueError:
+        logger.debug("Tipo inválido no token para user_id=%s: %s", user_id, tipo)
+        return None
+
+    model = Professor if tipo_enum == TipoUsuario.PROFESSOR else Aluno
+    usuario = db.exec(select(model).where(model.id == user_id)).first()
+    if usuario:
+        logger.debug("Usuário recuperado por id=%s tipo=%s", user_id, tipo_enum.value)
+    else:
+        logger.debug("Usuário não encontrado por id=%s tipo=%s", user_id, tipo_enum.value)
+    return usuario

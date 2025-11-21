@@ -37,6 +37,8 @@ class Professor(UserBase, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.PROFESSOR, nullable=False)
+    bio: Optional[str] = Field(default=None, nullable=True)
+    telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     vacation_mode: bool = Field(default=False, nullable=False)
@@ -53,6 +55,8 @@ class Aluno(UserBase, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.ALUNO, nullable=False)
+    bio: Optional[str] = Field(default=None, nullable=True)
+    telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)

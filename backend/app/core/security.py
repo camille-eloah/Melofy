@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 import logging
 
 from fastapi import Response
-from jose import jwt
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 
 from app.core.config import get_settings
@@ -26,6 +26,16 @@ def _create_token(data: dict, expires_delta: timedelta) -> str:
     token = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
     logger.debug("Token criado", extra={"scope": data.get("scope"), "sub": data.get("sub"), "exp": str(to_encode['exp'])})
     return token
+
+
+def _decode_token(token: str) -> dict:
+    try:
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        logger.debug("Token decodificado", extra={"sub": payload.get("sub"), "tipo": payload.get("tipo"), "scope": payload.get("scope")})
+        return payload
+    except JWTError as exc:
+        logger.debug("Falha ao decodificar token", extra={"error": str(exc)})
+        raise
 
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
