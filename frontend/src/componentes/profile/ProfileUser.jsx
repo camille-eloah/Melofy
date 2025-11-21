@@ -1,7 +1,33 @@
 import "./ProfileUser.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
+function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser = null }) {
+  const [usuario, setUsuario] = useState(usuarioProp);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
+      .then((res) => {
+        if (res.ok) return res.json();
+        if (res.status === 401) throw new Error("unauthorized");
+        throw new Error("erro");
+      })
+      .then((data) => {
+        setUsuario(data);
+      })
+      .catch((err) => {
+        if (err.message === "unauthorized") {
+          navigate("/login");
+          return;
+        }
+        // fallback: mantém dados padrão e apenas loga
+        console.debug("Não foi possível carregar usuário logado", err);
+      });
+  }, [navigate]);
+
   const nomeUsuario = usuario.nome || "Usuário Desconhecido";
   const profilePicture = usuario.profile_picture || null;
 
