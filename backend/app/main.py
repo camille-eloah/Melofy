@@ -161,6 +161,14 @@ def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
 
+
+@router_user.get("/{user_id}", response_model=UserResponse)
+def obter_usuario(user_id: int, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return montar_resposta_usuario(usuario)
+
 # ----------------------------
 # 1. Autenticação
 # ----------------------------
