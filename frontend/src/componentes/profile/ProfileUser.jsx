@@ -115,13 +115,13 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
               <span>{usuario.email || "Não informado"}</span>
             </p>
             <p>
-              <span>Bio:</span>
-              <span>{usuario.bio || "Sem bio"}</span>
-            </p>
-            <p>
               <span>Telefone:</span>
               <span>{usuario.telefone || "Não informado"}</span>
             </p>
+            <p className="bio-text">
+              {usuario.bio || "Nenhuma descrição informada."}
+            </p>
+
           </div>
 
           {podeEditar && (
