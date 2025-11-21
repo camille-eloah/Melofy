@@ -3,6 +3,7 @@ import logging
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from jose import JWTError
 from sqlmodel import Session, select
 
 from app.core.config import get_settings
@@ -10,6 +11,7 @@ from app.core.security import (
     _hash_password,
     _set_auth_cookies,
     _clear_auth_cookies,
+    _decode_token,
 )
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
@@ -19,6 +21,7 @@ from app.services.auth import (
     verificar_email_cpf_disponiveis,
     autenticar_usuario,
     gerar_tokens,
+    obter_usuario_por_id_tipo,
 )
 from app.services.user import montar_resposta_usuario
 
@@ -171,6 +174,26 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
     _set_auth_cookies(response, access_token, refresh_token)
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
     logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
+    return montar_resposta_usuario(usuario)
+
+
+@router_auth.get("/me", response_model=UserResponse)
+def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+
+    try:
+        payload = _decode_token(token)
+        user_id = int(payload.get("sub"))
+        tipo = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
     return montar_resposta_usuario(usuario)
 
 
