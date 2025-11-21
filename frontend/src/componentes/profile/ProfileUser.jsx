@@ -83,8 +83,27 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
 
       <div className="profile-container">
+       {/* Container top-items acima do main-text */}
+        <div className="top-items">
+          {/* Categorias no início (esquerda) */}
+          <div className="categorias">
+            <span className="categoria-item">Guitarra</span>
+            <span className="categoria-item">Violão</span>
+            <span className="categoria-item">Ukulele</span>
+          </div>
+
+          {/* Botão de edição no final (direita)*/}
+          {podeEditar && (
+            <button className="btn-editar-texto" title="Editar textos">
+              <span aria-hidden="true">✎</span>
+            </button>
+          )}
+          
+        </div>
+
         {/* Texto principal à esquerda */}
         <div className="main-text">
+
           <div className="texto-intro">
             <p>
               Aulas totalmente voltadas ao repertório que o aluno quer aprender! Guitarra, Violão e Ukulele. 

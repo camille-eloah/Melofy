@@ -252,3 +252,97 @@
     max-width: 100%;
   }
 }
+
+/* ===== Container top-items ===== */
+.top-items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+/* ===== Categorias ===== */
+.categorias {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.categoria-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.categoria-item:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Botão de edição do texto principal ===== */
+.btn-editar-texto {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0284c7;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  flex-shrink: 0;
+}
+
+.btn-editar-texto:hover {
+  background-color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.btn-editar-texto:active {
+  transform: translateY(0);
+}
+
+/* Remove o position relative do main-text já que não precisamos mais do absolute */
+.main-text {
+  flex: 1 1 60%;
+  max-width: 600px;
+}
+
+/* Ajuste para responsividade */
+@media (max-width: 900px) {
+  .top-items {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    max-width: 100%;
+  }
+  
+  .categorias {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-editar-texto {
+    align-self: flex-end;
+  }
+  
+  .main-text {
+    flex: 1 1 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+}
