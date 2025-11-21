@@ -110,6 +110,7 @@
   border-radius: 24px;
   object-fit: cover;
   background-color: #e2e8f0;
+  display: block;
 }
 
 .foto-vazia {
@@ -130,6 +131,7 @@
   position: relative;
   display: inline-block;
   margin-bottom: 16px;
+  line-height: 0;
 }
 
 .foto-interativa {
