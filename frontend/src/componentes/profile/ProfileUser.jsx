@@ -7,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { id: userIdParam } = useParams();
 
@@ -65,6 +66,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const profilePicture = usuario?.profile_picture || null;
   const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
 
+  const handleFotoClick = () => {
+    if (podeEditar) {
+      setIsModalOpen(true);
+    }
+  };
+
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="profile-page">
       {/* Cabeçalho azul escuro */}
@@ -119,17 +128,48 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
         {/* Cartão de perfil à direita */}
         <div className="card-perfil">
-          {profilePicture ? (
-            <img
-              src={profilePicture}
-              alt={`Foto de ${nomeUsuario}`}
-              className="foto-perfil"
-            />
-          ) : (
-            <div className="foto-vazia">
-              {nomeUsuario[0]?.toUpperCase() || "?"}
-            </div>
-          )}
+          <div
+            className={`foto-wrapper ${podeEditar ? "foto-interativa" : ""}`}
+            onClick={handleFotoClick}
+            role={podeEditar ? "button" : undefined}
+            tabIndex={podeEditar ? 0 : undefined}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleFotoClick();
+              }
+            }}
+          >
+            {profilePicture ? (
+              <img
+                src={profilePicture}
+                alt={`Foto de ${nomeUsuario}`}
+                className="foto-perfil"
+              />
+            ) : (
+              <div className="foto-vazia">
+                {nomeUsuario[0]?.toUpperCase() || "?"}
+              </div>
+            )}
+            {podeEditar && (
+              <div className="foto-overlay">
+                <span className="camera-icon" aria-hidden="true">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
+                    <circle cx="12" cy="13" r="3.2" />
+                  </svg>
+                </span>
+              </div>
+            )}
+          </div>
 
           <h3>{nomeUsuario}</h3>
           <p className="avaliacao">&lt;Avaliação&gt;</p>
@@ -156,6 +196,37 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             </div>
           )}
         </div>
+
+        {isModalOpen && (
+          <div className="modal-backdrop" onClick={closeModal}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Pré-visualização da foto de perfil"
+            >
+              <div className="modal-header">
+                <h5>Pré-visualização</h5>
+                <button className="modal-close" onClick={closeModal} aria-label="Fechar modal">
+                  x
+                </button>
+              </div>
+              <div className="modal-body">
+                {profilePicture ? (
+                  <img src={profilePicture} alt={`Pré-visualização de ${nomeUsuario}`} />
+                ) : (
+                  <div className="modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn-upload" type="button">
+                  Fazer upload
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Avaliações abaixo */}
         <div className="avaliacoes">
