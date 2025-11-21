@@ -84,12 +84,18 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
       <div className="profile-container">
         {/* Texto principal à esquerda */}
-        <div className="texto-intro">
-          <p>
-            Mais de 4.000 horas de aulas on-line. Diversas aprovações em
-            concursos militares e vestibulares. Meu objetivo é garantir seu
-            entendimento!
-          </p>
+        <div className="main-text">
+          <div className="texto-intro">
+            <p>
+              Aulas totalmente voltadas ao repertório que o aluno quer aprender! Guitarra, Violão e Ukulele. 
+            </p>
+          </div>
+
+          <div className="texto-desc">
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+            </p>
+          </div>
         </div>
 
         {/* Cartão de perfil à direita */}
