@@ -25,6 +25,9 @@ class Settings(BaseModel):
     cookie_secure: bool
     cookie_samesite: str
     cookie_domain: Optional[str]
+    media_root: str
+    profile_pic_dir: str
+    media_url_path: str
 
 
 @lru_cache
@@ -50,4 +53,7 @@ def get_settings() -> Settings:
         cookie_secure=os.getenv("COOKIE_SECURE", "false").lower() == "true",
         cookie_samesite=os.getenv("COOKIE_SAMESITE", "lax"),
         cookie_domain=os.getenv("COOKIE_DOMAIN"),
+        media_root=os.getenv("MEDIA_ROOT", str(Path(__file__).resolve().parents[2] / "storage")),
+        profile_pic_dir=os.getenv("PROFILE_PIC_DIR", "profile_pictures"),
+        media_url_path=os.getenv("MEDIA_URL_PATH", "/media"),
     )

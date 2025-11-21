@@ -10,6 +10,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const { id: userIdParam } = useParams();
@@ -77,6 +78,33 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setSelectedFile(file);
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleUploadSubmit = () => {
+    if (!selectedFile || !usuario?.id || isUploading) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    fetch(`${API_BASE_URL}/user/${usuario.id}/profile-picture`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("upload_failed");
+      })
+      .then((data) => {
+        setUsuario((prev) => ({ ...prev, profile_picture: data.profile_picture }));
+        setPreviewUrl(null);
+        setSelectedFile(null);
+        setIsModalOpen(false);
+      })
+      .catch((err) => {
+        console.error("Falha ao fazer upload da foto", err);
+      })
+      .finally(() => setIsUploading(false));
   };
 
   useEffect(() => {
@@ -228,8 +256,16 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 <div className="modal-file-info">
                   {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
                 </div>
-                <button className="btn-upload" type="button" onClick={handleUploadClick}>
-                  Fazer upload
+                <button className="btn-select-file" type="button" onClick={handleUploadClick}>
+                  Selecionar imagem
+                </button>
+                <button
+                  className="btn-upload"
+                  type="button"
+                  onClick={handleUploadSubmit}
+                  disabled={!selectedFile || isUploading}
+                >
+                  {isUploading ? "Enviando..." : "Salvar foto"}
                 </button>
               </div>
             </div>

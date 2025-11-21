@@ -478,6 +478,23 @@
   text-align: left;
 }
 
+.btn-select-file {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-select-file:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
 .btn-upload {
   width: 100%;
   padding: 10px 14px;
@@ -492,4 +509,9 @@
 
 .btn-upload:hover {
   background: #0369a1;
+}
+
+.btn-upload:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }

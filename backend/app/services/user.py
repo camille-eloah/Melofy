@@ -1,12 +1,32 @@
+from pathlib import Path
 from typing import Union
 
+from sqlmodel import Session, select
+
+from app.core.config import get_settings
 from app.models import Professor, Aluno, TipoUsuario
 from app.schemas.user import UserResponse
-from sqlmodel import Session, select
+
+
+def _build_profile_picture_url(user_id: int) -> str | None:
+    """Busca um arquivo de foto para o usuário no disco e monta a URL pública."""
+    settings = get_settings()
+    media_root = Path(settings.media_root).resolve()
+    pic_dir = media_root / settings.profile_pic_dir
+    if not pic_dir.exists():
+        return None
+
+    matched = next(pic_dir.glob(f"{user_id}.*"), None)
+    if not matched:
+        return None
+
+    prefix = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
+    return f"{prefix.rstrip('/')}/{settings.profile_pic_dir}/{matched.name}"
 
 
 def montar_resposta_usuario(usuario: Union[Professor, Aluno]) -> UserResponse:
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    profile_picture_url = _build_profile_picture_url(usuario.id) if usuario and usuario.id else None
     return UserResponse(
         id=usuario.id,
         nome=usuario.nome,
@@ -16,6 +36,7 @@ def montar_resposta_usuario(usuario: Union[Professor, Aluno]) -> UserResponse:
         tipo=tipo.label(),
         telefone=getattr(usuario, "telefone", None),
         bio=getattr(usuario, "bio", None),
+        profile_picture=profile_picture_url,
     )
 
 
