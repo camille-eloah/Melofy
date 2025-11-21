@@ -8,6 +8,8 @@ CREATE TABLE tb_professor (
     cpf VARCHAR(14) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL,
     tipo_usuario ENUM('PROFESSOR','ALUNO') NOT NULL DEFAULT 'PROFESSOR',
+    bio TEXT NULL,
+    telefone VARCHAR(20) NULL,
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     vacation_mode BOOLEAN NOT NULL DEFAULT FALSE,
@@ -21,6 +23,8 @@ CREATE TABLE tb_aluno (
     cpf VARCHAR(14) NOT NULL UNIQUE,
     data_nascimento DATE NOT NULL,
     tipo_usuario ENUM('PROFESSOR','ALUNO') NOT NULL DEFAULT 'ALUNO',
+    bio TEXT NULL,
+    telefone VARCHAR(20) NULL,
     hashed_password VARCHAR(255) NOT NULL,
     created_at DATETIME NOT NULL,
     conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'

@@ -15,7 +15,7 @@ from app.core.security import (
 )
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
     verificar_email_cpf_disponiveis,
@@ -23,7 +23,7 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
-from app.services.user import montar_resposta_usuario
+from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
 
 
 def _configure_logging():
@@ -127,6 +127,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
+            telefone=user.telefone,
+            bio=user.bio,
             hashed_password=_hash_password(user.senha),
         )
     else:
@@ -135,6 +137,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
+            telefone=user.telefone,
+            bio=user.bio,
             hashed_password=_hash_password(user.senha),
         )
 
@@ -207,9 +211,22 @@ def logout(response: Response):
 # 2. Gerenciamento de Conta
 # ----------------------------
 
-@router_user.patch("/{user_id}")
-def editar_perfil(user_id: int):
-    return {"msg": f"Perfil do usuário {user_id} atualizado parcialmente"}
+@router_user.patch("/{user_id}", response_model=UserResponse)
+def editar_perfil(user_id: int, dados: UserUpdate, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if dados.telefone is not None:
+        usuario.telefone = dados.telefone
+    if dados.bio is not None:
+        usuario.bio = dados.bio
+
+    db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
+    logger.debug("Perfil atualizado id=%s", usuario.id)
+    return montar_resposta_usuario(usuario)
 
 @router_user.delete("/{user_id}")
 def excluir_conta(user_id: int):

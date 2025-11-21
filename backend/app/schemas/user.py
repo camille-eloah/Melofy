@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import date
 from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
 
@@ -14,6 +15,8 @@ class UserCreate(BaseModel):
     email: EmailStr
     senha: str
     tipo: TipoUsuario
+    telefone: str | None = None
+    bio: str | None = None
 
     @field_validator("tipo", mode="before")
     @classmethod
@@ -28,6 +31,14 @@ class UserCreate(BaseModel):
                 raise ValueError("tipo precisa ser Professor ou Aluno") from exc
         return value
 
+    @field_validator("telefone", mode="before")
+    @classmethod
+    def normalizar_telefone(cls, value):
+        if value is None:
+            return value
+        digits = re.sub(r"\D", "", str(value))
+        return digits or None
+
 
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -38,3 +49,18 @@ class UserResponse(BaseModel):
     data_nascimento: date
     email: EmailStr
     tipo: str
+    telefone: str | None = None
+    bio: str | None = None
+
+
+class UserUpdate(BaseModel):
+    telefone: str | None = None
+    bio: str | None = None
+
+    @field_validator("telefone", mode="before")
+    @classmethod
+    def normalizar_telefone(cls, value):
+        if value is None:
+            return value
+        digits = re.sub(r"\D", "", str(value))
+        return digits or None
