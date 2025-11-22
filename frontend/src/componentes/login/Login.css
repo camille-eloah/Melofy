@@ -1,13 +1,17 @@
-body {
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    background-color: #071735;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    height: 100vh;
     margin: 0;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .Conteiner-login {

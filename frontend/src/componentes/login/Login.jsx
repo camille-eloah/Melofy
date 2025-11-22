@@ -47,7 +47,8 @@ function Login() {
   }
 
     return(
-       <div className="Conteiner-login">
+       <div className="login-page">
+         <div className="Conteiner-login">
            <form onSubmit={fazerLogin}>
                 <h1>Fazer Login</h1>
                 
@@ -94,6 +95,7 @@ function Login() {
                     </div>
                 )}
            </form>
+         </div>
        </div>
     )
 }
