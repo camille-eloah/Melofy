@@ -234,7 +234,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           {podeEditar && (
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
-              <button className="btn-deletar" >Deletar Conta</button>
+              <button className="btn-deletar">Deletar Conta</button>
             </div>
           )}
         </div>
