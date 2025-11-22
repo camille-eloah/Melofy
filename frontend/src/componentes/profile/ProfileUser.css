@@ -2,6 +2,9 @@
 .profile-page {
   background-color: #f5f7fb;
   font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Cabeçalho azul escuro ===== */
@@ -11,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 1530px;
+  width: 100%;
 }
 
 /* exemplo: lado esquerdo (logo/nome) */
@@ -72,8 +75,26 @@
   padding: 40px 80px;
   max-width: 1200px;
   margin: 0 auto;
+  flex: 1;
+  width: 100%;
   background-color: #f5f7fb;
   color: #0f172a;
+  gap: 24px;
+}
+
+.lado-esquerdo {
+  flex: 1 1 60%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lado-direito {
+  flex: 1 1 32%;
+  max-width: 360px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ===== Texto da esquerda ===== */
@@ -294,6 +315,13 @@
   .card-perfil {
     flex: 1 1 100%;
     max-width: 100%;
+  }
+
+  .lado-esquerdo,
+  .lado-direito {
+    flex: 1 1 100%;
+    max-width: 100%;
+    justify-content: center;
   }
 }
 
