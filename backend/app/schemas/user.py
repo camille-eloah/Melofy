@@ -51,6 +51,7 @@ class UserResponse(BaseModel):
     tipo: str
     telefone: str | None = None
     bio: str | None = None
+    profile_picture: str | None = None
 
 
 class UserUpdate(BaseModel):

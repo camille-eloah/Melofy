@@ -1,8 +1,11 @@
 from datetime import timedelta
 import logging
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response
+import shutil
+from pathlib import Path
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from jose import JWTError
 from sqlmodel import Session, select
 
@@ -48,6 +51,10 @@ def _configure_logging():
 settings = get_settings()
 _configure_logging()
 logger = logging.getLogger(__name__)
+media_root_path = Path(settings.media_root).resolve()
+media_root_path.mkdir(parents=True, exist_ok=True)
+profile_pic_dir = media_root_path / settings.profile_pic_dir
+profile_pic_dir.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
     title=settings.app_title,
@@ -62,6 +69,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+media_mount_path = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
+app.mount(media_mount_path, StaticFiles(directory=media_root_path), name="media")
 
 # Router user - rotas de usuário
 router_user = APIRouter(
@@ -445,6 +454,39 @@ def atualizar_avaliacao_professor(ava_id: int):
 @router_ratings.delete("/professor/{ava_id}")
 def deletar_avaliacao_professor(ava_id: int):
     return {"msg": f"Avaliação do professor {ava_id} removida!"}
+
+
+
+@router_user.post("/{user_id}/profile-picture")
+async def upload_profile_picture(
+    user_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_session),
+):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+
+    allowed_content_types = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed_content_types:
+        raise HTTPException(status_code=400, detail="Apenas imagens JPEG/PNG/WebP sao permitidas")
+
+    ext = Path(file.filename or "").suffix.lower() or ".jpg"
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        ext = ".jpg"
+
+    for old_file in profile_pic_dir.glob(f"{user_id}.*"):
+        try:
+            old_file.unlink()
+        except OSError:
+            logger.warning("Nao foi possivel remover a foto anterior", exc_info=True)
+
+    dest_path = profile_pic_dir / f"{user_id}{ext}"
+    with dest_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    mount_prefix = media_mount_path.rstrip("/")
+    return {"profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{dest_path.name}"}
 
 app.include_router(router_user)
 app.include_router(router_auth)
