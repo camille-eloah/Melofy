@@ -11,6 +11,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [cacheBust, setCacheBust] = useState(Date.now());
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const { id: userIdParam } = useParams();
@@ -26,6 +27,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       })
       .then((data) => {
         setUsuario(data);
+        if (data?.profile_picture) setCacheBust(Date.now());
       })
       .catch((err) => {
         if (err.message === "not_found") {
@@ -46,6 +48,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         // se estamos no proprio perfil ou sem id na rota, e ainda nao temos usuario, preenche
         if ((!userIdParam || String(userIdParam) === String(data.id)) && !(usuario && usuario.id)) {
           setUsuario(data || {});
+          if (data?.profile_picture) setCacheBust(Date.now());
         }
       })
       .catch((err) => {
@@ -62,7 +65,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
   const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
-  const displayedPicture = previewUrl || absoluteProfilePicture;
+  const displayedPicture =
+    previewUrl ||
+    (absoluteProfilePicture
+      ? `${absoluteProfilePicture}${absoluteProfilePicture.includes("?") ? "&" : "?"}v=${cacheBust}`
+      : null);
 
   const handleFotoClick = () => {
     if (podeEditar) {
@@ -101,6 +108,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       })
       .then((data) => {
         setUsuario((prev) => ({ ...prev, profile_picture: data.profile_picture }));
+        setCacheBust(Date.now());
         setPreviewUrl(null);
         setSelectedFile(null);
         setIsModalOpen(false);
