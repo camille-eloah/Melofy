@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Header from "../layout/Header";
 import "./Localizacao.css";
 
 function Localizacao() {
@@ -88,13 +89,7 @@ function Localizacao() {
   return (
     <div className="localizacao-page">
       <div className="localizacao-container">
-      <header className="cabecalho-azul">
-        <h1 className="titulo">Melofy</h1>
-        <div className="botoes-esquerda">
-          <button className="botao-cabecalho">Dar Aulas</button>
-          <button className="botao-cabecalho">Conectar</button>
-        </div>
-      </header>
+      <Header />
 
       <main className="conteudo-principal">
         <div className="lado-esquerdo">

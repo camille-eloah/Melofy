@@ -1,4 +1,5 @@
 import "./ProfileUser.css";
+import Header from "../layout/Header";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -129,18 +130,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
   return (
     <div className="profile-page">
-      {/* Cabecalho azul escuro */}
-      <header className="profile-header">
-        <div className="profile-header-left">
-          <span className="brand">MELOFY</span>
-        </div>
-
-        <nav className="profile-header-nav">
-          <Link to="/home">Tela Inicial</Link>
-          <a href="#">Dar aulas</a>
-          <a href="#">Conectar</a>
-        </nav>
-      </header>
+      <Header />
 
       <div className="profile-container">
         <div className="lado-esquerdo-profile">
