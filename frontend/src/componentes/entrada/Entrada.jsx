@@ -16,6 +16,7 @@ function Entrada() {
 
   return (
 
+    <div className="entrada-page">
           <div className="melofy-container">
           <div className="melofy-descricao">
           <div className="melofy-logo">
@@ -47,6 +48,7 @@ function Entrada() {
             <img src={instrumentos} alt="Instrumentos" />
           </div>
         </div>
+    </div>
   
   );
 };

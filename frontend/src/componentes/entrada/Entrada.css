@@ -1,13 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
 
-
-body {
+.entrada-page {
   margin: 0;
   background-color: #021434; /* esse azul escuro que você já usa */
   font-family: 'Nunito', sans-serif;
- 
 }
-
 
 .melofy-container {
   width: 100%;
@@ -51,7 +48,7 @@ body {
 
 .melofy-logo h1 {
   font-family: 'Nunito', sans-serif;
-  font-size: 10rem;
+  font-size: 5rem;
   font-weight: 1100;
   margin-bottom: 2rem;
   background: linear-gradient(45deg, #724ae2, #4179e1, #d4ad2d);
@@ -78,7 +75,7 @@ body {
 .melofy-slogan {
   margin-bottom: 3rem;
   line-height: 1.6;
-  font-size: 1.6rem;
+  font-size: 1rem;
 }
 
 
@@ -109,7 +106,7 @@ body {
 
 }
 
-img {
+.melofy-imagem img {
   width: 500px;
   height: auto;
   
