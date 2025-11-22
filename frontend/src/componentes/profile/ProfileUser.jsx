@@ -57,8 +57,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
+  const absoluteProfilePicture =
+    profilePicture && !profilePicture.startsWith("http")
+      ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
+      : profilePicture;
   const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
-  const displayedPicture = previewUrl || profilePicture;
+  const displayedPicture = previewUrl || absoluteProfilePicture;
 
   const handleFotoClick = () => {
     if (podeEditar) {
