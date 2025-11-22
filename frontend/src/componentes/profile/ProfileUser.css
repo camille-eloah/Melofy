@@ -2,6 +2,9 @@
 .profile-page {
   background-color: #f5f7fb;
   font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Cabeçalho azul escuro ===== */
@@ -11,7 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 1530px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* exemplo: lado esquerdo (logo/nome) */
@@ -72,8 +76,26 @@
   padding: 40px 80px;
   max-width: 1200px;
   margin: 0 auto;
+  flex: 1;
+  width: 100%;
   background-color: #f5f7fb;
   color: #0f172a;
+  gap: 24px;
+}
+
+.lado-esquerdo-profile {
+  flex: 1 1 60%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.lado-direito-profile {
+  flex: 1 1 32%;
+  max-width: 360px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ===== Texto da esquerda ===== */
@@ -110,7 +132,7 @@
   border-radius: 24px;
   object-fit: cover;
   background-color: #e2e8f0;
-  margin-bottom: 16px;
+  display: block;
 }
 
 .foto-vazia {
@@ -123,8 +145,52 @@
   justify-content: center;
   font-size: 52px;
   font-weight: 700;
-  margin: 0 auto 16px;
+  margin: 0 auto;
   color: #1f2937;
+}
+
+.foto-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 16px;
+  line-height: 0;
+}
+
+.foto-interativa {
+  cursor: pointer;
+}
+
+.foto-interativa:focus-visible {
+  outline: 3px solid #0284c7;
+  outline-offset: 4px;
+}
+
+.foto-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  border-radius: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  font-size: 28px;
+}
+
+.foto-interativa:hover .foto-overlay,
+.foto-interativa:focus-visible .foto-overlay {
+  opacity: 1;
+}
+
+.camera-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
 }
 
 .card-perfil h3 {
@@ -251,4 +317,230 @@
     flex: 1 1 100%;
     max-width: 100%;
   }
+
+  .lado-esquerdo-profile,
+  .lado-direito-profile {
+    flex: 1 1 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ===== Container top-items ===== */
+.top-items {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin-bottom: 20px;
+}
+
+/* ===== Categorias ===== */
+.categorias {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.categoria-item {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.categoria-item:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Botão de edição do texto principal ===== */
+.btn-editar-texto {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0284c7;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  flex-shrink: 0;
+}
+
+.btn-editar-texto:hover {
+  background-color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+}
+
+.btn-editar-texto:active {
+  transform: translateY(0);
+}
+
+/* Remove o position relative do main-text já que não precisamos mais do absolute */
+.main-text {
+  flex: 1 1 60%;
+  max-width: 600px;
+}
+
+/* Ajuste para responsividade */
+@media (max-width: 900px) {
+  .top-items {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+    max-width: 100%;
+  }
+  
+  .categorias {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-editar-texto {
+    align-self: flex-end;
+  }
+  
+  .main-text {
+    flex: 1 1 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+}
+
+/* ===== Modal de pré-visualização ===== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header,
+.modal-footer {
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  color: #475569;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.modal-close:hover {
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 0 16px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.modal-body img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.modal-placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.modal-file-info {
+  width: 100%;
+  font-size: 12px;
+  color: #475569;
+  text-align: left;
+}
+
+.btn-select-file {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-select-file:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.btn-upload {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-upload:hover {
+  background: #0369a1;
+}
+
+.btn-upload:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }

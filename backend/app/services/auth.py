@@ -1,0 +1,76 @@
+from datetime import timedelta
+import logging
+
+from sqlmodel import Session, select
+
+from app.core.config import get_settings
+from app.core.security import _verify_password, _create_token
+from app.models import Professor, Aluno, TipoUsuario
+
+logger = logging.getLogger(__name__)
+settings = get_settings()
+
+
+def verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
+    for model in (Professor, Aluno):
+        if db.exec(select(model).where(model.email == email)).first():
+            logger.debug("Email em uso: %s", email)
+            raise ValueError("E-mail já cadastrado")
+        if db.exec(select(model).where(model.cpf == cpf)).first():
+            logger.debug("CPF em uso: %s", cpf)
+            raise ValueError("CPF já cadastrado")
+
+
+def obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None:
+    for model in (Professor, Aluno):
+        usuario = db.exec(select(model).where(model.email == email)).first()
+        if usuario:
+            logger.debug("Usuário encontrado por email=%s id=%s", email, usuario.id)
+            return usuario
+    logger.debug("Usuário não encontrado por email=%s", email)
+    return None
+
+
+def autenticar_usuario(db: Session, email: str, senha: str) -> Professor | Aluno:
+    usuario = obter_usuario_por_email(db, email)
+    if not usuario or not _verify_password(senha, usuario.hashed_password):
+        logger.debug("Autenticação falhou para email=%s", email)
+        raise ValueError("Credenciais inválidas")
+    logger.debug("Autenticação bem-sucedida email=%s user_id=%s", email, usuario.id)
+    return usuario
+
+
+def gerar_tokens(usuario: Professor | Aluno) -> tuple[str, str]:
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    access_token = _create_token(
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
+        timedelta(minutes=settings.access_token_expire_minutes),
+    )
+    refresh_token = _create_token(
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
+        timedelta(days=settings.refresh_token_expire_days),
+    )
+    logger.debug(
+        "Tokens gerados para usuário id=%s tipo=%s access_exp_min=%s refresh_exp_days=%s",
+        usuario.id,
+        tipo.value,
+        settings.access_token_expire_minutes,
+        settings.refresh_token_expire_days,
+    )
+    return access_token, refresh_token
+
+
+def obter_usuario_por_id_tipo(db: Session, user_id: int, tipo: str) -> Professor | Aluno | None:
+    try:
+        tipo_enum = TipoUsuario(tipo)
+    except ValueError:
+        logger.debug("Tipo inválido no token para user_id=%s: %s", user_id, tipo)
+        return None
+
+    model = Professor if tipo_enum == TipoUsuario.PROFESSOR else Aluno
+    usuario = db.exec(select(model).where(model.id == user_id)).first()
+    if usuario:
+        logger.debug("Usuário recuperado por id=%s tipo=%s", user_id, tipo_enum.value)
+    else:
+        logger.debug("Usuário não encontrado por id=%s tipo=%s", user_id, tipo_enum.value)
+    return usuario

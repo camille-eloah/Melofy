@@ -86,9 +86,8 @@ function Localizacao() {
   };
 
   return (
-    
-
-    <div className="localizacao-container">
+    <div className="localizacao-page">
+      <div className="localizacao-container">
       <header className="cabecalho-azul">
         <h1 className="titulo">Melofy</h1>
         <div className="botoes-esquerda">
@@ -141,6 +140,7 @@ function Localizacao() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }

@@ -1,29 +1,76 @@
-from datetime import date
-from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
+from datetime import timedelta
+import logging
+import shutil
+from pathlib import Path
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, Response, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel, EmailStr, ConfigDict, field_validator
+from fastapi.staticfiles import StaticFiles
+from jose import JWTError
 from sqlmodel import Session, select
 
+from app.core.config import get_settings
+from app.core.security import (
+    _hash_password,
+    _set_auth_cookies,
+    _clear_auth_cookies,
+    _decode_token,
+)
 from app.db_connection import get_session
 from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
+from app.schemas.auth import LoginRequest
+from app.services.auth import (
+    verificar_email_cpf_disponiveis,
+    autenticar_usuario,
+    gerar_tokens,
+    obter_usuario_por_id_tipo,
+)
+from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
+
+
+def _configure_logging():
+    """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
+    settings_local = get_settings()
+    log_level = logging.DEBUG if settings_local.debug else logging.INFO
+
+    if not logging.getLogger().handlers:
+        logging.basicConfig(level=log_level)
+
+    uvicorn_logger = logging.getLogger("uvicorn.error")
+    handlers = uvicorn_logger.handlers or logging.getLogger().handlers
+
+    for name in ("app", "app.main", "app.core", "app.core.security"):
+        logger = logging.getLogger(name)
+        logger.handlers.clear()
+        logger.handlers.extend(handlers)
+        logger.propagate = False  # evita logs duplicados em hierarquia
+        logger.setLevel(log_level)
+
+
+settings = get_settings()
+_configure_logging()
+logger = logging.getLogger(__name__)
+media_root_path = Path(settings.media_root).resolve()
+media_root_path.mkdir(parents=True, exist_ok=True)
+profile_pic_dir = media_root_path / settings.profile_pic_dir
+profile_pic_dir.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(
-    title="Melofy",
-    description="O seu app de música.",
-    version="0.1.0",
+    title=settings.app_title,
+    description=settings.app_description,
+    version=settings.app_version,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+media_mount_path = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
+app.mount(media_mount_path, StaticFiles(directory=media_root_path), name="media")
 
 # Router user - rotas de usuário
 router_user = APIRouter(
@@ -71,65 +118,17 @@ router_ratings = APIRouter(
 )
 
 
-class UserCreate(BaseModel):
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    senha: str
-    tipo: TipoUsuario
-
-    @field_validator("tipo", mode="before")
-    @classmethod
-    def normalizar_tipo(cls, value):
-        if isinstance(value, str):
-            upper_value = value.strip().upper()
-            try:
-                return TipoUsuario(upper_value)
-            except ValueError as exc:
-                raise ValueError(
-                    "tipo precisa ser Professor ou Aluno"
-                ) from exc
-        return value
-
-
-class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    nome: str
-    cpf: str
-    data_nascimento: date
-    email: EmailStr
-    tipo: str
-
-
-def _verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
-    for model in (Professor, Aluno):
-        if db.exec(select(model).where(model.email == email)).first():
-            raise HTTPException(status_code=400, detail="E-mail já cadastrado")
-        if db.exec(select(model).where(model.cpf == cpf)).first():
-            raise HTTPException(status_code=400, detail="CPF já cadastrado")
-
-
-def _montar_resposta_usuario(usuario: Professor | Aluno) -> UserResponse:
-    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
-    return UserResponse(
-        id=usuario.id,
-        nome=usuario.nome,
-        cpf=usuario.cpf,
-        data_nascimento=usuario.data_nascimento,
-        email=usuario.email,
-        tipo=tipo.label(),
-    )
-
 # ----------------------------
 # 0. Usuário
 # ----------------------------
 
 @router_user.post("/", response_model=UserResponse, status_code=201)
 def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
-    _verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    try:
+        verificar_email_cpf_disponiveis(db, user.email, user.cpf)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    logger.debug("Iniciando criação de usuário", extra={"email": user.email, "tipo": user.tipo.value})
 
     if user.tipo == TipoUsuario.PROFESSOR:
         novo_usuario = Professor(
@@ -137,7 +136,9 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
-            hashed_password=user.senha,
+            telefone=user.telefone,
+            bio=user.bio,
+            hashed_password=_hash_password(user.senha),
         )
     else:
         novo_usuario = Aluno(
@@ -145,46 +146,104 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             email=user.email,
             cpf=user.cpf,
             data_nascimento=user.data_nascimento,
-            hashed_password=user.senha,
+            telefone=user.telefone,
+            bio=user.bio,
+            hashed_password=_hash_password(user.senha),
         )
 
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
-    return _montar_resposta_usuario(novo_usuario)
+    logger.debug("Usuário criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
+    return montar_resposta_usuario(novo_usuario)
 
 # Listar todos os usuários
 @router_user.get("/", response_model=list[UserResponse])
 def listar_usuarios(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     alunos = db.exec(select(Aluno)).all()
-    return [_montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
+    return [montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
 
 # Listar professores
 @router_user.get("/professores", response_model=list[UserResponse])
 def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
-    return [_montar_resposta_usuario(professor) for professor in professores]
+    return [montar_resposta_usuario(professor) for professor in professores]
+
+
+@router_user.get("/{user_id}", response_model=UserResponse)
+def obter_usuario(user_id: int, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return montar_resposta_usuario(usuario)
 
 # ----------------------------
 # 1. Autenticação
 # ----------------------------
 
-@router_auth.post("/login")
-def login():
-    return
+@router_auth.post("/login", response_model=UserResponse)
+def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
+    logger.debug("Tentativa de login", extra={"email": credenciais.email})
+    try:
+        usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
+    except ValueError:
+        logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-@router_auth.post('/logout')
-def logout():
-    return
+    access_token, refresh_token = gerar_tokens(usuario)
+    _set_auth_cookies(response, access_token, refresh_token)
+    tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    logger.debug("Login bem-sucedido", extra={"email": credenciais.email, "user_id": usuario.id, "tipo": tipo.value})
+    return montar_resposta_usuario(usuario)
+
+
+@router_auth.get("/me", response_model=UserResponse)
+def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+
+    try:
+        payload = _decode_token(token)
+        user_id = int(payload.get("sub"))
+        tipo = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+
+    return montar_resposta_usuario(usuario)
+
+
+@router_auth.post("/logout")
+def logout(response: Response):
+    _clear_auth_cookies(response)
+    logger.debug("Logout realizado")
+    return {"detail": "Logout realizado com sucesso"}
 
 # ----------------------------
 # 2. Gerenciamento de Conta
 # ----------------------------
 
-@router_user.patch("/{user_id}")
-def editar_perfil(user_id: int):
-    return {"msg": f"Perfil do usuário {user_id} atualizado parcialmente"}
+@router_user.patch("/{user_id}", response_model=UserResponse)
+def editar_perfil(user_id: int, dados: UserUpdate, db: Session = Depends(get_session)):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if dados.telefone is not None:
+        usuario.telefone = dados.telefone
+    if dados.bio is not None:
+        usuario.bio = dados.bio
+
+    db.add(usuario)
+    db.commit()
+    db.refresh(usuario)
+    logger.debug("Perfil atualizado id=%s", usuario.id)
+    return montar_resposta_usuario(usuario)
 
 @router_user.delete("/{user_id}")
 def excluir_conta(user_id: int):
@@ -395,6 +454,39 @@ def atualizar_avaliacao_professor(ava_id: int):
 @router_ratings.delete("/professor/{ava_id}")
 def deletar_avaliacao_professor(ava_id: int):
     return {"msg": f"Avaliação do professor {ava_id} removida!"}
+
+
+
+@router_user.post("/{user_id}/profile-picture")
+async def upload_profile_picture(
+    user_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_session),
+):
+    usuario = buscar_usuario_por_id(db, user_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+
+    allowed_content_types = {"image/jpeg", "image/png", "image/webp"}
+    if file.content_type not in allowed_content_types:
+        raise HTTPException(status_code=400, detail="Apenas imagens JPEG/PNG/WebP sao permitidas")
+
+    ext = Path(file.filename or "").suffix.lower() or ".jpg"
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        ext = ".jpg"
+
+    for old_file in profile_pic_dir.glob(f"{user_id}.*"):
+        try:
+            old_file.unlink()
+        except OSError:
+            logger.warning("Nao foi possivel remover a foto anterior", exc_info=True)
+
+    dest_path = profile_pic_dir / f"{user_id}{ext}"
+    with dest_path.open("wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    mount_prefix = media_mount_path.rstrip("/")
+    return {"profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{dest_path.name}"}
 
 app.include_router(router_user)
 app.include_router(router_auth)

@@ -1,3 +1,31 @@
+# Frontend
+
+## Instruções
+
+1. Clone o repositório:
+
+```shell
+git clone https://github.com/camille-eloah/Melofy.git
+```
+
+2. Entre na pasta do frontend:
+
+```shell
+cd Melofy/frontend
+```
+
+3. Instale as dependências:
+
+```shell
+npm install
+```
+
+4. Levante a aplicação:
+
+```shell
+npm run dev
+```
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

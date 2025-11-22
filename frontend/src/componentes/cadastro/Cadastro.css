@@ -1,21 +1,13 @@
-body {
-  background-color: #071735; /* azul escuro liso */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.cadastro-page {
+  min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  background-color: #071735;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 20px;
   box-sizing: border-box;
-}
-
-/* deixa o form centralizado na tela */
-#root {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
 
 /* ===== Card de cadastro ===== */

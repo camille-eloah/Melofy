@@ -3,130 +3,102 @@ import './Login.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
 function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    senha: '',
-  });
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [mensagemErro, setMensagemErro] = useState('')
+  const [carregando, setCarregando] = useState(false)
+  const navigate = useNavigate()
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (error) setError('');
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const { email, senha } = formData;
+  async function fazerLogin(e) {
+    e.preventDefault()
+    setMensagemErro('')
 
     if (!email || !senha) {
-      setError('Preencha todos os campos!');
-      setLoading(false);
-      return;
+      setMensagemErro('Preencha todos os campos!')
+      return
     }
+
+    setCarregando(true)
 
     try {
-      const payload = {
-        email,
-        senha: senha, 
-      };
-
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
-      });
+        credentials: 'include',
+        body: JSON.stringify({ email, senha })
+      })
 
-      const data = await response.json().catch(() => null);
+      const data = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(data?.detail ?? 'Não foi possível fazer login.');
+        throw new Error(data?.detail ?? 'Não foi possível fazer o login.')
       }
 
-      // se a API devolver user/token, você pode salvar aqui
-      if (data?.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-      if (data?.token) {
-        localStorage.setItem('token', data.token);
-      }
-
-      // redireciona para home depois de logar
-      navigate('/home');
-    } catch (err) {
-      console.error('Erro no login:', err);
-      setError(err.message || 'Erro inesperado. Tente novamente.');
+      navigate('/home')
+    } catch (error) {
+      setMensagemErro(error.message)
     } finally {
-      setLoading(false);
+      setCarregando(false)
     }
-  };
+  }
 
-  return (
-    <div className="Conteiner-login">
-      <form onSubmit={handleSubmit}>
-        <h1>Fazer Login</h1>
+    return(
+       <div className="login-page">
+         <div className="Conteiner-login">
+           <form onSubmit={fazerLogin}>
+                <h1>Fazer Login</h1>
+                
+                <div className="input-group">
+                    <label className="input-label">E-mail</label>
+                    <input 
+                        type="email" 
+                        id='email' 
+                        placeholder="Digite seu email" 
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)} 
+                    />
+                </div>
+                
+                <div className="input-group">
+                    <label className="input-label">Senha</label>
+                    <input 
+                        type="password" 
+                        id='senha' 
+                        placeholder="Digite sua senha" 
+                        value={senha}
+                        onChange={(e) => setSenha(e.target.value)} 
+                    />
+                </div>
 
-        {error && <div className="mensagem-erro">{error}</div>}
+                <div className="lembrar-senha">
+                    <label className="checkbox-label">
+                        <input type="checkbox" />
+                        <span className="checkmark"></span>Lembrar minha senha</label>
+                    <a href="#" className="esqueci-senha">Esqueci a senha</a>
+                </div>
 
-        <div className="input-group">
-          <label className="input-label">E-mail</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="digite seu email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
+                <button type="submit" disabled={carregando}>
+                    {carregando ? 'Entrando...' : 'ENTRAR'}
+                </button>
 
-        <div className="input-group">
-          <label className="input-label">Senha</label>
-          <input
-            type="password"
-            id="senha"
-            name="password"
-            placeholder="Digite sua senha"
-            value={formData.senha}
-            onChange={handleChange}
-          />
-        </div>
+                <div className="cadastro-link">
+                    Não tem uma conta? <a href="/cadastro">Cadastre-se</a>
+                </div>
 
-        <div className="lembrar-senha">
-          <label className="checkbox-label">
-            <input type="checkbox" />
-            <span className="checkmark"></span>
-            Lembrar minha senha
-          </label>
-          <a href="#" className="esqueci-senha">
-            Esqueci a senha
-          </a>
-        </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Entrando...' : 'ENTRAR'}
-        </button>
-
-        <div className="cadastro-link">
-          Não tem uma conta? <Link to="/cadastro">Cadastre-se</Link>
-        </div>
-      </form>
-    </div>
-  );
+                {mensagemErro && (
+                    <div className="mensagem-erro">
+                        {mensagemErro}
+                    </div>
+                )}
+           </form>
+         </div>
+       </div>
+    )
 }
 
-export default Login;
-
-
-  
+export default Login
