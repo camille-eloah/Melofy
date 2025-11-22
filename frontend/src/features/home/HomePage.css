@@ -2,8 +2,16 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #020b2b;
+  align-items: center;
 }
 
 main {
   flex: 1;
+}
+
+.home-container > * {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
