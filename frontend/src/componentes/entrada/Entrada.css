@@ -2,13 +2,13 @@
 
 .entrada-page {
   margin: 0;
-  background-color: #021434; /* esse azul escuro que você já usa */
+  background-color: #0a0820; 
   font-family: 'Nunito', sans-serif;
 }
 
 .melofy-container {
   width: 100%;
-  height: 100vh;              /* 100% da altura visível */
+  height: 100vh;              
   display: flex;
   flex-direction: row;
 }
@@ -21,9 +21,14 @@
   justify-content: center;
   flex-direction: column;
   transform: scale(1, 1);
-
+  text-align: center;
 }
 
+.melody-logo img {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 1rem;
+}
 
 @keyframes backgroundShift {
   0% {
@@ -33,7 +38,6 @@
     transform: scale(1.1);
   }
 }
-
 
 @keyframes fadeInUp {
   from {
@@ -48,16 +52,19 @@
 
 .melofy-logo h1 {
   font-family: 'Nunito', sans-serif;
-  font-size: 5rem;
-  font-weight: 1100;
+  font-size: 6rem;
+  font-weight: 1200;
   margin-bottom: 2rem;
-  background: linear-gradient(45deg, #724ae2, #4179e1, #d4ad2d);
+  background: linear-gradient(45deg, #6D83F2, #6d8cf2, #F2C94C);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: gradientShift 3s ease infinite;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  margin-left: 0;
+  padding-left: 0;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 @keyframes gradientShift {
@@ -74,27 +81,33 @@
 
 .melofy-slogan {
   margin-bottom: 3rem;
-  line-height: 1.6;
-  font-size: 1rem;
+  line-height: 1.4;
+  font-size: 1.3rem;
+  width: 80%;
+  max-width: 600px;
+  color: #e2e8f0;
+  font-weight: 600;
 }
 
+.melofy-slogan p {
+  margin: 0;
+  padding: 0;
+}
 
 .melofy-imagem {
-  background: linear-gradient(45deg, #724ae2, #4179e1, #d4ad2d);
+  background: linear-gradient(45deg, #6D83F2, #6d8cf2, #F2C94C);
   color: white;
   width: 50%;
   height: 100%;
   display: flex;
-  border-radius: 150px 0px 0px 150px;
+  border-radius: 10px 0px 0px 530px;
   justify-content: center;
   gap: 1rem;
   align-items: center; 
   
-
 }
 
 .melofy-buttons {
-
   color: white;
   height: 100%;
   display: flex;
@@ -102,26 +115,24 @@
   justify-content: center;
   gap: 1rem;
   align-items: center; 
-  
-
 }
 
 .melofy-imagem img {
-  width: 500px;
-  height: auto;
-  
+    width: 610px;
+    height: 610px;  
 }
+
 .melofy-btn {
   padding: 10px 15px;
   border: none;
   border-radius: 15px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  width: 190px;
+  letter-spacing: 1.5px;
+  width: 180px;
 }
 
 .cadastrar-btn {
@@ -131,7 +142,7 @@
 }
 
 .cadastrar-btn:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
   background: linear-gradient(45deg, #4166e1, #4a90e2);
 }
@@ -158,17 +169,16 @@
 .logar-btn:hover {
   background: rgba(74, 144, 226, 0.1);
   border-color: #c641e1;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
 .logar-btn:hover::before {
   left: 100%;
 }
 
-
 .melody-note {
   position: absolute;
-  font-size: 1.5rem;
+  font-size: 1.8rem;
   opacity: 0.1;
   animation: float 6s ease-in-out infinite;
 }
@@ -188,13 +198,12 @@
   }
 }
 
-
 @media (max-width: 768px) {
   .melofy-logo h1 {
-    font-size: 2.8rem;
+    font-size: 3.5rem;
   }
   
-  .melofy-slogan p {
+  .melofy-slogan {
     font-size: 1.1rem;
   }
   
@@ -210,12 +219,13 @@
 
 @media (max-width: 480px) {
   .melofy-logo h1 {
-    font-size: 2.2rem;
+    font-size: 2.8rem;
     margin-bottom: 1.5rem;
   }
   
   .melofy-slogan {
     margin-bottom: 2rem;
+    font-size: 1rem;
   }
   
   .melofy-slogan p {
@@ -223,6 +233,39 @@
   }
   
   .melody-note {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
+}
+
+
+@keyframes fluidGradient {
+  0% {
+    background: linear-gradient(45deg, #1E3A8A, #6D83F2, #6d8cf2, #F2C94C);
+    background-size: 300% 300%;
+    background-position: 0% 50%;
+  }
+  25% {
+    background: linear-gradient(90deg, #6D83F2, #1E3A8A, #F2C94C, #6d8cf2);
+    background-size: 300% 300%;
+    background-position: 25% 50%;
+  }
+  50% {
+    background: linear-gradient(135deg, #F2C94C, #6d8cf2, #1E3A8A, #6D83F2);
+    background-size: 300% 300%;
+    background-position: 50% 50%;
+  }
+  75% {
+    background: linear-gradient(180deg, #6d8cf2, #F2C94C, #6D83F2, #1E3A8A);
+    background-size: 300% 300%;
+    background-position: 75% 50%;
+  }
+  100% {
+    background: linear-gradient(225deg, #1E3A8A, #6D83F2, #6d8cf2, #F2C94C);
+    background-size: 300% 300%;
+    background-position: 100% 50%;
+  }
+}
+
+.melofy-imagem {
+  animation: fluidGradient 12s ease-in-out infinite;
 }

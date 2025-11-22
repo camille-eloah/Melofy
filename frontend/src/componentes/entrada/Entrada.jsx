@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import "./Entrada.css";
-import instrumentos from '../../assets/instrumentos diversos.svg'
+import instrumentos from '../../assets/menina_violão.png'
+import logoMelofy from "../../assets/Blue Modern Music Logo (1).png";
+
 
 function Entrada() {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ function Entrada() {
           <div className="melofy-container">
           <div className="melofy-descricao">
           <div className="melofy-logo">
+            {/* <img src={logoMelofy} alt="Logo Melofy" /> */}
             <h1>MELOFY</h1>
           </div>
           <div className="melofy-slogan">

@@ -1,135 +1,125 @@
 .cadastro-page {
   min-height: 100vh;
+  background: #0a0820;
   display: flex;
-  justify-content: center;
   align-items: center;
-  background-color: #071735;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
-  padding: 20px;
-  box-sizing: border-box;
+  justify-content: space-between;
+  padding: 40px 80px;
+  font-family: 'Segoe UI', sans-serif;
+  position: relative;
+  overflow: hidden;
 }
 
-/* ===== Card de cadastro ===== */
-.Conteiner {
-  width: 40%;
-  background: linear-gradient(180deg, #404655, #2f3543);
-  border-radius: 24px;
-  padding: 40px 40px;
-  box-shadow: 0 20px 4z0px rgba(0, 0, 0, 0.4);
-  box-sizing: border-box;
+.cadastro-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 80% 20%, rgba(0, 210, 255, 0.06), transparent 60%);
+  z-index: 1;
 }
 
-/* título "Cadastre-se" centralizado */
-.Conteiner h1 {
+.Conteiner-cadastro {
+  background: rgba(15, 12, 40, 0.96);
+  backdrop-filter: blur(16px);
+  border-radius: 28px;
+  padding: 50px 55px;
+  width: 460px;
+  max-width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  z-index: 10;
+}
+
+.Conteiner-cadastro h3 {
   text-align: center;
-  color: #ffffff;
-  margin-bottom: 28px;
-  font-size: 2rem;
-  font-family: 'Montserrat', 'Segoe UI', sans-serif;
-  font-weight: 600;
-}
-
-/* ===== Formulário e inputs (mantendo classes existentes) ===== */
-
-.Conteiner form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  font-size: 2.3rem;
+  color: #00d2ff;
+  margin-bottom: 40px;
+  font-weight: 700;
 }
 
 .input-group {
-  display: flex;
-  flex-direction: column;
+  margin-bottom: 20px;
 }
 
-.input-label {
-  color: #e5ecff;
-  font-size: 0.8rem;
-  margin-bottom: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.input-group label {
+  display: block;
+  color: #a0e0ff;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  font-weight: 500;
 }
 
-/* linha dupla (CPF + data) / (senha + confirmar) */
+.input-group input,
+.input-group select {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(30, 28, 70, 0.7);
+  border: 1px solid rgba(0, 210, 255, 0.35);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  border-color: #00d2ff;
+  background: rgba(40, 38, 90, 0.9);
+  box-shadow: 0 0 12px rgba(0, 210, 255, 0.25);
+}
+
+.input-group input::placeholder {
+  color: #7799bb;
+}
+
 .linha-dupla {
   display: flex;
-  gap: 12px;
-  width: 100%;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
 .linha-dupla .input-group {
   flex: 1;
+  margin-bottom: 0;
 }
 
-/* campos de texto e select com estilo “branco” do mockup azul */
-.Conteiner input,
-.Conteiner select {
+.Conteiner-cadastro button {
   width: 100%;
-  padding: 11px 14px;
-  border-radius: 24px;
+  padding: 16px;
+  background: linear-gradient(135deg, #00d2ff, #0099cc);
+  color: #000;
+  font-weight: 700;
+  font-size: 1.2rem;
   border: none;
-  background-color: #ffffff;
-  color: #111827;
-  font-size: 0.9rem;
-  font-family: inherit;
-  box-sizing: border-box;
-  outline: none;
-}
-
-.Conteiner input::placeholder {
-  color: #9ca3af;
-}
-
-.Conteiner select {
+  border-radius: 12px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 210, 255, 0.3);
+  margin-top: 10px;
 }
 
-/* foco nos campos */
-.Conteiner input:focus,
-.Conteiner select:focus {
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.7);
+.Conteiner-cadastro button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(0, 210, 255, 0.4);
 }
 
-/* ===== Botão principal "CADASTRAR" ===== */
-.Conteiner button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 24px;
-  border: none;
-  background-color: #0ea5e9;        /* azul do botão do mockup */
-  color: #ffffff;
-  font-family: 'Montserrat', 'Segoe UI', sans-serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.1s ease,
-    box-shadow 0.3s ease;
-  text-transform: capitalize;
-  margin-top: 6px;
-  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.5);
+.Conteiner-cadastro button:disabled {
+  opacity: 0.7;
+  transform: none;
 }
 
-.Conteiner button:hover {
-  background-color: #0284c7;
-  transform: translateY(-1px);
-}
-
-.Conteiner button:active {
-  transform: translateY(0);
-}
-
-/* ===== Link "Já tem uma conta? Faça Login" ===== */
 .cadastro-link {
-  margin-top: 16px;
   text-align: center;
-  font-size: 0.85rem;
-  color: #e5ecff;
+  margin-top: 20px;
+  color: #a0e0ff;
+  font-size: 0.95rem;
 }
 
 .cadastro-link a {
-  color: #facc15;
+  color: #00d2ff;
   text-decoration: none;
   font-weight: 600;
 }
@@ -138,45 +128,51 @@
   text-decoration: underline;
 }
 
-/* ===== Mensagem de sucesso ===== */
-.mensagem-sucesso {
-  color: #7ae582;
-  text-align: center;
-  margin-top: 15px;
-  font-family: inherit;
-  font-weight: 500;
-  padding: 10px;
-  background-color: rgba(122, 229, 130, 0.08);
-  border-radius: 10px;
-  border: 1px solid rgba(122, 229, 130, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 0.9rem;
+.right-content {
+  z-index: 2;
+  max-width: 50%;
+  text-align: right;
 }
 
-.icone-sucesso {
-  background-color: #7ae582;
-  color: #044069;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.75rem;
+.text-content h1 {
+  font-size: 4.8rem;
+  font-weight: 800;
+  color: #00d2ff;
+  margin: 0 0 10px 0;
+  line-height: 1;
+  text-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
 }
 
-/* ===== Responsivo ===== */
+.text-content h2 {
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: #00d2ff;
+  margin: 0;
+}
+
+.menino {
+  width: 420px;
+  margin-top: 30px;
+  filter: drop-shadow(0 0 40px rgba(0, 210, 255, 0.35))
+          drop-shadow(0 0 80px rgba(0, 180, 255, 0.2));
+}
+
+@media (max-width: 992px) {
+  .cadastro-page {
+    flex-direction: column-reverse;
+    padding: 40px 20px;
+  }
+  .right-content { max-width: 100%; text-align: center; margin-bottom: 40px; }
+  .text-content h1 { font-size: 3.8rem; }
+  .text-content h2 { font-size: 2rem; }
+  .menino { width: 340px; }
+  .Conteiner-cadastro { width: 90%; max-width: 460px; padding: 45px 40px; }
+  .linha-dupla { flex-direction: column; gap: 20px; }
+}
+
 @media (max-width: 480px) {
-  .Conteiner {
-    max-width: 360px;
-    padding: 28px 22px;
-  }
-
-  .linha-dupla {
-    flex-direction: column;
-  }
+  .text-content h1 { font-size: 3rem; }
+  .text-content h2 { font-size: 1.7rem; }
+  .menino { width: 260px; }
+  .Conteiner-cadastro { padding: 40px 30px; }
 }
