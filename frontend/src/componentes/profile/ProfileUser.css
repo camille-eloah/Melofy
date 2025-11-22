@@ -82,7 +82,7 @@
   gap: 24px;
 }
 
-.lado-esquerdo {
+.lado-esquerdo-profile {
   flex: 1 1 60%;
   max-width: 720px;
   display: flex;
@@ -90,7 +90,7 @@
   gap: 20px;
 }
 
-.lado-direito {
+.lado-direito-profile {
   flex: 1 1 32%;
   max-width: 360px;
   display: flex;
@@ -317,8 +317,8 @@
     max-width: 100%;
   }
 
-  .lado-esquerdo,
-  .lado-direito {
+  .lado-esquerdo-profile,
+  .lado-direito-profile {
     flex: 1 1 100%;
     max-width: 100%;
     justify-content: center;

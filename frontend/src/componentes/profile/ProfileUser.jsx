@@ -143,7 +143,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       </header>
 
       <div className="profile-container">
-        <div className="lado-esquerdo">
+        <div className="lado-esquerdo-profile">
         {/* Container top-items acima do main-text */}
         <div className="top-items">
           {/* Categorias no inicio (esquerda) */}
@@ -177,7 +177,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         </div>
 
         {/* Cartao de perfil a direita */}
-        <div className="lado-direito">
+        <div className="lado-direito-profile">
         <div className="card-perfil">
           <div
             className={`foto-wrapper ${podeEditar ? "foto-interativa" : ""}`}
