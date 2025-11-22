@@ -72,8 +72,9 @@ function Cadastro() {
   }
 
   return (
-    <div className="Conteiner">
-      <form onSubmit={cadastrarUsuario}>
+    <div className="cadastro-page">
+      <div className="Conteiner">
+        <form onSubmit={cadastrarUsuario}>
         <h1>Cadastre-se</h1>
 
         <div className="input-group">
@@ -178,7 +179,8 @@ function Cadastro() {
             Usuário cadastrado com sucesso!
           </div>
         )}
-      </form>
+        </form>
+      </div>
     </div>
   )
 }

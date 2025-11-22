@@ -1,0 +1,12 @@
+.main-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  text-align: center;
+}
+
+.main-section h2,
+.main-section p {
+  margin: 0;
+}
