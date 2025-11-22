@@ -1,5 +1,8 @@
 import "./ProfileUser.css";
 import { Link } from "react-router-dom";
+import defaultAvatar from '../../assets/foto-perfil2.jpeg';
+
+
 
 function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
   const nomeUsuario = usuario.nome || "Usuário Desconhecido";
@@ -10,7 +13,6 @@ function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
       {/* Cabeçalho azul escuro */}
       <header className="profile-header">
         <div className="profile-header-left">
-         
           <span className="brand">MELOFY</span>
         </div>
 
@@ -20,7 +22,6 @@ function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
           <a href="#">Conectar</a>
         </nav>
       </header>
-
 
       <div className="profile-container">
         {/* Texto principal à esquerda */}
@@ -39,11 +40,15 @@ function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
               src={profilePicture}
               alt={`Foto de ${nomeUsuario}`}
               className="foto-perfil"
+              
             />
+
           ) : (
-            <div className="foto-vazia">
-              {nomeUsuario[0]?.toUpperCase() || "?"}
-            </div>
+            <img
+              src={defaultAvatar}
+              alt="Avatar padrão"
+              className="foto-perfil"
+            />
           )}
 
           <h3>{nomeUsuario}</h3>
@@ -67,7 +72,7 @@ function ProfileUser({ usuario = {}, activities = [], currentUser = null }) {
           {currentUser?.id === usuario?.id && (
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
-              <button className="btn-deletar">Deletar Conta</button>
+              <button className="btn-deletar" >Deletar Conta</button>
             </div>
           )}
         </div>
