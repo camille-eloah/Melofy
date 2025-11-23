@@ -60,12 +60,12 @@ function Localizacao() {
       // Adicionar marcadores (origem e destino) com drag habilitado
       const markerOrigem = new maplibregl.Marker({ draggable: true })
         .setLngLat([origem.lng, origem.lat])
-        .setPopup(new maplibregl.Popup().setText(origem.label))
+        .setPopup(new maplibregl.Popup({ closeButton: false }).setText(origem.label))
         .addTo(map);
 
       const markerDestino = new maplibregl.Marker({ draggable: true })
         .setLngLat([destino.lng, destino.lat])
-        .setPopup(new maplibregl.Popup().setText(destino.label))
+        .setPopup(new maplibregl.Popup({ closeButton: false }).setText(destino.label))
         .addTo(map);
 
       const handleDragEnd = () => {
