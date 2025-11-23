@@ -6,19 +6,34 @@ import "./Localizacao.css";
 
 function Localizacao() {
   const [mapStatus, setMapStatus] = useState("loading");
+  const [distanceKm, setDistanceKm] = useState(null);
+
+  const haversineKm = (a, b) => {
+    const R = 6371;
+    const toRad = (v) => (v * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const h =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(h));
+  };
 
   useEffect(() => {
     try {
-      const endereco = { lat: -23.561684, lng: -46.656139 };
+      const origem = { lat: -23.561684, lng: -46.656139, label: "Origem" };
+      const destino = { lat: -23.55052, lng: -46.633308, label: "Destino" };
       const mapElement = document.getElementById("mapa");
 
       if (!mapElement) {
-        console.error("Elemento #mapa não encontrado.");
+        console.error("Elemento #mapa nao encontrado.");
         setMapStatus("error");
         return;
       }
 
-      // 🔥 STYLE COMPLETO COM LABELS, RUAS, CIDADES, POIs etc.
+      // Map style com labels, ruas, cidades e POIs
       const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 
       if (!MAPTILER_KEY) {
@@ -31,20 +46,39 @@ function Localizacao() {
       const map = new maplibregl.Map({
         container: mapElement,
         style: STYLE_URL,
-        center: [endereco.lng, endereco.lat],
+        center: [origem.lng, origem.lat],
         zoom: 15,
       });
 
-      // 📍 Adicionar marcador
-      new maplibregl.Marker()
-        .setLngLat([endereco.lng, endereco.lat])
+      const updateDistance = (lngLatA, lngLatB) => {
+        const pontoA = { lat: lngLatA.lat, lng: lngLatA.lng };
+        const pontoB = { lat: lngLatB.lat, lng: lngLatB.lng };
+        const distancia = haversineKm(pontoA, pontoB);
+        setDistanceKm(distancia);
+      };
+
+      // Adicionar marcadores (origem e destino) com drag habilitado
+      const markerOrigem = new maplibregl.Marker({ draggable: true })
+        .setLngLat([origem.lng, origem.lat])
+        .setPopup(new maplibregl.Popup().setText(origem.label))
         .addTo(map);
 
+      const markerDestino = new maplibregl.Marker({ draggable: true })
+        .setLngLat([destino.lng, destino.lat])
+        .setPopup(new maplibregl.Popup().setText(destino.label))
+        .addTo(map);
+
+      const handleDragEnd = () => {
+        updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
+      };
+
+      markerOrigem.on("dragend", handleDragEnd);
+      markerDestino.on("dragend", handleDragEnd);
+
       map.on("load", () => {
-        console.log("Mapa vetorial (MapTiler) carregado com labels!");
+        updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
         setMapStatus("loaded");
       });
-
     } catch (error) {
       console.error("Erro ao inicializar MapLibre:", error);
       setMapStatus("error");
@@ -62,8 +96,8 @@ function Localizacao() {
       case "error":
         return (
           <div className="mapa-error">
-            <p>Não foi possível carregar o mapa</p>
-            <small>Verifique sua conexão com a internet</small>
+            <p>Nao foi possivel carregar o mapa</p>
+            <small>Verifique sua conexao com a internet</small>
           </div>
         );
       default:
@@ -79,10 +113,10 @@ function Localizacao() {
         <main className="conteudo-principal">
           <div className="lado-esquerdo">
             <div className="dados-usuario">
-              <h2>Dados do Usuário</h2>
+              <h2>Dados do Usuario</h2>
 
               <div className="info-item">
-                <strong>Nome:</strong> João Silva
+                <strong>Nome:</strong> Joao Silva
               </div>
               <div className="info-item">
                 <strong>Email:</strong> joao.silva@email.com
@@ -92,15 +126,17 @@ function Localizacao() {
               </div>
 
               <div className="info-bloco-distancia">
-                <h3>Distância</h3>
-                <p className="valor-destaque">5,2 km</p>
+                <h3>Distancia</h3>
+                <p className="valor-destaque">
+                  {distanceKm ? `${distanceKm.toFixed(2)} km` : "--"}
+                </p>
               </div>
 
               <div className="info-bloco-endereco">
-                <h3>Endereço</h3>
+                <h3>Endereco</h3>
                 <p>Rua das Flores, 123</p>
                 <p>Jardim Paulista</p>
-                <p>São Paulo - SP</p>
+                <p>Sao Paulo - SP</p>
                 <p>CEP: 01420-001</p>
               </div>
 
@@ -113,7 +149,7 @@ function Localizacao() {
 
           <div className="lado-direito">
             <div className="mapa-container">
-              <h3>Localização</h3>
+              <h3>Localizacao</h3>
 
               <div className="mapa-wrapper">
                 <div id="mapa" style={{ width: "100%", height: "100%" }}></div>
