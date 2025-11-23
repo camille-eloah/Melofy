@@ -209,6 +209,17 @@
   margin-bottom: 1rem;
 }
 
+.maplibregl-popup {
+  max-width: 200px;
+}
+
+.maplibregl-popup-content {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #0f172a;
+  border-radius: 8px;
+}
+
 @media (max-width: 768px) {
   .conteudo-principal {
     flex-direction: column;
