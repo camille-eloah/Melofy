@@ -58,7 +58,7 @@ function Localizacao() {
       };
 
       // Adicionar marcadores (origem e destino) com drag habilitado
-      const markerOrigem = new maplibregl.Marker({ draggable: true })
+      const markerOrigem = new maplibregl.Marker({ draggable: true, color: "#e11d48" })
         .setLngLat([origem.lng, origem.lat])
         .setPopup(new maplibregl.Popup({ closeButton: false }).setText(origem.label))
         .addTo(map);
