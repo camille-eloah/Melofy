@@ -18,22 +18,31 @@ function Localizacao() {
         return;
       }
 
-      // Inicializa o MapLibre
+      // 🔥 STYLE COMPLETO COM LABELS, RUAS, CIDADES, POIs etc.
+      const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
+
+      if (!MAPTILER_KEY) {
+        console.error("Chave MapTiler ausente. Defina VITE_MAPTILER_API_KEY no .env.");
+        setMapStatus("error");
+        return;
+      }
+      const STYLE_URL = `https://api.maptiler.com/maps/basic-v2/style.json?key=${MAPTILER_KEY}`;
+
       const map = new maplibregl.Map({
         container: mapElement,
-        style: "https://demotiles.maplibre.org/style.json",
+        style: STYLE_URL,
         center: [endereco.lng, endereco.lat],
         zoom: 15,
       });
 
-      // Adiciona marcador
+      // 📍 Adicionar marcador
       new maplibregl.Marker()
         .setLngLat([endereco.lng, endereco.lat])
         .addTo(map);
 
       map.on("load", () => {
+        console.log("Mapa vetorial (MapTiler) carregado com labels!");
         setMapStatus("loaded");
-        console.log("Mapa carregado com sucesso via MapLibre!");
       });
 
     } catch (error) {
