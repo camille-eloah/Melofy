@@ -1,0 +1,13 @@
+.teacher-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  text-align: center;
+  min-height: 100vh;
+  background-color: #FFFFFF;
+}
+
+.teacher-list p{
+    color: black;
+}
