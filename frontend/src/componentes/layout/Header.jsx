@@ -16,16 +16,18 @@ function Header() {
       .catch(() => {})
   }, [])
 
+  const profilePath = userId ? `/profile/${userId}` : '/profile'
+
   return (
-    <header className="header">
-      <h1 className="logo">Melofy 🎵</h1>
-      <nav>
-        <ul className="nav-list">
-         
-          <li><Link to="/musicas">Músicas</Link></li>
-          <li><Link to={userId ? `/profile/${userId}` : '/profile'}>Perfil</Link></li>
-          <li><Link to="/localizacao">Localização</Link></li>
-        </ul>
+    <header className="main-header">
+      <div className="header-left">
+        <span className="brand">MELOFY</span>
+      </div>
+
+      <nav className="header-nav">
+        <Link to="/home">Home</Link>
+        <Link to={profilePath}>Perfil</Link>
+        <Link to="/localizacao">Localização</Link>
       </nav>
     </header>
   )
