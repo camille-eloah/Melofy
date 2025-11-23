@@ -1,0 +1,899 @@
+.tela-inicial {
+  background-color: #14213d;
+  overflow: hidden;
+  width: 100%;
+  min-width: 1440px;
+  min-height: 2639px;
+  position: relative;
+}
+
+.tela-inicial .main-section {
+  position: absolute;
+  top: 120px;
+  left: 0;
+  width: 1440px;
+  height: 576px;
+  backdrop-filter: blur(2px) brightness(100%);
+  -webkit-backdrop-filter: blur(2px) brightness(100%);
+  background: linear-gradient(
+      180deg,
+      rgba(65, 173, 255, 0.1) 50%,
+      rgba(172, 230, 255, 0.2) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 255, 255, 1) 100%
+    );
+}
+
+.tela-inicial .button {
+  position: absolute;
+  top: 218px;
+  left: 306px;
+  width: 830px;
+  height: 85px;
+}
+
+.tela-inicial .button-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 828px;
+  height: 85px;
+  background-color: #ffffff;
+  border-radius: 35px;
+  border: 5px solid;
+  border-color: #daecff;
+}
+
+.tela-inicial .text-wrapper {
+  position: absolute;
+  top: 8px;
+  left: 66px;
+  width: 695px;
+  height: 67px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Instrument Sans-Regular", Helvetica;
+  font-weight: 400;
+  color: #ababab;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 17px 22px;
+  position: absolute;
+  top: 11px;
+  left: 675px;
+  background-color: #0098da;
+  border-radius: 35px;
+}
+
+.tela-inicial .div {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  margin-top: -1.00px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .categorys {
+  position: absolute;
+  top: 99px;
+  left: 215px;
+  width: 1033px;
+  height: 428px;
+  display: flex;
+  flex-direction: column;
+  gap: 191px;
+}
+
+.tela-inicial .p {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1011px;
+  height: 54px;
+  font-family: "Poppins-Bold", Helvetica;
+  font-weight: 700;
+  color: #14213d;
+  font-size: 36px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .group {
+  margin-left: 1px;
+  width: 1030.11px;
+  height: 183px;
+  display: flex;
+  background-color: #daecff;
+  border-radius: 15px;
+}
+
+.tela-inicial .group-2 {
+  margin-top: 28.0px;
+  width: 835.31px;
+  margin-left: 94.5px;
+  display: flex;
+}
+
+.tela-inicial .teclado {
+  width: 137.77px;
+  height: 126.92px;
+  position: relative;
+}
+
+.tela-inicial .rectangle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 136px;
+  height: 127px;
+  background-color: #ffffff;
+  border-radius: 20px;
+}
+
+.tela-inicial .instruments {
+  position: absolute;
+  top: 16px;
+  left: 17px;
+  width: 101px;
+  height: 80px;
+  aspect-ratio: 1.26;
+}
+
+.tela-inicial .text-wrapper-2 {
+  position: absolute;
+  top: 86px;
+  left: 15px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .guitarra {
+  width: 137.77px;
+  height: 126.92px;
+  position: relative;
+  margin-left: 37.8px;
+}
+
+.tela-inicial .img {
+  position: absolute;
+  top: 4px;
+  left: 25px;
+  width: 79px;
+  height: 82px;
+  aspect-ratio: 0.96;
+}
+
+.tela-inicial .rectangle-2 {
+  margin-top: 0;
+  width: 135.77px;
+  height: 126.92px;
+  margin-left: 37.8px;
+  background-color: #ffffff;
+  border-radius: 20px;
+}
+
+.tela-inicial .rectangle-3 {
+  margin-top: 0;
+  width: 135.77px;
+  height: 126.92px;
+  margin-left: 39.8px;
+  background-color: #ffffff;
+  border-radius: 20px;
+}
+
+.tela-inicial .rectangle-4 {
+  margin-top: 0;
+  width: 135.77px;
+  height: 126.92px;
+  margin-left: 36.9px;
+  background-color: #ffffff;
+  border-radius: 20px;
+}
+
+.tela-inicial .contedo {
+  position: absolute;
+  top: 696px;
+  left: 0;
+  width: 1443px;
+  height: 1299px;
+}
+
+.tela-inicial .bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1441px;
+  height: 1299px;
+  background-color: #ffffff;
+}
+
+.tela-inicial .row-teachers {
+  position: absolute;
+  width: 1055px;
+  height: 320px;
+  top: 198px;
+  left: 176px;
+  display: flex;
+}
+
+.tela-inicial .user {
+  margin-top: 11px;
+  width: 297px;
+  display: flex;
+}
+
+.tela-inicial .rectangle-5 {
+  width: 297px;
+  height: 309px;
+  position: relative;
+  background-color: #000000;
+  border-radius: 35px;
+  border: 10px solid;
+}
+
+.tela-inicial .group-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/image.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .group-3 {
+  margin-top: 246px;
+  width: 267px;
+  height: 52px;
+  margin-left: 26px;
+  position: relative;
+}
+
+.tela-inicial .text-wrapper-3 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 165px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Bold", Helvetica;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .rio-de-janeiro {
+  position: absolute;
+  top: 23px;
+  left: 0;
+  width: 263px;
+  height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #ffffff;
+  font-size: 13px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .group-4 {
+  position: absolute;
+  top: 349px;
+  left: 5px;
+  width: 306px;
+  height: 87px;
+  display: flex;
+  flex-direction: column;
+}
+
+.tela-inicial .viol-o-ensino {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 302px;
+  height: 52px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 14px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .span {
+  font-weight: 600;
+}
+
+.tela-inicial .text-wrapper-4 {
+  font-family: "Poppins-Regular", Helvetica;
+}
+
+.tela-inicial .text-wrapper-5 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 296px;
+  height: 35px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #000000;
+  font-size: 15px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .avaliacoes {
+  position: absolute;
+  top: 317px;
+  left: 5px;
+  width: 327px;
+  height: 35px;
+  display: flex;
+  gap: 7.7px;
+}
+
+.tela-inicial .star {
+  margin-top: 6.2px;
+  width: 18.67px;
+  height: 17.86px;
+  margin-left: 2.7px;
+}
+
+.tela-inicial .element-avalia-es {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 296px;
+  height: 35px;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 400;
+  color: #000000;
+  font-size: 10px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .rectangle-wrapper {
+  margin-top: 11px;
+  width: 297px;
+  margin-left: 76px;
+  display: flex;
+}
+
+.tela-inicial .rectangle-6 {
+  width: 297px;
+  height: 309px;
+  position: relative;
+  background-color: #000000;
+  border-radius: 35px;
+}
+
+.tela-inicial .div-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/michael-jackson-1.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .user-2 {
+  width: 297px;
+  margin-left: 88px;
+  display: flex;
+}
+
+.tela-inicial .frame-2 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/michael-jackson-1-3.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .row-teachers-2 {
+  position: absolute;
+  width: 1047px;
+  height: 309px;
+  top: 678px;
+  left: 176px;
+  display: flex;
+}
+
+.tela-inicial .user-3 {
+  width: 297px;
+  display: flex;
+}
+
+.tela-inicial .frame-3 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/michael-jackson-1-2.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .user-4 {
+  margin-left: 76px;
+  width: 297px;
+  display: flex;
+}
+
+.tela-inicial .frame-4 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/michael-jackson-1-4.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .user-5 {
+  margin-left: 80px;
+  width: 297px;
+  display: flex;
+}
+
+.tela-inicial .frame-5 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  display: flex;
+  border-radius: 30px;
+  overflow: hidden;
+  background-image: url(./img/michael-jackson-1-5.png);
+  background-size: cover;
+  background-position: 50% 50%;
+}
+
+.tela-inicial .text-wrapper-6 {
+  position: absolute;
+  top: 108px;
+  left: 171px;
+  width: 1099px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-SemiBold", Helvetica;
+  font-weight: 600;
+  color: #14213d;
+  font-size: 32px;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .rodap {
+  position: absolute;
+  top: 2470px;
+  left: 641px;
+  width: 160px;
+  height: 44px;
+  display: flex;
+}
+
+.tela-inicial .footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 158px;
+  height: 44px;
+  font-family: "Inter-Regular", Helvetica;
+  font-weight: 400;
+  color: #ffffff;
+  font-size: 36px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .header {
+  display: flex;
+  width: 1440px;
+  align-items: center;
+  gap: 486px;
+  padding: 28px 65px 28px 88px;
+  position: absolute;
+  top: 0;
+  left: calc(50.00% - 719px);
+  background-color: #14213d;
+}
+
+.tela-inicial .blue-modern-music {
+  position: relative;
+  width: 440px;
+  height: 64px;
+  aspect-ratio: 6.88;
+}
+
+.tela-inicial .group-5 {
+  position: relative;
+  width: 366px;
+  height: 63.88px;
+  margin-right: -5.00px;
+}
+
+.tela-inicial .frame-6 {
+  display: flex;
+  width: 150px;
+  height: 63px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 7px;
+  position: absolute;
+  top: 1px;
+  left: 0;
+  background-color: #0098da;
+  border-radius: 55px;
+}
+
+.tela-inicial .text-wrapper-7 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  font-family: "Poppins-Bold", Helvetica;
+  font-weight: 700;
+  color: #ffffff;
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .frame-7 {
+  display: flex;
+  width: 150px;
+  height: 63px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 7px;
+  position: absolute;
+  top: 0;
+  left: 216px;
+  background-color: #0098da;
+  border-radius: 55px;
+}
+
+.tela-inicial .instruments-2 {
+  position: absolute;
+  top: 494px;
+  left: 869px;
+  width: 77px;
+  height: 91px;
+  aspect-ratio: 0.83;
+}
+
+.tela-inicial .text-wrapper-8 {
+  position: absolute;
+  top: 578px;
+  left: 678px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .text-wrapper-9 {
+  position: absolute;
+  top: 578px;
+  left: 852px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .instruments-3 {
+  position: absolute;
+  top: 494px;
+  left: 678px;
+  width: 85px;
+  height: 82px;
+  aspect-ratio: 1.04;
+}
+
+.tela-inicial .text-wrapper-10 {
+  position: absolute;
+  top: 578px;
+  left: 1024px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .instruments-4 {
+  position: absolute;
+  top: 502px;
+  left: 1049px;
+  width: 67px;
+  height: 83px;
+  aspect-ratio: 0.81;
+}
+/* Inject original CSS code here */
+
+.tela-inicial .search-input {
+  position: absolute;
+  top: 8px;
+  left: 66px;
+  width: 695px;
+  height: 67px;
+  border: none;
+  background: transparent;
+  font-family: "Instrument Sans-Regular", Helvetica;
+  font-weight: 400;
+  color: #ababab;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: normal;
+  padding: 0;
+  outline: none;
+  z-index: 1;
+}
+
+.tela-inicial .search-input::placeholder {
+  color: #ababab;
+}
+
+.tela-inicial .search-input:focus {
+  color: #000000;
+}
+
+.tela-inicial .button label {
+  position: absolute;
+  top: 8px;
+  left: 66px;
+  width: 695px;
+  height: 67px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: "Instrument Sans-Regular", Helvetica;
+  font-weight: 400;
+  color: #ababab;
+  font-size: 24px;
+  letter-spacing: 0;
+  line-height: normal;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.tela-inicial .contrabaixo {
+  width: 135.77px;
+  height: 126.92px;
+  position: relative;
+  margin-left: 37.8px;
+}
+
+.tela-inicial .violao {
+  width: 135.77px;
+  height: 126.92px;
+  position: relative;
+  margin-left: 39.8px;
+}
+
+.tela-inicial .violino {
+  width: 135.77px;
+  height: 126.92px;
+  position: relative;
+  margin-left: 36.9px;
+}
+
+.tela-inicial .contrabaixo .rectangle-2,
+.tela-inicial .violao .rectangle-3,
+.tela-inicial .violino .rectangle-4 {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: 20px;
+}
+
+.tela-inicial .contrabaixo .instruments-3 {
+  position: absolute;
+  top: 4px;
+  left: 25px;
+  width: 85px;
+  height: 82px;
+  aspect-ratio: 1.04;
+}
+
+.tela-inicial .contrabaixo .text-wrapper-8 {
+  position: absolute;
+  top: 86px;
+  left: 15px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .violao .instruments-2 {
+  position: absolute;
+  top: 16px;
+  left: 29px;
+  width: 77px;
+  height: 91px;
+  aspect-ratio: 0.83;
+}
+
+.tela-inicial .violao .text-wrapper-9 {
+  position: absolute;
+  top: 86px;
+  left: 15px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .violino .instruments-4 {
+  position: absolute;
+  top: 8px;
+  left: 34px;
+  width: 67px;
+  height: 83px;
+  aspect-ratio: 0.81;
+}
+
+.tela-inicial .violino .text-wrapper-10 {
+  position: absolute;
+  top: 86px;
+  left: 15px;
+  width: 106px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Poppins-Regular", Helvetica;
+  font-weight: 400;
+  color: #14213d;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 0;
+  line-height: normal;
+}
+
+.tela-inicial .frame-6,
+.tela-inicial .frame-7 {
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.tela-inicial .frame-6:hover,
+.tela-inicial .frame-7:hover {
+  background-color: #007ab8;
+}
+
+.tela-inicial .frame-6:focus,
+.tela-inicial .frame-7:focus {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.tela-inicial .frame {
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+.tela-inicial .frame:hover {
+  background-color: #007ab8;
+}
+
+.tela-inicial .frame:focus {
+  outline: 2px solid #0098da;
+  outline-offset: 2px;
+}
