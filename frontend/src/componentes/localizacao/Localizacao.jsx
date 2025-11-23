@@ -57,6 +57,24 @@ function Localizacao() {
         setDistanceKm(distancia);
       };
 
+      const buildLineData = (lngLatA, lngLatB) => ({
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [lngLatA.lng, lngLatA.lat],
+            [lngLatB.lng, lngLatB.lat],
+          ],
+        },
+      });
+
+      const updateLine = (lngLatA, lngLatB) => {
+        const source = map.getSource("rota-origem-destino");
+        if (source) {
+          source.setData(buildLineData(lngLatA, lngLatB));
+        }
+      };
+
       // Adicionar marcadores (origem e destino) com drag habilitado
       const markerOrigem = new maplibregl.Marker({ draggable: true, color: "#e11d48" })
         .setLngLat([origem.lng, origem.lat])
@@ -70,12 +88,34 @@ function Localizacao() {
 
       const handleDragEnd = () => {
         updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
+        updateLine(markerOrigem.getLngLat(), markerDestino.getLngLat());
       };
 
       markerOrigem.on("dragend", handleDragEnd);
       markerDestino.on("dragend", handleDragEnd);
 
       map.on("load", () => {
+        map.addSource("rota-origem-destino", {
+          type: "geojson",
+          data: buildLineData(markerOrigem.getLngLat(), markerDestino.getLngLat()),
+        });
+
+        map.addLayer({
+          id: "rota-origem-destino",
+          type: "line",
+          source: "rota-origem-destino",
+          layout: {
+            "line-cap": "round",
+            "line-join": "round",
+          },
+          paint: {
+            "line-color": "#e11d48",
+            "line-width": 2.5,
+            "line-dasharray": [2, 2],
+            "line-opacity": 0.9,
+          },
+        });
+
         updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
         setMapStatus("loaded");
       });
