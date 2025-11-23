@@ -57,13 +57,10 @@
   font-weight: 600;
 }
 
-.search-button:focus {
+.search-button:focus-visible {
   outline: none;
 }
 
-.search-button:hover {
-  opacity: 0.9;
-}
 .search-button:hover {
   opacity: 0.9;
 }
