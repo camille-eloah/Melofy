@@ -48,7 +48,7 @@ return (
     <div className="instrumentos-circle"><img src={canto} alt="Canto" /><span className="instrumentos-circle-text">Canto</span></div>
     <div className="instrumentos-circle"><img src={teclado} alt="Teclado" /><span className="instrumentos-circle-text">Teclado</span></div>
     <div className="instrumentos-circle"><img src={sanfona} alt="Sanfona" /><span className="instrumentos-circle-text">Acordeon</span></div>
-    <img className="menino" src={menino} alt="Menino Tocando" />
+    <img className="menino-instrumento" src={menino} alt="Menino Apontando" />
     </div>
     </div>
     
