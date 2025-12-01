@@ -15,6 +15,9 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 COOKIE_SECURE=False
 COOKIE_SAMESITE=Lax
 DEBUG=true
+MEDIA_ROOT=backend/storage
+PROFILE_PIC_DIR=profile_pictures
+MEDIA_URL_PATH=/media
 ```
 
 2. Banco de dados MySQL configurado com as mesmas informações descritas no `.env`:
