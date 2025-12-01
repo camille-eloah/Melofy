@@ -4,9 +4,244 @@
   gap: 4px;
   align-items: center;
   text-align: center;
+  min-height: 80vh;
+  background-color: #EDF9FF;
 }
 
-.main-section h2,
+.main-section h2 {
+  color: #14213D;
+  font-family: 'Inter', sans-serif;
+
+}
 .main-section p {
   margin: 0;
+}
+
+
+/* Caixa inteira arredondada e com borda azul clara */
+.search-container {
+  background-color: #ffffff;
+  border: 3px solid #DBEDFF; /* mesma cor do print */
+  border-radius: 50px; 
+  padding: 8px;
+  width: 70%;
+  max-width: 600px;
+  margin: 20px auto;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Input interno */
+.search-input {
+  flex: 1; 
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 12px 16px;
+  border-radius: 50px;
+  background-color: white;
+  color: black;
+}
+
+/* Botão azul arredondado */
+.search-button {
+  background-color: #1296E5; /* azul do print */
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 50px;
+  font-size: 15px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-button:focus-visible {
+  outline: none;
+}
+
+.search-button:hover {
+  opacity: 0.9;
+}
+
+.instrument-container {
+  background-color: #DBEDFF55; /* azul clarinho translúcido */
+  padding: 20px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.instrument-card {
+  background: #ffffff;
+  border: none;
+  border-radius: 14px;
+  width: 120px;
+  height: 140px;
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.instrument-card:hover {
+  transform: scale(1.05);
+}
+
+.instrument-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.instrument-card span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.carousel-wrapper {
+  background-color: #DBEDFF55; /* azul clarinho translúcido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 25px;
+  border-radius: 20px;
+}
+
+.arrow-btn {
+  background-color: #1296E5;
+  color: white;
+  border: none;
+  font-size: 28px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.arrow-btn:hover {
+  opacity: 0.85;
+}
+
+.carousel {
+  background-color: #DBEDFF55;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  width: 600px;
+  overflow: hidden;
+  position: relative;
+}
+
+.instrument-card {
+  min-width: 120px;
+  height: 140px;
+  background: #fff;
+  border-radius: 14px;
+  margin: 0 10px;
+  flex-shrink: 0;
+  text-align: center;
+  padding: 10px;
+  transition: transform 0.3s ease;
+}
+
+.instrument-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.instrument-card span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+
+/* wrapper com setas */
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+/* botões de seta */
+.arrow-btn {
+  background: transparent;
+  border: none;
+  color: #1296E5;
+  font-size: 26px;
+  cursor: pointer;
+  padding: 6px;
+  transition: 0.2s;
+}
+
+.arrow-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.7;
+}
+
+.arrow-btn:focus {
+  outline: none;
+}
+
+
+/* viewport visível do carrossel */
+.carousel-viewport {
+  width: 680px; /* largura visível do carrossel - ajuste conforme necessário */
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* inner que será traduzido */
+.carousel-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px; /* corresponde ao GAP no JS */
+  padding: 18px;
+  background-color: rgba(219,237,255,0.33);
+  border-radius: 12px;
+}
+
+/* cards */
+.instrument-card {
+  min-width: 120px; /* largura do card (ajuste se quiser) */
+  width: 120px;
+  height: 140px;
+  background: #fff;
+  border-radius: 14px;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.instrument-img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.instrument-card span {
+  font-size: 14px;
+  color: #222;
 }
