@@ -219,3 +219,15 @@ class DadosBancarios(SQLModel, table=True):
 
     professor: Optional[Professor] = Relationship(back_populates="dados_bancarios")
     aluno: Optional[Aluno] = Relationship(back_populates="dados_bancarios")
+
+#Feedback
+
+class Feedback(SQLModel, table=True):
+    __tablename__ = "tb_feedback"
+    
+    id: int | None = Field(default=None, primary_key=True)
+    nome: str
+    email: str
+    assunto: str
+    mensagem: str
+    criado_em: datetime = Field(default_factory=datetime.utcnow)

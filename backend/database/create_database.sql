@@ -117,3 +117,12 @@ CREATE TABLE tb_dados_bancarios (
     FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
 );
+
+CREATE TABLE tb_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    assunto VARCHAR(255) NOT NULL,
+    mensagem TEXT NOT NULL,
+    criado_em DATETIME NOT NULL
+);

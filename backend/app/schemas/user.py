@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class UserCreate(BaseModel):
     nome: str
-    cpf: str
+    cpf: int
     data_nascimento: date
     email: EmailStr
     senha: str

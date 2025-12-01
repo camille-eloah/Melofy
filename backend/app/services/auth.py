@@ -74,3 +74,5 @@ def obter_usuario_por_id_tipo(db: Session, user_id: int, tipo: str) -> Professor
     else:
         logger.debug("Usuário não encontrado por id=%s tipo=%s", user_id, tipo_enum.value)
     return usuario
+
+

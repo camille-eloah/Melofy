@@ -17,7 +17,11 @@ from app.core.security import (
     _decode_token,
 )
 from app.db_connection import get_session
-from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario
+from app.schemas.feedback import FeedbackCreate, FeedbackRead
+import smtplib
+from email.mime.text import MIMEText
+
+from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario, Feedback
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -27,6 +31,11 @@ from app.services.auth import (
     obter_usuario_por_id_tipo,
 )
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
+
+from app.core.config import get_settings
+
+settings = get_settings()
+
 
 
 def _configure_logging():
@@ -64,7 +73,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -115,6 +124,11 @@ router_finance = APIRouter(
 router_ratings = APIRouter(
     prefix="/ratings",
     tags=["avaliacoes"]
+)
+
+router_feedback = APIRouter(
+    prefix="/feedback",
+    tags=["feedback"]
 )
 
 
@@ -222,7 +236,7 @@ def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
 def logout(response: Response):
     _clear_auth_cookies(response)
     logger.debug("Logout realizado")
-    return {"detail": "Logout realizado com sucesso"}
+    return ({"msg": "Logout bem-sucedido"})
 
 # ----------------------------
 # 2. Gerenciamento de Conta
@@ -488,6 +502,76 @@ async def upload_profile_picture(
     mount_prefix = media_mount_path.rstrip("/")
     return {"profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{dest_path.name}"}
 
+
+# 12. Feedback dos usuários
+
+DESTINATARIO_FEEDBACK = "lucenamaria767@gmail.com"
+
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USER = "lucenamaria767@gmail.com"   # seu e-mail
+SMTP_PASSWORD = "rlcy kfva hxne mepp"    
+
+@router_feedback.post("/", response_model=FeedbackRead, status_code=201)
+def enviar_feedback(
+    feedback: FeedbackCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    # 1) Salva no banco
+    novo_feedback = Feedback(
+        nome=feedback.nome,
+        email=feedback.email,
+        assunto=feedback.assunto,
+        mensagem=feedback.mensagem,
+    )
+    db.add(novo_feedback)
+    db.commit()
+    db.refresh(novo_feedback)
+
+    # 2) Monta o e-mail
+    corpo = (
+        f"Nome: {feedback.nome}\n"
+        f"Email do remetente: {feedback.email}\n"
+        f"Assunto: {feedback.assunto}\n\n"
+        f"{feedback.mensagem}"
+    )
+    msg = MIMEText(corpo, "plain", "utf-8")
+    msg["Subject"] = f"Feedback - {feedback.assunto}"
+    msg["From"] = settings.smtp_user
+    msg["To"] = settings.destinatario_feedback
+
+    try:
+        with smtplib.SMTP(settings.smtp_server, settings.smtp_port) as server:
+            server.starttls()
+            server.login(settings.smtp_user, settings.smtp_password)
+            server.sendmail(
+                settings.smtp_user,
+                [settings.destinatario_feedback],
+                msg.as_string(),
+            )
+        logger.info("Email de feedback enviado com sucesso")
+    except Exception as exc:
+        logger.warning("Falha ao enviar email de feedback", exc_info=exc)
+        # Se quiser avisar o front:
+        # raise HTTPException(status_code=500, detail="Erro ao enviar e-mail de feedback")
+
+    return novo_feedback
+
+@router_feedback.get("/", response_model=list[FeedbackRead])
+def listar_feedbacks(db: Session = Depends(get_session)):
+    feedbacks = db.exec(select(Feedback)).all()
+    return feedbacks
+
+@router_feedback.get("/{fb_id}", response_model=FeedbackRead)
+def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
+    feedback = db.get(Feedback, fb_id)
+    if not feedback:
+        raise HTTPException(status_code=404, detail="Feedback não encontrado")
+    return feedback
+
+
+
 app.include_router(router_user)
 app.include_router(router_auth)
 app.include_router(router_lessons)
@@ -495,3 +579,4 @@ app.include_router(router_instruments)
 app.include_router(router_schedule)
 app.include_router(router_finance)
 app.include_router(router_ratings)
+app.include_router(router_feedback)
