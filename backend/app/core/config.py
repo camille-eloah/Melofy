@@ -13,6 +13,8 @@ from pydantic import Field
 class Settings(BaseSettings):
     cors_origins: List[str] = ["http://localhost:3000"]
     debug: bool = True  # você já tinha dois debug, mantive só um
+    allow_dev_bypass: bool = False
+    dev_bypass_user_id: int = -1
 
     # App info
     app_name: str = "Melofy"
@@ -79,4 +81,6 @@ def get_settings() -> Settings:
         media_root=str(media_root),
         profile_pic_dir=os.getenv("PROFILE_PIC_DIR", "profile_pictures"),
         media_url_path=os.getenv("MEDIA_URL_PATH", "/media"),
+        allow_dev_bypass=os.getenv("ALLOW_DEV_BYPASS", "false").lower() == "true",
+        dev_bypass_user_id=int(os.getenv("DEV_BYPASS_USER_ID", "-1")),
     )

@@ -29,6 +29,7 @@ from app.services.auth import (
     autenticar_usuario,
     gerar_tokens,
     obter_usuario_por_id_tipo,
+    obter_usuario_bypass,
 )
 from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
@@ -229,6 +230,10 @@ def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
 
     try:
         payload = _decode_token(token)
+        if payload.get("dev_bypass"):
+            if not settings.allow_dev_bypass:
+                raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+            return montar_resposta_usuario(obter_usuario_bypass())
         user_id = int(payload.get("sub"))
         tipo = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
