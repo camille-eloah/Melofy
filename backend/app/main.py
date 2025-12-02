@@ -21,7 +21,7 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, DadosBancarios, Pagamento, TipoUsuario, Feedback
+from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -30,13 +30,22 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
+from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
 
 from app.core.config import get_settings
-
 settings = get_settings()
 
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
+from app.models import Professor, Instrumento, ProfessorInstrumento
+
+import logging
+from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
+
+
+logger = logging.getLogger(__name__)
 
 def _configure_logging():
     """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
@@ -238,6 +247,7 @@ def logout(response: Response):
     logger.debug("Logout realizado")
     return ({"msg": "Logout bem-sucedido"})
 
+
 # ----------------------------
 # 2. Gerenciamento de Conta
 # ----------------------------
@@ -324,25 +334,104 @@ def excluir_pacote(pacote_id: int):
 # 5. Instrumentos musicais
 # ----------------------------
 
-@router_instruments.post("/")
-def criar_instrumento():
-    return {"msg": "Instrumento criado com sucesso!"}
+@router_instruments.post("/", response_model=InstrumentoRead, status_code=201)
+def criar_instrumento(
+    instrumento: InstrumentoCreate,
+    db: Session = Depends(get_session),
+):
+    novo = Instrumento.from_orm(instrumento)
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+    return novo
 
-@router_instruments.get("/{instrumento_id}")
-def obter_instrumento(instrumento_id: int):
-    return {"msg": f"Retornando instrumento com ID {instrumento_id}"}
 
-@router_instruments.get("/")
-def listar_instrumentos():
-    return {"msg": "Lista de todos os instrumentos"}
+@router_instruments.get("/{instrumento_id}", response_model=InstrumentoRead)
+def obter_instrumento(
+    instrumento_id: int,
+    db: Session = Depends(get_session),
+):
+    instrumento = db.get(Instrumento, instrumento_id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+    return instrumento
 
-@router_instruments.put("/{instrumento_id}")
-def atualizar_instrumento(instrumento_id: int):
-    return {"msg": f"Instrumento {instrumento_id} atualizado com sucesso!"}
+@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(
+        ProfessorInstrumento.professor_id == professor_id
+    )
+    instrumentos = db.exec(stmt).all()
+    return instrumentos
 
-@router_instruments.delete("/{instrumento_id}")
-def deletar_instrumento(instrumento_id: int):
-    return {"msg": f"Instrumento {instrumento_id} removido!"}
+
+@router_instruments.put("/{instrumento_id}", response_model=InstrumentoRead)
+def atualizar_instrumento(
+    instrumento_id: int,
+    dados: InstrumentoUpdate,
+    db: Session = Depends(get_session),
+):
+    instrumento = db.get(Instrumento, instrumento_id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+
+    dados_dict = dados.dict(exclude_unset=True)
+    for key, value in dados_dict.items():
+        setattr(instrumento, key, value)
+
+    db.add(instrumento)
+    db.commit()
+    db.refresh(instrumento)
+    return instrumento
+
+
+@router_instruments.delete("/{instrumento_id}", status_code=204)
+def deletar_instrumento(
+    instrumento_id: int,
+    db: Session = Depends(get_session),
+):
+    instrumento = db.get(Instrumento, instrumento_id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+
+    db.delete(instrumento)
+    db.commit()
+    return
+
+router_instruments = APIRouter(prefix="/instrumentos")
+
+@router_instruments.post("/escolher")
+def escolher_instrumentos_professor(
+    dados: ProfessorInstrumentosCreate,
+    db: Session = Depends(get_session),
+):
+    professor = db.get(Professor, dados.professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    # Apaga escolhas antigas
+    antigos = db.exec(
+        select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+    ).all()
+    for rel in antigos:
+        db.delete(rel)
+
+    # Salva novas escolhas
+    for instr_id in dados.instrumentos_ids:
+        instrumento = db.get(Instrumento, instr_id)
+        if not instrumento:
+            raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
+
+        rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
+        db.add(rel)
+
+    db.commit()
+
+    # Retorna os instrumentos do professor
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+    instrumentos_professor = db.exec(stmt).all()
+
+    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
 
 # ----------------------------
 # 6. Filtragem
@@ -505,20 +594,19 @@ async def upload_profile_picture(
 
 # 12. Feedback dos usuários
 
+
 DESTINATARIO_FEEDBACK = "lucenamaria767@gmail.com"
 
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "lucenamaria767@gmail.com"   # seu e-mail
-SMTP_PASSWORD = "rlcy kfva hxne mepp"    
+SMTP_SERVER = settings.smtp_host
+SMTP_PORT = settings.smtp_port
+SMTP_USER = settings.smtp_user
+SMTP_PASSWORD = settings.smtp_password   # Acessando os dados do SMTP do settings
 
 @router_feedback.post("/", response_model=FeedbackRead, status_code=201)
 def enviar_feedback(
     feedback: FeedbackCreate,
-    request: Request,
     db: Session = Depends(get_session),
 ):
-    # 1) Salva no banco
     novo_feedback = Feedback(
         nome=feedback.nome,
         email=feedback.email,
@@ -528,34 +616,6 @@ def enviar_feedback(
     db.add(novo_feedback)
     db.commit()
     db.refresh(novo_feedback)
-
-    # 2) Monta o e-mail
-    corpo = (
-        f"Nome: {feedback.nome}\n"
-        f"Email do remetente: {feedback.email}\n"
-        f"Assunto: {feedback.assunto}\n\n"
-        f"{feedback.mensagem}"
-    )
-    msg = MIMEText(corpo, "plain", "utf-8")
-    msg["Subject"] = f"Feedback - {feedback.assunto}"
-    msg["From"] = settings.smtp_user
-    msg["To"] = settings.destinatario_feedback
-
-    try:
-        with smtplib.SMTP(settings.smtp_server, settings.smtp_port) as server:
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.sendmail(
-                settings.smtp_user,
-                [settings.destinatario_feedback],
-                msg.as_string(),
-            )
-        logger.info("Email de feedback enviado com sucesso")
-    except Exception as exc:
-        logger.warning("Falha ao enviar email de feedback", exc_info=exc)
-        # Se quiser avisar o front:
-        # raise HTTPException(status_code=500, detail="Erro ao enviar e-mail de feedback")
-
     return novo_feedback
 
 @router_feedback.get("/", response_model=list[FeedbackRead])

@@ -1,15 +1,23 @@
 import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
-import { logoutRequest } from '../services/auth'
+
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function LogoutButton() {
   const navigate = useNavigate()
 
   async function handleLogout() {
     try {
-      await logoutRequest()
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      })
 
-      Swal.fire({
+      const data = await response.json().catch(() => null)
+
+      if (!response.ok) throw new Error(data?.detail ?? 'Erro ao fazer logout')
+
+      await Swal.fire({
         icon: 'success',
         title: 'Logout realizado',
         text: 'Você saiu da sua conta.',
@@ -20,12 +28,12 @@ function LogoutButton() {
         timerProgressBar: true,
       })
 
-      navigate('/login')
-    } catch (err) {
+      navigate('/login', { replace: true })
+    } catch (error) {
       Swal.fire({
         icon: 'error',
         title: 'Erro ao sair',
-        text: err.message,
+        text: error.message,
         background: '#1a1738',
         color: '#fff',
         confirmButtonColor: '#00d2ff',

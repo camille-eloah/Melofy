@@ -7,70 +7,65 @@ import './Login.css'
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function Login() {
-  const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
-  const [lembrar, setLembrar] = useState(false)
-  const [carregando, setCarregando] = useState(false)
   const navigate = useNavigate()
+  const [email, setEmail] = useState("")
+  const [senha, setSenha] = useState("")
+  const [carregando, setCarregando] = useState(false)
+  const [lembrar, setLembrar] = useState(false)
+  
 
-  async function fazerLogin(e) {
-    e.preventDefault()
+async function handleLogin(e) {
+  e.preventDefault();
+  setCarregando(true);
 
-    if (!email || !senha) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos obrigatórios',
-        text: 'Por favor, preencha usuário e senha.',
-        background: '#1a1738',
-        color: '#fff',
-        confirmButtonColor: '#00d2ff',
-        backdrop: 'rgba(0, 210, 255, 0.15)'
-      })
-      return
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, senha }),
+    });
+
+    const usuario = await res.json();
+    console.log("Usuário retornado:", usuario);
+
+    if (!res.ok) {
+      throw new Error(usuario.detail || "Erro ao fazer login");
     }
 
-    setCarregando(true)
+    // salva no localStorage para uso em outras páginas
+    localStorage.setItem("usuario", JSON.stringify(usuario));
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email, senha })
-      })
-
-      const data = await response.json().catch(() => null)
-
-      if (!response.ok) {
-        throw new Error(data?.detail || 'Usuário ou senha incorretos.')
+    Swal.fire({
+      icon: "success",
+      title: "Login realizado",
+      text: `Bem-vindo(a), ${usuario.nome}!`,
+      background: "#1a1738",
+      color: "#fff",
+      confirmButtonColor: "#00d2ff",
+    }).then(() => {
+      // redirecionamento conforme tipo do usuário
+      if (usuario.tipo_usuario === "ALUNO") {
+        navigate("/home", { replace: true });
+      } else if (usuario.tipo_usuario === "PROFESSOR") {
+        navigate("/instrumentos", { replace: true });
       }
+    });
 
-      await Swal.fire({
-        icon: 'success',
-        title: 'Login realizado!',
-        text: 'Bem-vindo de volta!',
-        background: '#1a1738',
-        color: '#fff',
-        confirmButtonColor: '#00d2ff',
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-      })
-
-      navigate('/home')
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro ao fazer login',
-        text: error.message,
-        background: '#1a1738',
-        color: '#fff',
-        confirmButtonColor: '#00d2ff',
-      })
-    } finally {
-      setCarregando(false)
-    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Erro ao fazer login",
+      text: error.message,
+      background: "#1a1738",
+      color: "#fff",
+      confirmButtonColor: "#00d2ff",
+    });
+  } finally {
+    setCarregando(false);
   }
+}
+
 
   return (
     <div className="login-page">
@@ -83,7 +78,7 @@ function Login() {
       </div>
 
       <div className="Conteiner-login">
-        <form onSubmit={fazerLogin}>
+      <form onSubmit={handleLogin}>
           <h3>LOGIN</h3>
 
           <div className="input-group">
@@ -131,4 +126,4 @@ function Login() {
   )
 }
 
-export default Login
+export default Login;

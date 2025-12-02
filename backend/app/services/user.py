@@ -25,15 +25,19 @@ def _build_profile_picture_url(user_id: int) -> str | None:
 
 
 def montar_resposta_usuario(usuario: Union[Professor, Aluno]) -> UserResponse:
+    # Mantém sua lógica de tipo, mas SEM usar .label()
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+
     profile_picture_url = _build_profile_picture_url(usuario.id) if usuario and usuario.id else None
+
     return UserResponse(
         id=usuario.id,
         nome=usuario.nome,
         cpf=usuario.cpf,
         data_nascimento=usuario.data_nascimento,
         email=usuario.email,
-        tipo=tipo.label(),
+
+        tipo_usuario=tipo,
         telefone=getattr(usuario, "telefone", None),
         bio=getattr(usuario, "bio", None),
         profile_picture=profile_picture_url,
