@@ -7,6 +7,9 @@ import "./Localizacao.css";
 function Localizacao() {
   const [mapStatus, setMapStatus] = useState("loading");
   const [distanceKm, setDistanceKm] = useState(null);
+  const [map, setMap] = useState(null);
+  const [markerOrigem, setMarkerOrigem] = useState(null);
+  const [markerDestino, setMarkerDestino] = useState(null);
 
   const haversineKm = (a, b) => {
     const R = 6371;
@@ -21,6 +24,32 @@ function Localizacao() {
     return 2 * R * Math.asin(Math.sqrt(h));
   };
 
+  const zoomIn = () => {
+    if (map) map.zoomIn();
+  };
+
+  const zoomOut = () => {
+    if (map) map.zoomOut();
+  };
+
+  const resetView = () => {
+    if (map && markerOrigem) {
+      map.flyTo({
+        center: [markerOrigem.getLngLat().lng, markerOrigem.getLngLat().lat],
+        zoom: 15
+      });
+    }
+  };
+
+  const fitBounds = () => {
+    if (map && markerOrigem && markerDestino) {
+      const bounds = new maplibregl.LngLatBounds();
+      bounds.extend(markerOrigem.getLngLat());
+      bounds.extend(markerDestino.getLngLat());
+      map.fitBounds(bounds, { padding: 50 });
+    }
+  };
+
   useEffect(() => {
     try {
       const origem = { lat: -23.561684, lng: -46.656139, label: "Origem" };
@@ -33,7 +62,6 @@ function Localizacao() {
         return;
       }
 
-      // Map style com labels, ruas, cidades e POIs
       const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 
       if (!MAPTILER_KEY) {
@@ -43,7 +71,7 @@ function Localizacao() {
       }
       const STYLE_URL = `https://api.maptiler.com/maps/basic-v2/style.json?key=${MAPTILER_KEY}`;
 
-      const map = new maplibregl.Map({
+      const mapInstance = new maplibregl.Map({
         container: mapElement,
         style: STYLE_URL,
         center: [origem.lng, origem.lat],
@@ -69,38 +97,37 @@ function Localizacao() {
       });
 
       const updateLine = (lngLatA, lngLatB) => {
-        const source = map.getSource("rota-origem-destino");
+        const source = mapInstance.getSource("rota-origem-destino");
         if (source) {
           source.setData(buildLineData(lngLatA, lngLatB));
         }
       };
 
-      // Adicionar marcadores (origem e destino) com drag habilitado
-      const markerOrigem = new maplibregl.Marker({ draggable: true, color: "#e11d48" })
+      const markerOrigemInstance = new maplibregl.Marker({ draggable: true, color: "#ef4444" })
         .setLngLat([origem.lng, origem.lat])
         .setPopup(new maplibregl.Popup({ closeButton: false }).setText(origem.label))
-        .addTo(map);
+        .addTo(mapInstance);
 
-      const markerDestino = new maplibregl.Marker({ draggable: true })
+      const markerDestinoInstance = new maplibregl.Marker({ draggable: true, color: "#0ea5e9" })
         .setLngLat([destino.lng, destino.lat])
         .setPopup(new maplibregl.Popup({ closeButton: false }).setText(destino.label))
-        .addTo(map);
+        .addTo(mapInstance);
 
       const handleDragEnd = () => {
-        updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
-        updateLine(markerOrigem.getLngLat(), markerDestino.getLngLat());
+        updateDistance(markerOrigemInstance.getLngLat(), markerDestinoInstance.getLngLat());
+        updateLine(markerOrigemInstance.getLngLat(), markerDestinoInstance.getLngLat());
       };
 
-      markerOrigem.on("dragend", handleDragEnd);
-      markerDestino.on("dragend", handleDragEnd);
+      markerOrigemInstance.on("dragend", handleDragEnd);
+      markerDestinoInstance.on("dragend", handleDragEnd);
 
-      map.on("load", () => {
-        map.addSource("rota-origem-destino", {
+      mapInstance.on("load", () => {
+        mapInstance.addSource("rota-origem-destino", {
           type: "geojson",
-          data: buildLineData(markerOrigem.getLngLat(), markerDestino.getLngLat()),
+          data: buildLineData(markerOrigemInstance.getLngLat(), markerDestinoInstance.getLngLat()),
         });
 
-        map.addLayer({
+        mapInstance.addLayer({
           id: "rota-origem-destino",
           type: "line",
           source: "rota-origem-destino",
@@ -109,14 +136,23 @@ function Localizacao() {
             "line-join": "round",
           },
           paint: {
-            "line-color": "#e11d48",
-            "line-width": 2.5,
-            "line-dasharray": [2, 2],
-            "line-opacity": 0.9,
+            "line-color": [
+              'interpolate',
+              ['linear'],
+              ['line-progress'],
+              0, '#ef4444',
+              1, '#0ea5e9'
+            ],
+            "line-width": 3,
+            "line-opacity": 0.8,
+            "line-dasharray": [2, 2]
           },
         });
 
-        updateDistance(markerOrigem.getLngLat(), markerDestino.getLngLat());
+        updateDistance(markerOrigemInstance.getLngLat(), markerDestinoInstance.getLngLat());
+        setMap(mapInstance);
+        setMarkerOrigem(markerOrigemInstance);
+        setMarkerDestino(markerDestinoInstance);
         setMapStatus("loaded");
       });
     } catch (error) {
@@ -130,14 +166,21 @@ function Localizacao() {
       case "loading":
         return (
           <div className="mapa-loading">
+            <div className="loading-spinner"></div>
             <p>Carregando mapa...</p>
+            <small>Por favor, aguarde</small>
           </div>
         );
       case "error":
         return (
           <div className="mapa-error">
-            <p>Nao foi possivel carregar o mapa</p>
-            <small>Verifique sua conexao com a internet</small>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <p>Não foi possível carregar o mapa</p>
+            <small>Verifique sua conexão com a internet</small>
           </div>
         );
       default:
@@ -153,10 +196,10 @@ function Localizacao() {
         <main className="conteudo-principal">
           <div className="lado-esquerdo">
             <div className="dados-usuario">
-              <h2>Dados do Usuario</h2>
+              <h2>Dados do Usuário</h2>
 
               <div className="info-item">
-                <strong>Nome:</strong> Joao Silva
+                <strong>Nome:</strong> João Silva
               </div>
               <div className="info-item">
                 <strong>Email:</strong> joao.silva@email.com
@@ -166,17 +209,30 @@ function Localizacao() {
               </div>
 
               <div className="info-bloco-distancia">
-                <h3>Distancia</h3>
+                <h3>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                  Distância
+                </h3>
                 <p className="valor-destaque">
                   {distanceKm ? `${distanceKm.toFixed(2)} km` : "--"}
                 </p>
               </div>
 
               <div className="info-bloco-endereco">
-                <h3>Endereco</h3>
+                <h3>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1118 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  Endereço
+                </h3>
                 <p>Rua das Flores, 123</p>
                 <p>Jardim Paulista</p>
-                <p>Sao Paulo - SP</p>
+                <p>São Paulo - SP</p>
                 <p>CEP: 01420-001</p>
               </div>
 
@@ -189,11 +245,60 @@ function Localizacao() {
 
           <div className="lado-direito">
             <div className="mapa-container">
-              <h3>Localizacao</h3>
+              <h3>Localização</h3>
+              
+              <div className="map-controls">
+                <button className="control-btn" onClick={zoomIn}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                  Zoom In
+                </button>
+                <button className="control-btn" onClick={zoomOut}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                  Zoom Out
+                </button>
+                <button className="control-btn" onClick={resetView}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="2" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  Resetar Vista
+                </button>
+                <button className="control-btn" onClick={fitBounds}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <line x1="9" y1="3" x2="9" y2="21" />
+                    <line x1="3" y1="9" x2="21" y2="9" />
+                  </svg>
+                  Ajustar Rota
+                </button>
+              </div>
 
               <div className="mapa-wrapper">
                 <div id="mapa" style={{ width: "100%", height: "100%" }}></div>
                 {renderMapOverlay()}
+              </div>
+
+              <div className="map-legend">
+                <div className="legend-item">
+                  <div className="legend-color origem"></div>
+                  <span>Origem</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color destino"></div>
+                  <span>Destino</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color rota"></div>
+                  <span>Rota</span>
+                </div>
               </div>
             </div>
           </div>
