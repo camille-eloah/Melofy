@@ -85,7 +85,7 @@ async function handleLogin(e) {
             <label>Usuário</label>
             <input
               type="text"
-              placeholder="Nome cadastrado ou E-mail"
+              placeholder="E-mail"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
