@@ -134,6 +134,10 @@
   color: #ffd43b;
 }
 
+.nav-link[href*="feedback"]:hover .nav-icon {
+  color: #9b5de5; /* qualquer cor que você quiser */
+}
+
 .notification-container {
   position: relative;
   margin-left: 10px;
@@ -490,3 +494,4 @@
     width: auto;
   }
 }
+

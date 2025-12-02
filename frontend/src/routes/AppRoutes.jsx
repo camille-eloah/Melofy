@@ -22,7 +22,7 @@ export default function AppRoutes() {
       <Route path="/localizacao" element={<Localizacao />} />
       <Route path="/instrumentos" element={<Instrumentos />} />
       <Route path="/feedback" element={<Feedback /> } />
-
+      
     </Routes>
   )
 }
