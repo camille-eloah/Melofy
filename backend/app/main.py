@@ -30,7 +30,7 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
-from app.services.dev_bypass import obter_usuario_bypass
+from app.services.dev_bypass import credenciais_bypass, obter_usuario_bypass
 from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
 
@@ -209,11 +209,15 @@ def obter_usuario(user_id: int, db: Session = Depends(get_session)):
 @router_auth.post("/login", response_model=UserResponse)
 def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
     logger.debug("Tentativa de login", extra={"email": credenciais.email})
-    try:
-        usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
-    except ValueError:
-        logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    # Bypass imediato, sem tocar no banco
+    if credenciais_bypass(credenciais.email, credenciais.senha):
+        usuario = obter_usuario_bypass()
+    else:
+        try:
+            usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
+        except ValueError:
+            logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
+            raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
     access_token, refresh_token = gerar_tokens(usuario)
     _set_auth_cookies(response, access_token, refresh_token)
