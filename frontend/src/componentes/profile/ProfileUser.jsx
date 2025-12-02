@@ -1,5 +1,6 @@
 import "./ProfileUser.css";
-import Header from "../layout/Header";
+import Header from "../layout/Header"
+import Footer from "../layout/Footer";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -301,6 +302,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
