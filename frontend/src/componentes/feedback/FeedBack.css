@@ -46,6 +46,7 @@
   font-weight: 500;
 }
 
+/*
 .input-group input,
 .input-group textarea {
   border: 1px solid #dfe1e5;
@@ -57,6 +58,7 @@
   transition: all 0.2s ease;
   font-family: 'Roboto', sans-serif;
 }
+*/
 
 /* Placeholder */
 .input-group input::placeholder,

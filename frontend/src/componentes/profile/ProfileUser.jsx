@@ -16,18 +16,36 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: userIdParam, tipo: tipoParam } = useParams();
-  const tipoFromPath = (location.pathname.split("/")[1] || "").toLowerCase();
+  const { id: userIdParam, uuid: userUuidParam, tipo: tipoParam } = useParams();
+  const pathSegments = (location.pathname || "").split("/").filter(Boolean);
+  const tipoFromPath = (pathSegments[0] || "").toLowerCase();
+  const identifierFromPath = pathSegments[1] || null;
   const tipoSlug = (tipoParam || tipoFromPath || "").toLowerCase();
   const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
+  const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
+  const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
+
+  console.log("[ProfileUser] params", {
+    userIdParam,
+    userUuidParam,
+    identifierFromPath,
+    tipoParam,
+    tipoFromPath,
+    tipoPath,
+    location: location.pathname,
+    userIdentifier,
+    isUuid,
+  });
 
   useEffect(() => {
-    // se houver um id na rota, buscar o perfil correspondente
-    if (!userIdParam) return;
+    // se houver um identificador na rota, buscar o perfil correspondente
+    if (!userIdentifier) return;
 
+    const identifierPath = isUuid ? `uuid/${userIdentifier}` : userIdentifier;
+    console.log("[ProfileUser] fetch perfil", { userIdentifier, isUuid, tipoPath, identifierPath });
     const url = tipoPath
-      ? `${API_BASE_URL}/user/${tipoPath}/${userIdParam}`
-      : `${API_BASE_URL}/user/${userIdParam}`;
+      ? `${API_BASE_URL}/user/${tipoPath}/${identifierPath}`
+      : `${API_BASE_URL}/user/${identifierPath}`;
 
     fetch(url)
       .then((res) => {
@@ -35,6 +53,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         throw new Error("not_found");
       })
       .then((data) => {
+        console.log("[ProfileUser] resposta perfil", { data, url });
         const tipoRetornado = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
         if (tipoPath && tipoRetornado !== tipoPath) {
           navigate("/home");
@@ -48,7 +67,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           navigate("/home");
         }
       });
-  }, [userIdParam, navigate, tipoPath]);
+  }, [userIdentifier, navigate, tipoPath, isUuid]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
@@ -58,12 +77,17 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         throw new Error("erro");
       })
       .then((data) => {
+        console.log("[ProfileUser] auth/me", data);
         setCurrentUser(data || null);
         const tipoAtual = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
-        const isMesmoUsuario = String(userIdParam || "") === String(data?.id || "");
+        const isMesmoId = String(userIdParam || "") === String(data?.id || "");
+        const isMesmoUuid = userUuidParam && data?.global_uuid && String(userUuidParam) === String(data.global_uuid);
+        const isMesmoPathId = identifierFromPath && !isUuid && String(identifierFromPath) === String(data?.id || "");
+        const isMesmoPathUuid = identifierFromPath && isUuid && data?.global_uuid && String(identifierFromPath) === String(data.global_uuid);
         const tipoConfere = !tipoPath || tipoPath === tipoAtual;
-        // só preenche com o próprio usuário se for o mesmo id e o tipo da rota (se houver) combinar
-        if ((!userIdParam && !(usuario && usuario.id)) || (isMesmoUsuario && tipoConfere && !(usuario && usuario.id))) {
+        const isMesmoUsuario = (isMesmoId || isMesmoUuid || isMesmoPathId || isMesmoPathUuid) && tipoConfere;
+        // só preenche com o próprio usuário se for o mesmo id/uuid (rota) e o tipo da rota (se houver) combinar
+        if ((!userIdentifier && !(usuario && usuario.id)) || (isMesmoUsuario && !(usuario && usuario.id))) {
           setUsuario(data || {});
           if (data?.profile_picture) setCacheBust(Date.now());
         }
@@ -71,7 +95,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       .catch(() => {
         /* ignora falhas de rede sem redirecionar */
       });
-  }, [navigate, userIdParam, tipoPath, usuario]);
+  }, [navigate, userIdParam, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
 
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;

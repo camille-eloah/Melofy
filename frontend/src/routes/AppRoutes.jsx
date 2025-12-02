@@ -18,9 +18,9 @@ export default function AppRoutes() {
 
       <Route path="/home" element={<Home />} />
       <Route path="/profile" element={<ProfileUser />} />
-      <Route path="/profile/:tipo/:id" element={<ProfileUser />} />
-      <Route path="/professor/:id" element={<ProfileUser />} />
-      <Route path="/aluno/:id" element={<ProfileUser />} />
+      <Route path="/profile/:tipo/:uuid" element={<ProfileUser />} />
+      <Route path="/professor/:uuid" element={<ProfileUser />} />
+      <Route path="/aluno/:uuid" element={<ProfileUser />} />
       <Route path="/localizacao" element={<Localizacao />} />
       <Route path="/instrumentos" element={<Instrumentos />} />
       <Route path="/feedback" element={<Feedback /> } />
@@ -39,9 +39,9 @@ export default function AppRoutes() {
 
       <Route path="/home" element={<RequireAuth><Home /></RequireAuth>} />
       <Route path="/profile" element={<RequireAuth><ProfileUser /></RequireAuth>} />
-      <Route path="/profile/:tipo/:id" element={<RequireAuth><ProfileUser /></RequireAuth>} />
-      <Route path="/professor/:id" element={<RequireAuth><ProfileUser /></RequireAuth>} />
-      <Route path="/aluno/:id" element={<RequireAuth><ProfileUser /></RequireAuth>} />
+      <Route path="/profile/:tipo/:uuid" element={<RequireAuth><ProfileUser /></RequireAuth>} />
+      <Route path="/professor/:uuid" element={<RequireAuth><ProfileUser /></RequireAuth>} />
+      <Route path="/aluno/:uuid" element={<RequireAuth><ProfileUser /></RequireAuth>} />
       <Route path="/localizacao" element={<RequireAuth><Localizacao/></RequireAuth>} />
       <Route path="/instrumentos" element={<RequireAuth><Instrumentos /></RequireAuth>} />
       <Route path="/feedback" element={<RequireAuth><Feedback /></RequireAuth>} />

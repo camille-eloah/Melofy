@@ -7,6 +7,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function Header() {
   const [userId, setUserId] = useState(null)
+  const [userUuid, setUserUuid] = useState(null)
   const [userTipo, setUserTipo] = useState(null)
   const [showNotifications, setShowNotifications] = useState(false)
   const [activeLink, setActiveLink] = useState('')
@@ -17,6 +18,7 @@ function Header() {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data?.id) setUserId(data.id)
+        if (data?.global_uuid) setUserUuid(data.global_uuid)
         if (data?.tipo_usuario || data?.tipo) {
           const tipo = (data.tipo_usuario || data.tipo || '').toString().toLowerCase()
           setUserTipo(tipo || null)
@@ -25,7 +27,7 @@ function Header() {
       .catch(() => { })
   }, [])
 
-  const profilePath = userId && userTipo ? `/${userTipo}/${userId}` : '/profile'
+  const profilePath = userUuid && userTipo ? `/${userTipo}/${userUuid}` : '/profile'
 
   const notifications = [
     {
