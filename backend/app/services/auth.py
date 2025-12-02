@@ -6,6 +6,11 @@ from sqlmodel import Session, select
 from app.core.config import get_settings
 from app.core.security import _verify_password, _create_token
 from app.models import Professor, Aluno, TipoUsuario
+from app.services.dev_bypass import (
+    credenciais_bypass,
+    eh_usuario_bypass,
+    obter_usuario_bypass,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -31,23 +36,32 @@ def obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None
     return None
 
 
-def autenticar_usuario(db: Session, email: str, senha: str) -> Professor | Aluno:
-    usuario = obter_usuario_por_email(db, email)
+def autenticar_usuario(db: Session, login: str, senha: str):
+    if credenciais_bypass(login, senha):
+        logger.info("Bypass de desenvolvimento usado para login.")
+        return obter_usuario_bypass()
+
+    usuario = db.query(Professor).filter(
+        (Professor.email == login) | (Professor.cpf == login)
+    ).first()
+    if not usuario:
+        usuario = db.query(Aluno).filter(
+            (Aluno.email == login) | (Aluno.cpf == login)
+        ).first()
     if not usuario or not _verify_password(senha, usuario.hashed_password):
-        logger.debug("Autenticação falhou para email=%s", email)
         raise ValueError("Credenciais inválidas")
-    logger.debug("Autenticação bem-sucedida email=%s user_id=%s", email, usuario.id)
     return usuario
 
 
 def gerar_tokens(usuario: Professor | Aluno) -> tuple[str, str]:
     tipo = TipoUsuario.PROFESSOR if isinstance(usuario, Professor) else TipoUsuario.ALUNO
+    is_bypass = eh_usuario_bypass(usuario)
     access_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access"},
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "access", "dev_bypass": is_bypass},
         timedelta(minutes=settings.access_token_expire_minutes),
     )
     refresh_token = _create_token(
-        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh"},
+        {"sub": str(usuario.id), "tipo": tipo.value, "scope": "refresh", "dev_bypass": is_bypass},
         timedelta(days=settings.refresh_token_expire_days),
     )
     logger.debug(

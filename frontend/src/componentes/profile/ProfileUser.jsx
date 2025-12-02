@@ -41,21 +41,19 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json();
-        if (res.status === 401) throw new Error("unauthorized");
+        if (res.status === 401) return null; // sem login, segue sem redirecionar
         throw new Error("erro");
       })
       .then((data) => {
         setCurrentUser(data || null);
         // se estamos no proprio perfil ou sem id na rota, e ainda nao temos usuario, preenche
-        if ((!userIdParam || String(userIdParam) === String(data.id)) && !(usuario && usuario.id)) {
+        if ((!userIdParam || String(userIdParam) === String(data?.id)) && !(usuario && usuario.id)) {
           setUsuario(data || {});
           if (data?.profile_picture) setCacheBust(Date.now());
         }
       })
-      .catch((err) => {
-        if (err.message === "unauthorized") {
-          navigate("/login");
-        }
+      .catch(() => {
+        /* ignora falhas de rede sem redirecionar */
       });
   }, [navigate, userIdParam]);
 

@@ -5,7 +5,7 @@
 
 ```shell
 DB_USER=root
-DB_PASSWORD=
+DB_PASSWORD=usbw
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=db_melofyS
@@ -15,13 +15,17 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 COOKIE_SECURE=False
 COOKIE_SAMESITE=Lax
 DEBUG=true
+ALLOW_DEV_BYPASS=true
+MEDIA_ROOT=backend/storage
+PROFILE_PIC_DIR=profile_pictures
+MEDIA_URL_PATH=/media
 ```
 
-2. Banco de dados MySQL configurado com as mesmas informações descritas no `.env`:
+2. O banco de dados MySQL deve estar configurado com as mesmas informações descritas no `.env`. Faça as adaptações necessárias:
 
 ```shell
 DB_USER=root
-DB_PASSWORD=
+DB_PASSWORD=usbw
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=db_melofy
