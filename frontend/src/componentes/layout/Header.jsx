@@ -109,6 +109,8 @@ function Header() {
   const markAllAsRead = () => {
     // Simulação
     console.log('Marcando todas como lidas')
+  }
+
   async function handleLogout(e) {
     e.preventDefault()
 
