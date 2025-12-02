@@ -103,7 +103,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     profilePicture && !profilePicture.startsWith("http")
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
-  const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
+  const tipoAtual = (currentUser?.tipo_usuario || currentUser?.tipo || "").toString().toLowerCase();
+  const tipoPerfil = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toLowerCase();
+  const isOwner =
+    currentUser?.id &&
+    usuario?.id &&
+    currentUser.id === usuario.id &&
+    (!tipoPath || tipoPath === tipoAtual) &&
+    (!tipoPerfil || tipoPerfil === tipoAtual);
   const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toUpperCase();
   const badgeInfo =
     tipoUsuario === "PROFESSOR"
@@ -118,7 +125,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : null);
 
   const handleFotoClick = () => {
-    if (podeEditar) {
+    if (isOwner) {
       setIsModalOpen(true);
     }
   };
@@ -194,7 +201,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
 
           {/* Botao de edicao no final (direita)*/}
-          {podeEditar && (
+          {isOwner && (
             <button className="btn-editar-texto" title="Editar textos">
               <span aria-hidden="true">✎</span>
             </button>
@@ -220,12 +227,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="lado-direito-profile">
         <div className="card-perfil">
           <div
-            className={`foto-wrapper ${podeEditar ? "foto-interativa" : ""}`}
-            onClick={handleFotoClick}
-            role={podeEditar ? "button" : undefined}
-            tabIndex={podeEditar ? 0 : undefined}
+            className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
+            onClick={isOwner ? handleFotoClick : undefined}
+            role={isOwner ? "button" : undefined}
+            tabIndex={isOwner ? 0 : undefined}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (isOwner && (e.key === "Enter" || e.key === " ")) {
                 e.preventDefault();
                 handleFotoClick();
               }
@@ -236,7 +243,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             ) : (
               <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
             )}
-            {podeEditar && (
+            {isOwner && (
               <div className="foto-overlay">
                 <span className="camera-icon" aria-hidden="true">
                   <svg
@@ -271,7 +278,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
           </div>
 
-          {podeEditar && (
+          {isOwner && (
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
               <button className="btn-deletar">Deletar Conta</button>
@@ -346,3 +353,4 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 }
 
 export default ProfileUser;
+
