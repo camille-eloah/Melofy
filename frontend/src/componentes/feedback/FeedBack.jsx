@@ -87,7 +87,7 @@ function Feedback() {
       <form className="feedback-form" onSubmit={handleSubmit}>
         <h2>Envie seu feedback</h2>
 
-        <div className="input-group">
+        <div className="input-group-feedback">
           <label>Nome</label>
           <input
             type="text"
@@ -97,7 +97,7 @@ function Feedback() {
           />
         </div>
 
-        <div className="input-group">
+        <div className="input-group-feedback">
           <label>E-mail</label>
           <input
             type="email"
@@ -107,7 +107,7 @@ function Feedback() {
           />
         </div>
 
-        <div className="input-group">
+        <div className="input-group-feedback">
           <label>Assunto</label>
           <input
             type="text"
@@ -117,7 +117,7 @@ function Feedback() {
           />
         </div>
 
-        <div className="input-group">
+        <div className="input-group-feedback">
           <label>Mensagem</label>
           <textarea
             value={mensagem}
