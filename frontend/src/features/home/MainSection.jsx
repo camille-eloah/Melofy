@@ -10,16 +10,21 @@ import violinoImg from '../../assets/Images-MainSection/violino.png'
 import cantoImg from '../../assets/Images-MainSection/canto.png'
 
 const instrumentosBase = [
-  { nome: "Teclado", img: tecladoImg },
-  { nome: "Guitarra", img: guitarraImg },
-  { nome: "Contrabaixo", img: baixoImg },
-  { nome: "Violão", img: violaoImg },
-  { nome: "Violino", img: violinoImg },
-  { nome: "Saxofone", img: saxofoneImg },
-  { nome: "Canto", img: cantoImg },
+  { nome: "Teclado", img: tecladoImg, categoria: "Teclas" },
+  { nome: "Guitarra", img: guitarraImg, categoria: "Cordas" },
+  { nome: "Contrabaixo", img: baixoImg, categoria: "Cordas" },
+  { nome: "Violão", img: violaoImg, categoria: "Cordas" },
+  { nome: "Violino", img: violinoImg, categoria: "Cordas" },
+  { nome: "Saxofone", img: saxofoneImg, categoria: "Sopro" },
+  { nome: "Canto", img: cantoImg, categoria: "Vocal" },
 ]
 
 function MainSection() {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [filteredInstruments, setFilteredInstruments] = useState([])
+  const searchInputRef = useRef(null)
+
   // duplicamos o array para ajudar no loop infinito
   const instrumentos = [...instrumentosBase, ...instrumentosBase]
   const baseLen = instrumentosBase.length
@@ -28,10 +33,11 @@ function MainSection() {
   const [index, setIndex] = useState(baseLen)
   const [isTransitioning, setIsTransitioning] = useState(true)
   const innerRef = useRef(null)
+  const [hoveredCard, setHoveredCard] = useState(null)
 
   // largura de cada card (incluindo gap). Ajuste se modificar CSS
-  const CARD_WIDTH = 140 // px (min-width + margin)
-  const GAP = 20 // px (gap between cards)
+  const CARD_WIDTH = 160 // px (min-width + margin)
+  const GAP = 24 // px (gap between cards)
 
   // calcular deslocamento em px
   const getTranslateX = () => {
@@ -49,13 +55,11 @@ function MainSection() {
     setIsTransitioning(true)
   }
 
-  // quando a transição termina, ajustamos o index se estivermos nas extremidades
   useEffect(() => {
     const el = innerRef.current
     if (!el) return
 
     function handleTransitionEnd() {
-      // se chegamos ao final da segunda metade (index >= baseLen * 2), voltamos para a metade equivalente sem transition
       if (index >= baseLen * 2) {
         setIsTransitioning(false)
         setIndex((prev) => prev - baseLen)
@@ -82,45 +86,286 @@ function MainSection() {
     }
   }, [isTransitioning])
 
+  // Efeito de autoplay
+  useEffect(() => {
+    const interval = setInterval(() => {
+      next()
+    }, 3500)
+    
+    return () => clearInterval(interval)
+  }, [])
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredInstruments([])
+      return
+    }
+    
+    const filtered = instrumentosBase.filter(instrument =>
+      instrument.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      instrument.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    setFilteredInstruments(filtered)
+  }, [searchQuery])
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
+        setShowSuggestions(false)
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Sugestões populares
+  const popularSearches = ["Guitarra", "Piano", "Violão", "Canto", "Bateria", "Violino"]
+
+  const handleSearch = (query = '') => {
+    if (query) {
+      setSearchQuery(query)
+    }
+    console.log(`Buscando: ${searchQuery || query}`)
+    setShowSuggestions(false)
+    // Aqui você implementaria a lógica de busca real
+  }
+
+  const handleSuggestionClick = (instrumentName) => {
+    setSearchQuery(instrumentName)
+    handleSearch(instrumentName)
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch()
+    }
+  }
+
   return (
     <main className="main-section">
-      <h2>Dê um passo a mais no seu aprendizado com o Melofy</h2>
+      <div className="hero-section">
+        <h1 className="logo">Melofy</h1>
+        <h2>Encontre o instrumento perfeito para sua jornada musical</h2>
 
-      <div className="search-container">
-        <input
-          type="text"
-          placeholder='Busque “Guitarra”'
-          className="search-input"
-        />
-        <button className="search-button">Pesquisar</button>
-      </div>
-
-      <div className="carousel-wrapper">
-        <button className="arrow-btn left" onClick={previous} aria-label="Anterior">
-          &#8249;
-        </button>
-
-        <div className="carousel-viewport">
-          <div
-            className="carousel-inner"
-            ref={innerRef}
-            style={{
-              transform: `translateX(${getTranslateX()}px)`,
-              transition: isTransitioning ? 'transform 400ms ease' : 'none',
-            }}
-          >
-            {instrumentos.map((item, i) => (
-              <button key={i} className="instrument-card">
-                <img src={item.img} alt={item.nome} className="instrument-img" />
-                <span>{item.nome}</span>
-              </button>
-            ))}
+        {/* Barra de pesquisa estilo Google */}
+        <div className="google-like-search">
+          <div className="search-container-wrapper" ref={searchInputRef}>
+            <div className={`search-box ${showSuggestions ? 'active' : ''}`}>
+              <div className="search-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#5f6368" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Pesquise instrumentos musicais..."
+                className="search-input-google"
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Limpar busca"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="#5f6368"/>
+                  </svg>
+                </button>
+              )}
+              <div className="search-tools">
+                <button 
+                  className="search-button-google"
+                  onClick={() => handleSearch()}
+                  aria-label="Pesquisar"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z" fill="#4285f4"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {showSuggestions && (
+              <div className="suggestions-dropdown">
+                {searchQuery ? (
+                  <>
+                    {filteredInstruments.length > 0 ? (
+                      <div className="suggestions-list">
+                        {filteredInstruments.map((instrument, index) => (
+                          <button
+                            key={index}
+                            className="suggestion-item"
+                            onClick={() => handleSuggestionClick(instrument.nome)}
+                          >
+                            <div className="suggestion-icon">
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#5f6368" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                            </div>
+                            <div className="suggestion-content">
+                              <div className="suggestion-title">{instrument.nome}</div>
+                              <div className="suggestion-category">{instrument.categoria}</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="no-results">
+                        <div className="no-results-icon">🎵</div>
+                        <div className="no-results-text">
+                          <div className="no-results-title">Nenhum resultado para "{searchQuery}"</div>
+                          <div className="no-results-subtitle">Tente buscar por outro instrumento</div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="popular-searches">
+                    <div className="popular-title">Buscas populares</div>
+                    <div className="popular-tags">
+                      {popularSearches.map((search, index) => (
+                        <button
+                          key={index}
+                          className="popular-tag"
+                          onClick={() => handleSuggestionClick(search)}
+                        >
+                          {search}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="search-buttons">
+            <button 
+              className="google-search-btn"
+              onClick={() => handleSearch()}
+            >
+              Pesquisa Melofy
+            </button>
+            <button className="google-lucky-btn">
+              Estou com sorte
+            </button>
           </div>
         </div>
+      </div>
 
-        <button className="arrow-btn right" onClick={next} aria-label="Próximo">
-          &#8250;
-        </button>
+      {/* Carrossel Aprimorado */}
+      <div className="carousel-section">
+        <div className="carousel-wrapper">
+          <button className="nav-btn prev-btn" onClick={previous} aria-label="Anterior">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
+          <div className="carousel-viewport">
+            <div
+              className="carousel-inner"
+              ref={innerRef}
+              style={{
+                transform: `translateX(${getTranslateX()}px)`,
+                transition: isTransitioning ? 'transform 600ms cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+              }}
+            >
+              {instrumentos.map((item, i) => (
+                <div 
+                  key={i} 
+                  className={`instrument-card ${hoveredCard === i ? 'hovered' : ''}`}
+                  onMouseEnter={() => setHoveredCard(i)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  onClick={() => handleSuggestionClick(item.nome)}
+                >
+                  <div className="card-glow"></div>
+                  <div className="card-content">
+                    <img src={item.img} alt={item.nome} className="instrument-img" />
+                    <span className="instrument-name">{item.nome}</span>
+                    <span className="instrument-category">{item.categoria}</span>
+                  </div>
+                  <div className="card-action">
+                    <button className="explore-btn">Ver aulas</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <button className="nav-btn next-btn" onClick={next} aria-label="Próximo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div className="carousel-indicators">
+          {instrumentosBase.map((_, i) => (
+            <button
+              key={i}
+              className={`indicator ${(index % baseLen) === i ? 'active' : ''}`}
+              onClick={() => setIndex(baseLen + i)}
+              aria-label={`Ir para instrumento ${i + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="teachers-section">
+        <h3>Professores em Destaque</h3>
+        <p>Aprenda com especialistas renomados</p>
+        
+        <div className="teachers-grid">
+          <div className="teacher-card">
+            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #4285f4, #34a853)'}}>JS</div>
+            <h4>João Silva</h4>
+            <p>Especialista em Guitarra</p>
+            <span className="teacher-rating">⭐ 4.9</span>
+            <div className="teacher-stats">
+              <span>2.5k alunos</span>
+              <span>•</span>
+              <span>120 aulas</span>
+            </div>
+          </div>
+          
+          <div className="teacher-card">
+            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #ea4335, #fbbc05)'}}>MA</div>
+            <h4>Maria Andrade</h4>
+            <p>Professora de Piano</p>
+            <span className="teacher-rating">⭐ 4.8</span>
+            <div className="teacher-stats">
+              <span>1.8k alunos</span>
+              <span>•</span>
+              <span>95 aulas</span>
+            </div>
+          </div>
+          
+          <div className="teacher-card">
+            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #34a853, #4285f4)'}}>PC</div>
+            <h4>Pedro Costa</h4>
+            <p>Mestre em Violino</p>
+            <span className="teacher-rating">⭐ 4.9</span>
+            <div className="teacher-stats">
+              <span>1.2k alunos</span>
+              <span>•</span>
+              <span>80 aulas</span>
+            </div>
+          </div>
+          
+          <div className="teacher-card">
+            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #fbbc05, #ea4335)'}}>AF</div>
+            <h4>Ana Ferreira</h4>
+            <p>Coach Vocal</p>
+            <span className="teacher-rating">⭐ 4.7</span>
+            <div className="teacher-stats">
+              <span>3.1k alunos</span>
+              <span>•</span>
+              <span>150 aulas</span>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   )
