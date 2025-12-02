@@ -16,7 +16,7 @@ function Header() {
       .then((data) => {
         if (data?.id) setUserId(data.id)
       })
-      .catch(() => {})
+      .catch(() => { })
   }, [])
 
   const profilePath = userId ? `/profile/${userId}` : '/profile'
@@ -59,7 +59,7 @@ function Header() {
   const unreadCount = notifications.filter(n => !n.read).length
 
   const getNotificationIcon = (type) => {
-    switch(type) {
+    switch (type) {
       case 'welcome':
         return (
           <svg className="icon-welcome" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -165,8 +165,8 @@ function Header() {
       </div>
 
       <nav className="header-nav">
-        <Link 
-          to="/home" 
+        <Link
+          to="/home"
           className={`nav-link ${activeLink === 'home' ? 'active' : ''}`}
           onMouseEnter={() => setActiveLink('home')}
           onMouseLeave={() => setActiveLink('')}
@@ -180,8 +180,8 @@ function Header() {
           <span className="nav-text">Home</span>
           <span className="nav-glow"></span>
         </Link>
-        
-        <Link 
+
+        <Link
           to={profilePath}
           className={`nav-link ${activeLink === 'profile' ? 'active' : ''}`}
           onMouseEnter={() => setActiveLink('profile')}
@@ -196,8 +196,8 @@ function Header() {
           <span className="nav-text">Perfil</span>
           <span className="nav-glow"></span>
         </Link>
-        
-        <Link 
+
+        <Link
           to="/localizacao"
           className={`nav-link ${activeLink === 'localizacao' ? 'active' : ''}`}
           onMouseEnter={() => setActiveLink('localizacao')}
@@ -212,20 +212,40 @@ function Header() {
           <span className="nav-text">Localização</span>
           <span className="nav-glow"></span>
         </Link>
-        
+        <Link
+          to="/feedback"
+          className={`nav-link ${activeLink === 'feedback' ? 'active' : ''}`}
+          onMouseEnter={() => setActiveLink('feedback')}
+          onMouseLeave={() => setActiveLink('')}
+        >
+          <span className="nav-icon">
+            <svg className="icon-feedback"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+          </span>
+
+          <span className="nav-glow"></span>
+        </Link>
         <div className="notification-container">
-          <button 
+          <button
             className={`notification-button ${showNotifications ? 'active' : ''}`}
             onClick={() => setShowNotifications(!showNotifications)}
           >
             <div className="bell-wrapper">
-              <svg 
-                className="bell-icon" 
-                width="22" 
-                height="22" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="bell-icon"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
                 strokeWidth="2"
               >
                 <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -240,8 +260,8 @@ function Header() {
 
           {showNotifications && (
             <>
-              <div 
-                className="notification-overlay" 
+              <div
+                className="notification-overlay"
                 onClick={() => setShowNotifications(false)}
               />
               <div className="notification-modal">
@@ -257,7 +277,7 @@ function Header() {
                     )}
                   </div>
                   {unreadCount > 0 && (
-                    <button 
+                    <button
                       className="mark-all-read"
                       onClick={markAllAsRead}
                     >
@@ -265,11 +285,11 @@ function Header() {
                     </button>
                   )}
                 </div>
-                
+
                 <div className="notification-list">
                   {notifications.length > 0 ? (
                     notifications.map((notification) => (
-                      <div 
+                      <div
                         key={notification.id}
                         className={`notification-item ${!notification.read ? 'unread' : ''}`}
                         onClick={() => markAsRead(notification.id)}
@@ -299,7 +319,7 @@ function Header() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="notification-footer">
                   <button className="view-all">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -310,7 +330,10 @@ function Header() {
                     Ver todas as notificações
                   </button>
                 </div>
+
               </div>
+
+
             </>
           )}
         </div>

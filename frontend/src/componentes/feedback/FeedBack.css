@@ -1,0 +1,126 @@
+.feedback-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  font-family: 'Roboto', 'Segoe UI', 'Inter', sans-serif;
+  color: #202124;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0;  /* garante que não há espaço acima */
+  margin-top: 0;   
+}
+
+
+/* Card do formulário */
+.feedback-form {
+  background: white;
+  width: 100%;
+  max-width: 650px;
+  padding: 40px 50px;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(32, 33, 36, 0.12);
+  border: 1px solid #f1f3f4;
+  margin-top: 40px;
+  animation: fadeIn 0.5s ease;
+}
+
+.feedback-form h2 {
+  font-size: 2rem;
+  color: #202124;
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 500;
+}
+
+/* Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-size: 0.95rem;
+  color: #5f6368;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.input-group input,
+.input-group textarea {
+  border: 1px solid #dfe1e5;
+  background: white;
+  padding: 14px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #202124;
+  transition: all 0.2s ease;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Placeholder */
+.input-group input::placeholder,
+.input-group textarea::placeholder {
+  color: #9aa0a6;
+}
+
+/* Focus */
+.input-group input:focus,
+.input-group textarea:focus {
+  border-color: #4285f4;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.2);
+  outline: none;
+}
+
+/* Hover */
+.input-group input:hover,
+.input-group textarea:hover {
+  border-color: #c0c4c9;
+}
+
+/* Botão */
+.feedback-form button {
+  width: 100%;
+  background: #4285f4;
+  color: white;
+  border: none;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.25s ease;
+  margin-top: 10px;
+}
+
+.feedback-form button:hover {
+  background: #3367d6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+}
+
+.feedback-form button:disabled {
+  background: #9aa0a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Animação suave */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .feedback-form {
+    padding: 30px 20px;
+  }
+}
