@@ -130,11 +130,13 @@ h1 , h2 {
 }
 
 /* Menino ao lado das fotos */
-.menino{
+.menino-instrumento{
     margin-top: -200px;
     margin-left: 40px;
     width: 400px;
     height: 400px;
+    filter: drop-shadow(0 0 40px rgba(0, 210, 255, 0.35))
+          drop-shadow(0 0 80px rgba(0, 180, 255, 0.2));
 }
 
 .instrumentos-circle::before {

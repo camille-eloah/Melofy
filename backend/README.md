@@ -5,7 +5,7 @@
 
 ```shell
 DB_USER=root
-DB_PASSWORD=
+DB_PASSWORD=usbw
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=db_melofy
@@ -24,7 +24,7 @@ MEDIA_URL_PATH=/media
 
 ```shell
 DB_USER=root
-DB_PASSWORD=
+DB_PASSWORD=usbw
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=db_melofy

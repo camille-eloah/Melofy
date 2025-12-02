@@ -48,7 +48,7 @@ class UserResponse(BaseModel):
     cpf: str
     data_nascimento: date
     email: EmailStr
-    tipo: str
+    tipo_usuario: TipoUsuario
     telefone: str | None = None
     bio: str | None = None
     profile_picture: str | None = None

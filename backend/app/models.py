@@ -2,6 +2,9 @@ from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship 
 from datetime import datetime, date
 from enum import Enum
+from pydantic_settings import BaseSettings
+from typing import List
+
 
 # ----------------------------
 # Usuários
@@ -48,6 +51,7 @@ class Professor(UserBase, table=True):
 
     # cada professor pode ter 1 ou N contas bancárias
     dados_bancarios: list["DadosBancarios"] = Relationship(back_populates="professor")
+    instrumentos_rel: List["ProfessorInstrumento"] = Relationship(back_populates="professor")
 
 
 class Aluno(UserBase, table=True):
@@ -78,7 +82,30 @@ class Instrumento(SQLModel, table=True):
     nome: str
     tipo: str
 
-    aulas: list["Aula"] = Relationship(back_populates="instrumento")
+    aulas: List["Aula"] = Relationship(back_populates="instrumento")
+    professores_rel: List["ProfessorInstrumento"] = Relationship(back_populates="instrumento")
+
+# ----------------------------
+# Instrumentos professores
+# ----------------------------
+
+
+class ProfessorInstrumento(SQLModel, table=True):
+    __tablename__ = "tb_professor_instrumento"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    professor_id: int = Field(foreign_key="tb_professor.id")
+    instrumento_id: int = Field(foreign_key="tb_instrumento.id")
+
+    professor: Professor = Relationship(back_populates="instrumentos_rel")
+    instrumento: Instrumento = Relationship(back_populates="professores_rel")
+
+
+class ProfessorInstrumentosEscolha(SQLModel):
+    # schema usado só no body da requisição (não é tabela!)
+    professor_id: int
+    instrumentos_ids: List[int]
+
 
 # ----------------------------
 # Aulas e Pacotes 
@@ -219,3 +246,17 @@ class DadosBancarios(SQLModel, table=True):
 
     professor: Optional[Professor] = Relationship(back_populates="dados_bancarios")
     aluno: Optional[Aluno] = Relationship(back_populates="dados_bancarios")
+
+#Feedback
+
+class Feedback(SQLModel, table=True):
+    __tablename__ = "tb_feedback"
+    
+    id: int | None = Field(default=None, primary_key=True)
+    nome: str
+    email: str
+    assunto: str
+    mensagem: str
+    criado_em: datetime = Field(default_factory=datetime.utcnow)
+    
+

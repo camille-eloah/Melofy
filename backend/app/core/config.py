@@ -6,28 +6,41 @@ from typing import List, Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
+from pydantic import Field
 
 
-class Settings(BaseModel):
-    app_title: str
-    app_description: str
-    app_version: str
+class Settings(BaseSettings):
+    cors_origins: List[str] = ["http://localhost:3000"]
+    debug: bool = True  # você já tinha dois debug, mantive só um
 
-    debug: bool
+    # App info
+    app_name: str = "Melofy"
+    app_title: str = "Meu App"
+    app_description: str = "Descrição do app"
+    app_version: str = "1.0.0"
 
-    cors_origins: List[str]
+    # SMTP – AGORA COM VALOR PADRÃO (OPCIONAL)
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: str | None = None
+    destinatario_feedback: str | None = None
 
-    jwt_secret_key: str
-    access_token_expire_minutes: int
-    refresh_token_expire_days: int
-    jwt_algorithm: str
+    # Media
+    media_root: str = "media"
+    profile_pic_dir: str = "profile_pics"
 
-    cookie_secure: bool
-    cookie_samesite: str
-    cookie_domain: Optional[str]
-    media_root: str
-    profile_pic_dir: str
-    media_url_path: str
+    class Config:
+        env_file = "backend/.env"  # se isso estiver errado, pode virar só ".env"
+        env_file_encoding = "utf-8"
+        case_sensitive = False
+        extra = "allow"
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
 
 
 @lru_cache

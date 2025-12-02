@@ -36,6 +36,14 @@ CREATE TABLE tb_instrumento (
     tipo VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE tb_professor_instrumento (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_professor INT NOT NULL,
+    id_instrumento INT NOT NULL,
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
+    FOREIGN KEY (id_instrumento) REFERENCES tb_instrumento(id)
+);
+
 CREATE TABLE tb_aula (
     aul_id INT AUTO_INCREMENT PRIMARY KEY,
     aul_prof_id INT NOT NULL,
@@ -116,4 +124,13 @@ CREATE TABLE tb_dados_bancarios (
 
     FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
+);
+
+CREATE TABLE tb_feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    assunto VARCHAR(255) NOT NULL,
+    mensagem TEXT NOT NULL,
+    criado_em DATETIME NOT NULL
 );

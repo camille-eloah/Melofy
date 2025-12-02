@@ -31,12 +31,16 @@ def obter_usuario_por_email(db: Session, email: str) -> Professor | Aluno | None
     return None
 
 
-def autenticar_usuario(db: Session, email: str, senha: str) -> Professor | Aluno:
-    usuario = obter_usuario_por_email(db, email)
+def autenticar_usuario(db: Session, login: str, senha: str):
+    usuario = db.query(Professor).filter(
+        (Professor.email == login) | (Professor.cpf == login)
+    ).first()
+    if not usuario:
+        usuario = db.query(Aluno).filter(
+            (Aluno.email == login) | (Aluno.cpf == login)
+        ).first()
     if not usuario or not _verify_password(senha, usuario.hashed_password):
-        logger.debug("Autenticação falhou para email=%s", email)
         raise ValueError("Credenciais inválidas")
-    logger.debug("Autenticação bem-sucedida email=%s user_id=%s", email, usuario.id)
     return usuario
 
 
@@ -74,3 +78,5 @@ def obter_usuario_por_id_tipo(db: Session, user_id: int, tipo: str) -> Professor
     else:
         logger.debug("Usuário não encontrado por id=%s tipo=%s", user_id, tipo_enum.value)
     return usuario
+
+
