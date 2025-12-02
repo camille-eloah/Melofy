@@ -1,6 +1,6 @@
 import "./ProfileUser.css";
 import Header from "../layout/Header";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -15,18 +15,31 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [cacheBust, setCacheBust] = useState(Date.now());
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { id: userIdParam } = useParams();
+  const location = useLocation();
+  const { id: userIdParam, tipo: tipoParam } = useParams();
+  const tipoFromPath = (location.pathname.split("/")[1] || "").toLowerCase();
+  const tipoSlug = (tipoParam || tipoFromPath || "").toLowerCase();
+  const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
 
   useEffect(() => {
     // se houver um id na rota, buscar o perfil correspondente
     if (!userIdParam) return;
 
-    fetch(`${API_BASE_URL}/user/${userIdParam}`)
+    const url = tipoPath
+      ? `${API_BASE_URL}/user/${tipoPath}/${userIdParam}`
+      : `${API_BASE_URL}/user/${userIdParam}`;
+
+    fetch(url)
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error("not_found");
       })
       .then((data) => {
+        const tipoRetornado = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
+        if (tipoPath && tipoRetornado !== tipoPath) {
+          navigate("/home");
+          return;
+        }
         setUsuario(data);
         if (data?.profile_picture) setCacheBust(Date.now());
       })
@@ -35,7 +48,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           navigate("/home");
         }
       });
-  }, [userIdParam, navigate]);
+  }, [userIdParam, navigate, tipoPath]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
@@ -46,8 +59,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       })
       .then((data) => {
         setCurrentUser(data || null);
-        // se estamos no proprio perfil ou sem id na rota, e ainda nao temos usuario, preenche
-        if ((!userIdParam || String(userIdParam) === String(data?.id)) && !(usuario && usuario.id)) {
+        const tipoAtual = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
+        const isMesmoUsuario = String(userIdParam || "") === String(data?.id || "");
+        const tipoConfere = !tipoPath || tipoPath === tipoAtual;
+        // só preenche com o próprio usuário se for o mesmo id e o tipo da rota (se houver) combinar
+        if ((!userIdParam && !(usuario && usuario.id)) || (isMesmoUsuario && tipoConfere && !(usuario && usuario.id))) {
           setUsuario(data || {});
           if (data?.profile_picture) setCacheBust(Date.now());
         }
@@ -55,7 +71,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       .catch(() => {
         /* ignora falhas de rede sem redirecionar */
       });
-  }, [navigate, userIdParam]);
+  }, [navigate, userIdParam, tipoPath, usuario]);
 
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
@@ -64,7 +80,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
   const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
-  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || "").toString().toUpperCase();
+  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toUpperCase();
   const badgeInfo =
     tipoUsuario === "PROFESSOR"
       ? { label: "Professor", variant: "professor" }

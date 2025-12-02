@@ -194,6 +194,27 @@ def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
 
+@router_user.get("/alunos", response_model=list[UserResponse])
+def listar_alunos(db: Session = Depends(get_session)):
+    alunos = db.exec(select(Aluno)).all()
+    return [montar_resposta_usuario(aluno) for aluno in alunos]
+
+
+@router_user.get("/professor/{user_id}", response_model=UserResponse)
+def obter_professor(user_id: int, db: Session = Depends(get_session)):
+    professor = db.get(Professor, user_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor nǜo encontrado")
+    return montar_resposta_usuario(professor)
+
+
+@router_user.get("/aluno/{user_id}", response_model=UserResponse)
+def obter_aluno(user_id: int, db: Session = Depends(get_session)):
+    aluno = db.get(Aluno, user_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno nǜo encontrado")
+    return montar_resposta_usuario(aluno)
+
 
 @router_user.get("/{user_id}", response_model=UserResponse)
 def obter_usuario(user_id: int, db: Session = Depends(get_session)):
