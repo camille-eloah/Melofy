@@ -12,7 +12,7 @@ import flauta from "../../assets/Images-WhiteBackground/flauta.png";
 import teclado from "../../assets/Images-WhiteBackground/teclado.png";
 import violino from "../../assets/Images-WhiteBackground/violino.png";
 import canto from "../../assets/Images-WhiteBackground/canto.png";
-import menino from "../../assets/Images-Caracters/menino apontando.png";
+import menino from "../../assets/Images-Characters/menino apontando.png";
 import partitura from "../../assets/Images-WhiteBackground/partitura.png";
 import sanfona from "../../assets/Images-WhiteBackground/sanfona.png";
 

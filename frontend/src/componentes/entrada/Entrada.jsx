@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./Entrada.css";
-import instrumentos from '../../assets/Images-Caracters/menina_violão.png'
+import instrumentos from '../../assets/Images-Characters/menina_violão.png'
 import logoMelofy from "../../assets/Images-Logo/BlueLogo.png";
 
 

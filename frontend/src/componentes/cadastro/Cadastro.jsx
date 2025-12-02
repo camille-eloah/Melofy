@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import instrumentos from '../../assets/Images-Caracters/saxofonista.png'
+import instrumentos from '../../assets/Images-Characters/saxofonista.png'
 import Swal from 'sweetalert2' //npm install sweetalert2
 import './Cadastro.css'
 
