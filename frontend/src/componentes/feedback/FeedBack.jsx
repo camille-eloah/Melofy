@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import Swal from 'sweetalert2'
 import './Feedback.css'
-import Header from "../layout/Header";
+import Header from "../layout/Header"
+import Footer from '../layout/Footer'
+
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function Feedback() {
@@ -129,6 +131,7 @@ function Feedback() {
           {carregando ? 'Enviando...' : 'Enviar feedback'}
         </button>
       </form>
+      <Footer />
     </div>
   )
 }
