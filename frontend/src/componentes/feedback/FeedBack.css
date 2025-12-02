@@ -1,3 +1,8 @@
+html, body {
+  overflow-x: hidden;
+}
+
+
 .feedback-page {
   min-height: 100vh;
   background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
