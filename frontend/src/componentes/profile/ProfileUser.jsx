@@ -64,6 +64,13 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
   const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
+  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || "").toString().toUpperCase();
+  const badgeInfo =
+    tipoUsuario === "PROFESSOR"
+      ? { label: "Professor", variant: "professor" }
+      : tipoUsuario === "ALUNO"
+        ? { label: "Aluno", variant: "aluno" }
+        : null;
   const displayedPicture =
     previewUrl ||
     (absoluteProfilePicture
@@ -136,6 +143,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="top-items">
           {/* Categorias no inicio (esquerda) */}
           <div className="categorias">
+            {badgeInfo && (
+              <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
+                {badgeInfo.label}
+              </span>
+            )}
             <span className="categoria-item">Guitarra</span>
             <span className="categoria-item">Violao</span>
             <span className="categoria-item">Ukulele</span>
