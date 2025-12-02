@@ -26,6 +26,13 @@ npm install
 npm run dev
 ```
 
+5. Lembre-se de criar um .env com as seguintes informações:
+
+```shell
+VITE_API_URL=http://localhost:8000
+VITE_MAPTILER_API_KEY=3d9JDAeQXXLVh8rgmVGc
+```
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
