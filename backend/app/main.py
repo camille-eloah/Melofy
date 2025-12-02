@@ -29,8 +29,8 @@ from app.services.auth import (
     autenticar_usuario,
     gerar_tokens,
     obter_usuario_por_id_tipo,
-    obter_usuario_bypass,
 )
+from app.services.dev_bypass import obter_usuario_bypass
 from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
 
