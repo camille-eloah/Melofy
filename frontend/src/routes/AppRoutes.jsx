@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import Login from '../componentes/login/Login'
-import RequireAuth from '../componentes/requireauth/RequireAuth'
+{/*import RequireAuth from '../componentes/requireauth/RequireAuth'*/}
 import Cadastro from '../componentes/cadastro/Cadastro'
 import Home from '../features/home/HomePage'
 import ProfileUser from '../componentes/profile/ProfileUser'
