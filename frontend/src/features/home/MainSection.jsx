@@ -25,23 +25,23 @@ function MainSection() {
   const [filteredInstruments, setFilteredInstruments] = useState([])
   const searchInputRef = useRef(null)
 
-  // duplicamos o array para ajudar no loop infinito
+  
   const instrumentos = [...instrumentosBase, ...instrumentosBase]
   const baseLen = instrumentosBase.length
 
-  // index inicia no começo da segunda metade para que possamos "rolar" para frente e voltar sem pulo
+ 
   const [index, setIndex] = useState(baseLen)
   const [isTransitioning, setIsTransitioning] = useState(true)
   const innerRef = useRef(null)
   const [hoveredCard, setHoveredCard] = useState(null)
 
-  // largura de cada card (incluindo gap). Ajuste se modificar CSS
-  const CARD_WIDTH = 160 // px (min-width + margin)
-  const GAP = 24 // px (gap between cards)
+ 
+  const CARD_WIDTH = 160
+  const GAP = 24 
 
-  // calcular deslocamento em px
+  
   const getTranslateX = () => {
-    // queremos deslocar de acordo com o index (a partir do início do array duplicado)
+    
     return -index * (CARD_WIDTH + GAP)
   }
 
@@ -64,7 +64,7 @@ function MainSection() {
         setIsTransitioning(false)
         setIndex((prev) => prev - baseLen)
       }
-      // se chegamos antes da primeira metade (index < baseLen), pulamos para a segunda metade equivalente sem transition
+    
       if (index < baseLen) {
         setIsTransitioning(false)
         setIndex((prev) => prev + baseLen)
@@ -75,18 +75,17 @@ function MainSection() {
     return () => el.removeEventListener('transitionend', handleTransitionEnd)
   }, [index, baseLen])
 
-  // quando desligamos a transição (reset instantâneo), react precisa reaplicar a posição sem animação,
-  // então usamos um pequeno efeito para reativar a transição em seguida
+
   useEffect(() => {
     if (!isTransitioning) {
-      // força repaint antes de reativar transição
+     
       requestAnimationFrame(() => {
         setTimeout(() => setIsTransitioning(true), 20)
       })
     }
   }, [isTransitioning])
 
-  // Efeito de autoplay
+  
   useEffect(() => {
     const interval = setInterval(() => {
       next()
@@ -117,7 +116,7 @@ function MainSection() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Sugestões populares
+
   const popularSearches = ["Guitarra", "Piano", "Violão", "Canto", "Bateria", "Violino"]
 
   const handleSearch = (query = '') => {
@@ -126,7 +125,7 @@ function MainSection() {
     }
     console.log(`Buscando: ${searchQuery || query}`)
     setShowSuggestions(false)
-    // Aqui você implementaria a lógica de busca real
+
   }
 
   const handleSuggestionClick = (instrumentName) => {
@@ -143,10 +142,10 @@ function MainSection() {
   return (
     <main className="main-section">
       <div className="hero-section">
-        <h1 className="logo">Melofy</h1>
+        <h1 className="logo">MELOFY</h1>
         <h2>Encontre o instrumento perfeito para sua jornada musical</h2>
 
-        {/* Barra de pesquisa estilo Google */}
+       
         <div className="google-like-search">
           <div className="search-container-wrapper" ref={searchInputRef}>
             <div className={`search-box ${showSuggestions ? 'active' : ''}`}>
@@ -241,21 +240,11 @@ function MainSection() {
             )}
           </div>
           
-          <div className="search-buttons">
-            <button 
-              className="google-search-btn"
-              onClick={() => handleSearch()}
-            >
-              Pesquisa Melofy
-            </button>
-            <button className="google-lucky-btn">
-              Estou com sorte
-            </button>
-          </div>
+        
         </div>
       </div>
 
-      {/* Carrossel Aprimorado */}
+
       <div className="carousel-section">
         <div className="carousel-wrapper">
           <button className="nav-btn prev-btn" onClick={previous} aria-label="Anterior">
@@ -371,4 +360,4 @@ function MainSection() {
   )
 }
 
-export default MainSection
+export default MainSection 

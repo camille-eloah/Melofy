@@ -7,27 +7,30 @@
 
 
 .hero-section {
+  display: flex;
   padding: 40px 20px 80px;
   text-align: center;
-  background: white;
+  background: rgb(255, 255, 255);
+  height: 400px;
 }
 
 .logo {
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: 900;
   background: linear-gradient(135deg, #4285f4, #3440a8, #05d6fb, #3589ea);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 10px;
-  letter-spacing: -1px;
+  letter-spacing: 1px;
+  font-family: 'Nunito', sans-serif;
 }
 
 .hero-section h2 {
-  font-size: 1.75rem;
-  font-weight: 400;
+  font-size: 1.3rem;
+  font-weight: 57;
   color: #5f6368;
-  margin-bottom: 40px;
+  margin-bottom: 55px;
   max-width: 600px;
   margin-left: auto;
   margin-right: auto;
@@ -265,7 +268,7 @@
   color: #1a73e8;
 }
 
-/* Google Search Buttons */
+
 .search-buttons {
   display: flex;
   justify-content: center;
@@ -298,7 +301,7 @@
   outline: none;
 }
 
-/* Carousel Section */
+
 .carousel-section {
   width: 100%;
   max-width: 1200px;
@@ -332,7 +335,7 @@
   padding: 0 16px;
 }
 
-/* Navigation Buttons */
+
 .nav-btn {
   background: white;
   border: 1px solid #dfe1e5;
@@ -361,7 +364,7 @@
   transform: translateY(0);
 }
 
-/* Instrument Cards */
+
 .instrument-card {
   position: relative;
   min-width: 180px;
@@ -473,7 +476,7 @@
   box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
 }
 
-/* Indicators */
+
 .carousel-indicators {
   display: flex;
   justify-content: center;
@@ -501,10 +504,10 @@
   background: #4285f4;
 }
 
-/* Teachers Section */
+
 .teachers-section {
   width: 100%;
-  max-width: 1200px;
+  min-width: 1100px;
   margin: 0 auto 80px;
   padding: 60px 40px;
   background: white;
