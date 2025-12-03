@@ -40,19 +40,19 @@ function Instrumentos() {
   const [mensagem, setMensagem] = useState("");
 
   // Bloqueio de acesso para alunos
-  // useEffect(() => {
-  //   const userStr = localStorage.getItem("usuario");
-  //   if (!userStr) {
-  //     navigate("/login", { replace: true });
-  //     return;
-  //   }
+  useEffect(() => {
+    const userStr = localStorage.getItem("usuario");
+    if (!userStr) {
+      navigate("/login", { replace: true });
+      return;
+    }
 
-  //   const user = JSON.parse(userStr);
+    const user = JSON.parse(userStr);
 
-  //   if (user.tipo_usuario !== "PROFESSOR") {
-  //     navigate("/home");
-  //   }
-  // }, []);
+    if (user.tipo_usuario !== "PROFESSOR") {
+      navigate("/home");
+    }
+  }, []);
 
   function toggleInstrument(id) {
     setSelectedIds((prev) =>
