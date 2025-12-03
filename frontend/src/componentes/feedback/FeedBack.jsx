@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Swal from 'sweetalert2'
-import './Feedback.css'
+import './FeedBack.css'
 import Header from "../layout/Header"
 import Footer from '../layout/Footer'
 
