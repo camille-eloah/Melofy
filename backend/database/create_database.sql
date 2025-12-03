@@ -38,6 +38,18 @@ CREATE TABLE tb_instrumento (
     tipo VARCHAR(255) NOT NULL
 );
 
+INSERT INTO tb_instrumento (id, nome, tipo) VALUES
+    (1, 'Saxofone', 'Sopro'),
+    (2, 'Guitarra', 'Cordas'),
+    (3, 'Violão', 'Cordas'),
+    (4, 'Flauta', 'Sopro'),
+    (5, 'Partitura', 'Acessório'),
+    (6, 'Baixo', 'Cordas'),
+    (7, 'Violino', 'Cordas'),
+    (8, 'Canto', 'Voz'),
+    (9, 'Teclado', 'Teclas'),
+    (10, 'Acordeão', 'Teclas');
+
 CREATE TABLE tb_professor_instrumento (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_professor INT NOT NULL,
