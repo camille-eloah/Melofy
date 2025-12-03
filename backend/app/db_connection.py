@@ -1,6 +1,8 @@
-from sqlmodel import SQLModel, create_engine, Session
-from dotenv import load_dotenv
 import os
+from urllib.parse import quote_plus
+
+from dotenv import load_dotenv
+from sqlmodel import SQLModel, Session, create_engine
 
 # -------------------------------------------------
 # Carregar variáveis do arquivo .env
@@ -15,7 +17,8 @@ DB_NAME = os.getenv("DB_NAME", "db_melofy")
 
 # Montagem da URL
 DATABASE_URL = (
-    f"mysql+mysqlconnector://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    "mysql+mysqlconnector://"
+    f"{quote_plus(DB_USER)}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
 # Criação do engine
