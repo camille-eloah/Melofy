@@ -1,6 +1,7 @@
 import "./ProfileUser.css";
 import Header from "../layout/Header";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -348,6 +349,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -3,17 +3,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 
-import saxofone from "../../assets/saxofone.png";
-import guitarra from "../../assets/guitarra.png";
-import violao from "../../assets/violao.png";
-import baixo from "../../assets/baixo.png";
-import flauta from "../../assets/flauta.png";
-import teclado from "../../assets/teclado.png";
-import violino from "../../assets/violino.png";
-import canto from "../../assets/canto.png";
-import menino from "../../assets/menino apontando.png";
-import partitura from "../../assets/partitura.png";
-import sanfona from "../../assets/sanfona.png";
+import saxofone from "../../assets/Images-WhiteBackground/saxofone.png";
+// import saxofone from "frontend/src/assets/Imagens-WhiteBackground/saxofone.png"
+import guitarra from "../../assets/Images-WhiteBackground/guitarra.png";
+import violao from "../../assets/Images-WhiteBackground/violao.png";
+import baixo from "../../assets/Images-WhiteBackground/baixo.png";
+import flauta from "../../assets/Images-WhiteBackground/flauta.png";
+import teclado from "../../assets/Images-WhiteBackground/teclado.png";
+import violino from "../../assets/Images-WhiteBackground/violino.png";
+import canto from "../../assets/Images-WhiteBackground/canto.png";
+import menino from "../../assets/Images-Characters/menino apontando.png";
+import partitura from "../../assets/Images-WhiteBackground/partitura.png";
+import sanfona from "../../assets/Images-WhiteBackground/sanfona.png";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 

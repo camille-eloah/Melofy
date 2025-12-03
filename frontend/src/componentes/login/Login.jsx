@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import instrumentos from '../../assets/menino_tocando.png'
+import instrumentos from '../../assets/Images-Characters/menino_tocando.png'
 import Swal from 'sweetalert2'
 import './Login.css'
 
