@@ -1,10 +1,11 @@
 import "./Instrumentos.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Footer from '../layout/Footer'
+
 import Swal from "sweetalert2";
 
 import saxofone from "../../assets/Images-WhiteBackground/saxofone.png";
-// import saxofone from "frontend/src/assets/Imagens-WhiteBackground/saxofone.png"
 import guitarra from "../../assets/Images-WhiteBackground/guitarra.png";
 import violao from "../../assets/Images-WhiteBackground/violao.png";
 import baixo from "../../assets/Images-WhiteBackground/baixo.png";
@@ -39,29 +40,19 @@ function Instrumentos() {
   const [mensagem, setMensagem] = useState("");
 
   // Bloqueio de acesso para alunos
-  useEffect(() => {
-  const userStr = localStorage.getItem("usuario");
-  if (!userStr) {
-    navigate("/login", { replace: true });
-    return;
-  }
+  // useEffect(() => {
+  //   const userStr = localStorage.getItem("usuario");
+  //   if (!userStr) {
+  //     navigate("/login", { replace: true });
+  //     return;
+  //   }
 
-  const user = JSON.parse(userStr);
+  //   const user = JSON.parse(userStr);
 
-  if (user.tipo_usuario !== "PROFESSOR") {
-    // Usuário logado mas não é professor
-    Swal.fire({
-      icon: "warning",
-      title: "Acesso negado",
-      text: "Apenas professores podem acessar esta página.",
-      background: "#1a1738",
-      color: "#fff",
-      confirmButtonColor: "#00d2ff",
-    }).then(() => {
-      navigate("/home", { replace: true });
-    });
-  }
-}, [navigate]);
+  //   if (user.tipo_usuario !== "PROFESSOR") {
+  //     navigate("/home");
+  //   }
+  // }, []);
 
   function toggleInstrument(id) {
     setSelectedIds((prev) =>
@@ -69,36 +60,36 @@ function Instrumentos() {
     );
   }
 
-async function salvarInstrumentos() {
-  try {
-    setLoading(true);
-    setMensagem("");
+  async function salvarInstrumentos() {
+    try {
+      setLoading(true);
+      setMensagem("");
 
-    const user = JSON.parse(localStorage.getItem("usuario"));
-    if (!user) throw new Error("Usuário não encontrado");
+      const user = JSON.parse(localStorage.getItem("usuario"));
+      if (!user) throw new Error("Usuário não encontrado");
 
-    const resp = await fetch(`${API_BASE_URL}/instrumentos/escolher`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        professor_id: user.id,
-        instrumentos_ids: selectedIds,
-      }),
-    });
+      const resp = await fetch(`${API_BASE_URL}/instrumentos/escolher`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor_id: user.id,
+          instrumentos_ids: selectedIds,
+        }),
+      });
 
-    if (!resp.ok) {
-      const data = await resp.json().catch(() => ({}));
-      throw new Error(data.detail || "Erro ao salvar instrumentos");
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || "Erro ao salvar instrumentos");
+      }
+
+      setMensagem("Instrumentos salvos com sucesso!");
+    } catch (err) {
+      console.error(err);
+      setMensagem("Erro ao salvar. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    setMensagem("Instrumentos salvos com sucesso!");
-  } catch (err) {
-    console.error(err);
-    setMensagem("Erro ao salvar. Tente novamente.");
-  } finally {
-    setLoading(false);
   }
-}
 
   return (
     <div className="instrumentos-page">
@@ -160,6 +151,7 @@ async function salvarInstrumentos() {
 
         {mensagem && <p className="mensagem-instrumentos">{mensagem}</p>}
       </div>
+      <Footer />
     </div>
   );
 }
