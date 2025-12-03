@@ -1,4 +1,4 @@
-from datetime import timedelta
+﻿from datetime import timedelta
 import logging
 import shutil
 from pathlib import Path
@@ -30,8 +30,9 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
+from app.services.dev_bypass import credenciais_bypass, obter_usuario_bypass
 from typing import List
-from app.services.user import montar_resposta_usuario, buscar_usuario_por_id
+from app.services.user import montar_resposta_usuario, buscar_usuario_por_id, buscar_usuario_por_uuid
 
 from app.core.config import get_settings
 settings = get_settings()
@@ -193,6 +194,41 @@ def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
 
+@router_user.get("/alunos", response_model=list[UserResponse])
+def listar_alunos(db: Session = Depends(get_session)):
+    alunos = db.exec(select(Aluno)).all()
+    return [montar_resposta_usuario(aluno) for aluno in alunos]
+
+
+@router_user.get("/professor/{user_id}", response_model=UserResponse)
+def obter_professor(user_id: int, db: Session = Depends(get_session)):
+    professor = db.get(Professor, user_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    return montar_resposta_usuario(professor)
+
+@router_user.get("/professor/uuid/{user_uuid}", response_model=UserResponse)
+def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    return montar_resposta_usuario(professor)
+
+
+@router_user.get("/aluno/{user_id}", response_model=UserResponse)
+def obter_aluno(user_id: int, db: Session = Depends(get_session)):
+    aluno = db.get(Aluno, user_id)
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return montar_resposta_usuario(aluno)
+
+@router_user.get("/aluno/uuid/{user_uuid}", response_model=UserResponse)
+def obter_aluno_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    aluno = db.exec(select(Aluno).where(Aluno.global_uuid == user_uuid)).first()
+    if not aluno:
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return montar_resposta_usuario(aluno)
+
 
 @router_user.get("/{user_id}", response_model=UserResponse)
 def obter_usuario(user_id: int, db: Session = Depends(get_session)):
@@ -208,11 +244,15 @@ def obter_usuario(user_id: int, db: Session = Depends(get_session)):
 @router_auth.post("/login", response_model=UserResponse)
 def login(credenciais: LoginRequest, response: Response, db: Session = Depends(get_session)):
     logger.debug("Tentativa de login", extra={"email": credenciais.email})
-    try:
-        usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
-    except ValueError:
-        logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
-        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    # Bypass imediato, sem tocar no banco
+    if credenciais_bypass(credenciais.email, credenciais.senha):
+        usuario = obter_usuario_bypass()
+    else:
+        try:
+            usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
+        except ValueError:
+            logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
+            raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
     access_token, refresh_token = gerar_tokens(usuario)
     _set_auth_cookies(response, access_token, refresh_token)
@@ -229,6 +269,10 @@ def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
 
     try:
         payload = _decode_token(token)
+        if payload.get("dev_bypass"):
+            if not settings.allow_dev_bypass:
+                raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+            return montar_resposta_usuario(obter_usuario_bypass())
         user_id = int(payload.get("sub"))
         tipo = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
@@ -253,8 +297,19 @@ def logout(response: Response):
 # ----------------------------
 
 @router_user.patch("/{user_id}", response_model=UserResponse)
-def editar_perfil(user_id: int, dados: UserUpdate, db: Session = Depends(get_session)):
-    usuario = buscar_usuario_por_id(db, user_id)
+def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session = Depends(get_session)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+    try:
+        payload = _decode_token(token)
+        sub = int(payload.get("sub"))
+        tipo_token = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token inválido")
+    if sub != user_id:
+        raise HTTPException(status_code=403, detail="Operação não permitida")
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
@@ -563,12 +618,24 @@ def deletar_avaliacao_professor(ava_id: int):
 @router_user.post("/{user_id}/profile-picture")
 async def upload_profile_picture(
     user_id: int,
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_session),
 ):
-    usuario = buscar_usuario_por_id(db, user_id)
+    token = request.cookies.get("access_token") if request else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Não autenticado")
+    try:
+        payload = _decode_token(token)
+        sub = int(payload.get("sub"))
+        tipo_token = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token inválido")
+    if sub != user_id:
+        raise HTTPException(status_code=403, detail="Operação não permitida")
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuario nao encontrado")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     allowed_content_types = {"image/jpeg", "image/png", "image/webp"}
     if file.content_type not in allowed_content_types:
@@ -578,18 +645,23 @@ async def upload_profile_picture(
     if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
         ext = ".jpg"
 
-    for old_file in profile_pic_dir.glob(f"{user_id}.*"):
+    tipo_dir = profile_pic_dir / usuario.tipo_usuario.value.lower()
+    tipo_dir.mkdir(parents=True, exist_ok=True)
+
+    for old_file in tipo_dir.glob(f"{usuario.global_uuid}.*"):
         try:
             old_file.unlink()
         except OSError:
             logger.warning("Nao foi possivel remover a foto anterior", exc_info=True)
 
-    dest_path = profile_pic_dir / f"{user_id}{ext}"
+    dest_path = tipo_dir / f"{usuario.global_uuid}{ext}"
     with dest_path.open("wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     mount_prefix = media_mount_path.rstrip("/")
-    return {"profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{dest_path.name}"}
+    return {
+        "profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{usuario.tipo_usuario.value.lower()}/{dest_path.name}"
+    }
 
 
 # 12. Feedback dos usuários

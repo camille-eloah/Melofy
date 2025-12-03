@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./Entrada.css";
-import instrumentos from '../../assets/menina_violão.png'
-import logoMelofy from "../../assets/Blue Modern Music Logo (1).png";
+import instrumentos from '../../assets/Images-Characters/menina_violão.png'
+import logoMelofy from "../../assets/Images-Logo/BlueLogo.png";
 
 
 function Entrada() {

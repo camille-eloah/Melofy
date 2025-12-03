@@ -129,6 +129,20 @@ h1 , h2 {
     opacity: 1;
 }
 
+.instrumentos-circle.selecionado img {
+  filter: brightness(0.35);
+  transform: scale(1.05);
+}
+
+.instrumentos-circle.selecionado .instrumentos-circle-text {
+  opacity: 1;
+  color: #ffffff;
+}
+
+.instrumentos-circle.selecionado::before {
+  opacity: 1;
+}
+
 /* Menino ao lado das fotos */
 .menino-instrumento{
     margin-top: -200px;

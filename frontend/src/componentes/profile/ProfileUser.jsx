@@ -1,6 +1,7 @@
 import "./ProfileUser.css";
 import Header from "../layout/Header";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -15,18 +16,50 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [cacheBust, setCacheBust] = useState(Date.now());
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const { id: userIdParam } = useParams();
+  const location = useLocation();
+  const { id: userIdParam, uuid: userUuidParam, tipo: tipoParam } = useParams();
+  const pathSegments = (location.pathname || "").split("/").filter(Boolean);
+  const tipoFromPath = (pathSegments[0] || "").toLowerCase();
+  const identifierFromPath = pathSegments[1] || null;
+  const tipoSlug = (tipoParam || tipoFromPath || "").toLowerCase();
+  const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
+  const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
+  const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
+
+  console.log("[ProfileUser] params", {
+    userIdParam,
+    userUuidParam,
+    identifierFromPath,
+    tipoParam,
+    tipoFromPath,
+    tipoPath,
+    location: location.pathname,
+    userIdentifier,
+    isUuid,
+  });
 
   useEffect(() => {
-    // se houver um id na rota, buscar o perfil correspondente
-    if (!userIdParam) return;
+    // se houver um identificador na rota, buscar o perfil correspondente
+    if (!userIdentifier) return;
 
-    fetch(`${API_BASE_URL}/user/${userIdParam}`)
+    const identifierPath = isUuid ? `uuid/${userIdentifier}` : userIdentifier;
+    console.log("[ProfileUser] fetch perfil", { userIdentifier, isUuid, tipoPath, identifierPath });
+    const url = tipoPath
+      ? `${API_BASE_URL}/user/${tipoPath}/${identifierPath}`
+      : `${API_BASE_URL}/user/${identifierPath}`;
+
+    fetch(url)
       .then((res) => {
         if (res.ok) return res.json();
         throw new Error("not_found");
       })
       .then((data) => {
+        console.log("[ProfileUser] resposta perfil", { data, url });
+        const tipoRetornado = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
+        if (tipoPath && tipoRetornado !== tipoPath) {
+          navigate("/home");
+          return;
+        }
         setUsuario(data);
         if (data?.profile_picture) setCacheBust(Date.now());
       })
@@ -35,29 +68,35 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           navigate("/home");
         }
       });
-  }, [userIdParam, navigate]);
+  }, [userIdentifier, navigate, tipoPath, isUuid]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json();
-        if (res.status === 401) throw new Error("unauthorized");
+        if (res.status === 401) return null; // sem login, segue sem redirecionar
         throw new Error("erro");
       })
       .then((data) => {
+        console.log("[ProfileUser] auth/me", data);
         setCurrentUser(data || null);
-        // se estamos no proprio perfil ou sem id na rota, e ainda nao temos usuario, preenche
-        if ((!userIdParam || String(userIdParam) === String(data.id)) && !(usuario && usuario.id)) {
+        const tipoAtual = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
+        const isMesmoId = String(userIdParam || "") === String(data?.id || "");
+        const isMesmoUuid = userUuidParam && data?.global_uuid && String(userUuidParam) === String(data.global_uuid);
+        const isMesmoPathId = identifierFromPath && !isUuid && String(identifierFromPath) === String(data?.id || "");
+        const isMesmoPathUuid = identifierFromPath && isUuid && data?.global_uuid && String(identifierFromPath) === String(data.global_uuid);
+        const tipoConfere = !tipoPath || tipoPath === tipoAtual;
+        const isMesmoUsuario = (isMesmoId || isMesmoUuid || isMesmoPathId || isMesmoPathUuid) && tipoConfere;
+        // só preenche com o próprio usuário se for o mesmo id/uuid (rota) e o tipo da rota (se houver) combinar
+        if ((!userIdentifier && !(usuario && usuario.id)) || (isMesmoUsuario && !(usuario && usuario.id))) {
           setUsuario(data || {});
           if (data?.profile_picture) setCacheBust(Date.now());
         }
       })
-      .catch((err) => {
-        if (err.message === "unauthorized") {
-          navigate("/login");
-        }
+      .catch(() => {
+        /* ignora falhas de rede sem redirecionar */
       });
-  }, [navigate, userIdParam]);
+  }, [navigate, userIdParam, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
 
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
@@ -65,7 +104,21 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     profilePicture && !profilePicture.startsWith("http")
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
-  const podeEditar = currentUser?.id && usuario?.id && currentUser.id === usuario.id;
+  const tipoAtual = (currentUser?.tipo_usuario || currentUser?.tipo || "").toString().toLowerCase();
+  const tipoPerfil = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toLowerCase();
+  const isOwner =
+    currentUser?.id &&
+    usuario?.id &&
+    currentUser.id === usuario.id &&
+    (!tipoPath || tipoPath === tipoAtual) &&
+    (!tipoPerfil || tipoPerfil === tipoAtual);
+  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toUpperCase();
+  const badgeInfo =
+    tipoUsuario === "PROFESSOR"
+      ? { label: "Professor", variant: "professor" }
+      : tipoUsuario === "ALUNO"
+        ? { label: "Aluno", variant: "aluno" }
+        : null;
   const displayedPicture =
     previewUrl ||
     (absoluteProfilePicture
@@ -73,7 +126,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : null);
 
   const handleFotoClick = () => {
-    if (podeEditar) {
+    if (isOwner) {
       setIsModalOpen(true);
     }
   };
@@ -138,13 +191,18 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="top-items">
           {/* Categorias no inicio (esquerda) */}
           <div className="categorias">
+            {badgeInfo && (
+              <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
+                {badgeInfo.label}
+              </span>
+            )}
             <span className="categoria-item">Guitarra</span>
             <span className="categoria-item">Violao</span>
             <span className="categoria-item">Ukulele</span>
           </div>
 
           {/* Botao de edicao no final (direita)*/}
-          {podeEditar && (
+          {isOwner && (
             <button className="btn-editar-texto" title="Editar textos">
               <span aria-hidden="true">✎</span>
             </button>
@@ -170,12 +228,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="lado-direito-profile">
         <div className="card-perfil">
           <div
-            className={`foto-wrapper ${podeEditar ? "foto-interativa" : ""}`}
-            onClick={handleFotoClick}
-            role={podeEditar ? "button" : undefined}
-            tabIndex={podeEditar ? 0 : undefined}
+            className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
+            onClick={isOwner ? handleFotoClick : undefined}
+            role={isOwner ? "button" : undefined}
+            tabIndex={isOwner ? 0 : undefined}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (isOwner && (e.key === "Enter" || e.key === " ")) {
                 e.preventDefault();
                 handleFotoClick();
               }
@@ -186,7 +244,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             ) : (
               <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
             )}
-            {podeEditar && (
+            {isOwner && (
               <div className="foto-overlay">
                 <span className="camera-icon" aria-hidden="true">
                   <svg
@@ -221,7 +279,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
           </div>
 
-          {podeEditar && (
+          {isOwner && (
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
               <button className="btn-deletar">Deletar Conta</button>
@@ -291,8 +349,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
 
 export default ProfileUser;
+

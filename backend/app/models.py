@@ -1,9 +1,11 @@
+import uuid
 from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship 
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, date
 from enum import Enum
 from pydantic_settings import BaseSettings
 from typing import List
+from sqlalchemy import Column, Integer, ForeignKey
 
 
 # ----------------------------
@@ -39,6 +41,7 @@ class Professor(UserBase, table=True):
     __tablename__ = "tb_professor"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.PROFESSOR, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
@@ -58,6 +61,7 @@ class Aluno(UserBase, table=True):
     __tablename__ = "tb_aluno"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.ALUNO, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
@@ -94,8 +98,12 @@ class ProfessorInstrumento(SQLModel, table=True):
     __tablename__ = "tb_professor_instrumento"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(foreign_key="tb_professor.id")
-    instrumento_id: int = Field(foreign_key="tb_instrumento.id")
+    professor_id: int = Field(
+        sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
+    )
+    instrumento_id: int = Field(
+        sa_column=Column("id_instrumento", Integer, ForeignKey("tb_instrumento.id"), nullable=False)
+    )
 
     professor: Professor = Relationship(back_populates="instrumentos_rel")
     instrumento: Instrumento = Relationship(back_populates="professores_rel")
