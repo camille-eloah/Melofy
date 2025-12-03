@@ -1,5 +1,6 @@
+import uuid
 from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship 
+from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, date
 from enum import Enum
 from pydantic_settings import BaseSettings
@@ -39,6 +40,7 @@ class Professor(UserBase, table=True):
     __tablename__ = "tb_professor"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.PROFESSOR, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
@@ -58,6 +60,7 @@ class Aluno(UserBase, table=True):
     __tablename__ = "tb_aluno"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+    global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.ALUNO, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
