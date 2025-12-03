@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "./Entrada.css";
 import instrumentos from '../../assets/Images-Characters/menina_violão.png';
+import jovem_aprendendo from '../../assets/Images-Characters/jovem_aprendendo.png'
 import logoMelofy from "../../assets/Images-Logo/BlueLogo.png";
 
 function Entrada() {
@@ -60,34 +61,55 @@ function Entrada() {
       {/* Modal */}
       {showRoleModal && (
         <div className="role-choice-overlay">
-          <div className="role-choice-modal">
-            <h2>Como você deseja continuar?</h2>
+          <div className="role-choice-modal new-role-modal">
 
-            <div className="role-choice-buttons">
-              <button
-                className="role-choice-btn teacher-btn"
-                onClick={() => navigate("/cadastro?role=professor")}
-              >
-                Quero ensinar
-              </button>
+            {/* LADO ESQUERDO */}
+            <div className="role-left">
+              <h1 className="role-title">Aprender música, agora simples e acessível</h1>
+
+              <p className="role-description">
+                Melofy é a plataforma digital que conecta a paixão pela música ao conhecimento.
+                De maneira simples e organizada, ligamos alunos de todos os níveis a professores ideais,
+                seja para aulas online ou presenciais. Encontre o seu instrumento, a sua voz ou a sua teoria
+                e comece a jornada musical que você sempre quis.
+              </p>
+
+              <div className="role-choice-buttons">
+                <button
+                  className="role-choice-btn student-btn"
+                  onClick={() => navigate("/cadastro?role=aluno")}
+                >
+                  Para quem quer aprender
+                </button>
+
+                <button
+                  className="role-choice-btn teacher-btn"
+                  onClick={() => navigate("/cadastro?role=professor")}
+                >
+                  Para educadores musicais
+                </button>
+              </div>
 
               <button
-                className="role-choice-btn student-btn"
-                onClick={() => navigate("/cadastro?role=aluno")}
+                className="role-choice-close close-left"
+                onClick={() => setShowRoleModal(false)}
               >
-                Quero aprender
+                Fechar
               </button>
             </div>
 
-            <button
-              className="role-choice-close"
-              onClick={() => setShowRoleModal(false)}
-            >
-              Fechar
-            </button>
+            {/* LADO DIREITO */}
+            <div className="role-right">
+              <img
+                src={jovem_aprendendo}
+                alt="Ilustração musical"
+              />
+            </div>
+
           </div>
         </div>
       )}
+
 
     </div>
   );
