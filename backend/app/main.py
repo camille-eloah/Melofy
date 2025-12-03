@@ -304,11 +304,12 @@ def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session
     try:
         payload = _decode_token(token)
         sub = int(payload.get("sub"))
+        tipo_token = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
         raise HTTPException(status_code=401, detail="Token inválido")
     if sub != user_id:
         raise HTTPException(status_code=403, detail="Operação não permitida")
-    usuario = buscar_usuario_por_id(db, user_id)
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
@@ -627,11 +628,12 @@ async def upload_profile_picture(
     try:
         payload = _decode_token(token)
         sub = int(payload.get("sub"))
+        tipo_token = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
         raise HTTPException(status_code=401, detail="Token inválido")
     if sub != user_id:
         raise HTTPException(status_code=403, detail="Operação não permitida")
-    usuario = buscar_usuario_por_id(db, user_id)
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
