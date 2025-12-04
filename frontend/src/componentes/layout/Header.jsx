@@ -12,20 +12,32 @@ function Header() {
   const [showNotifications, setShowNotifications] = useState(false)
   const [activeLink, setActiveLink] = useState('')
   const navigate = useNavigate()
+  const [showMenu, setShowMenu] = useState(false); // controle do menu
 
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.id) setUserId(data.id)
-        if (data?.global_uuid) setUserUuid(data.global_uuid)
-        if (data?.tipo_usuario || data?.tipo) {
-          const tipo = (data.tipo_usuario || data.tipo || '').toString().toLowerCase()
-          setUserTipo(tipo || null)
-        }
-      })
-      .catch(() => { })
-  }, [])
+ useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (!token) return; // usuário não logado
+
+  fetch(`${API_BASE_URL}/auth/me`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('Não autorizado');
+      return res.json();
+    })
+    .then(data => {
+      if (data?.id) setUserId(data.id)
+      if (data?.global_uuid) setUserUuid(data.global_uuid)
+      if (data?.tipo_usuario || data?.tipo) {
+        setUserTipo((data.tipo_usuario || data.tipo).toLowerCase())
+      }
+    })
+    .catch(err => {
+      console.log('Erro auth/me:', err.message)
+      navigate('/login', { replace: true }) // força login
+    })
+}, [navigate])
+
 
   const profilePath = userUuid && userTipo ? `/${userTipo}/${userUuid}` : '/profile'
 
@@ -74,6 +86,7 @@ function Header() {
             <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         );
+      
       case 'music':
         return (
           <svg className="icon-music" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -82,6 +95,7 @@ function Header() {
             <circle cx="18" cy="16" r="3" />
           </svg>
         );
+    
       case 'friend':
         return (
           <svg className="icon-friend" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -265,6 +279,50 @@ function Header() {
             </div>
             <span className="notification-pulse"></span>
           </button>
+
+<div className="menu-container">
+  <button
+    className={`menu-button ${showMenu ? 'active' : ''}`}
+    onClick={() => setShowMenu(!showMenu)}
+  >
+    <div className="menu-icon-wrapper">
+      <svg
+        className="menu-icon"
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </div>
+  </button>
+
+  {showMenu && (
+    <>
+      {/* Overlay clicável para fechar */}
+      <div
+        className="menu-overlay"
+        onClick={() => setShowMenu(false)}
+      />
+
+      {/* Modal/dropdown do menu */}
+      <div className="menu-modal">
+        <ul className="menu-list">
+          <li><button onClick={handleLogout}>Sair</button></li>
+
+        </ul>
+      </div>
+    </>
+  )}
+</div>
+
 
           {showNotifications && (
             <>

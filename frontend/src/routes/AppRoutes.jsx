@@ -43,7 +43,7 @@ export default function AppRoutes() {
       <Route path="/professor/:uuid" element={<RequireAuth><ProfileUser /></RequireAuth>} />
       <Route path="/aluno/:uuid" element={<RequireAuth><ProfileUser /></RequireAuth>} />
       <Route path="/localizacao" element={<RequireAuth><Localizacao/></RequireAuth>} />
-      <Route path="/instrumentos" element={<RequireAuth><Instrumentos /></RequireAuth>} />
+      <Route path="/instruments" element={<RequireAuth><Instrumentos /></RequireAuth>} />
       <Route path="/feedback" element={<RequireAuth><Feedback /></RequireAuth>} />
 
     </Routes>

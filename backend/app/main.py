@@ -37,13 +37,24 @@ from app.services.user import montar_resposta_usuario, buscar_usuario_por_id, bu
 from app.core.config import get_settings
 settings = get_settings()
 
+from fastapi import Header, Query, Depends
+from app.services.auth import decode_jwt
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from app.models import Professor, Instrumento, ProfessorInstrumento
+from app.models import Professor, Instrumento, ProfessorInstrumento, SearchResult
 
 import logging
 from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
+from fastapi import FastAPI
+
+
+  # importar router
+
+app = FastAPI()
+
+# incluir o router
+
 
 
 logger = logging.getLogger(__name__)
@@ -214,6 +225,27 @@ def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session))
         raise HTTPException(status_code=404, detail="Professor não encontrado")
     return montar_resposta_usuario(professor)
 
+@router_user.get("/professor/me")
+def obter_professor_logado(
+    authorization: str = Header(None),  # pega o token do header
+    db: Session = Depends(get_session)
+):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token ausente")
+    
+    token = authorization.replace("Bearer ", "")
+    
+    # decodifica o token e pega o user_id (você já deve ter função para isso)
+    user_id = decode_jwt(token)  # use sua função de decodificação
+    professor = db.get(Professor, user_id)
+    
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    
+    if professor.tipo_usuario != TipoUsuario.PROFESSOR:
+        raise HTTPException(status_code=403, detail="Usuário não é professor")
+    
+    return montar_resposta_usuario(professor)
 
 @router_user.get("/aluno/{user_id}", response_model=UserResponse)
 def obter_aluno(user_id: int, db: Session = Depends(get_session)):
@@ -708,6 +740,39 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
 
 
 
+# -----------------------------
+# Rota de busca
+# -----------------------------
+@app.get("/search", response_model=List[SearchResult])
+def search(
+    query: str = Query(..., min_length=1),
+    session: Session = Depends(get_session)
+):
+    query_lower = query.lower()
+    results: List[SearchResult] = []
+
+    # Buscar professores pelo nome
+    professores_stmt = select(Professor).where(Professor.nome.ilike(f"%{query_lower}%"))
+    professores_list = session.exec(professores_stmt).all()
+    for prof in professores_list:
+        instrumentos = [rel.instrumento.nome for rel in prof.instrumentos_rel]
+        for inst_nome in instrumentos:
+            results.append(SearchResult(tipo="professor", nome=prof.nome, instrumento=inst_nome))
+
+    # Buscar instrumentos
+    instrumentos_stmt = select(Instrumento).where(Instrumento.nome.ilike(f"%{query_lower}%"))
+    instrumentos_list = session.exec(instrumentos_stmt).all()
+    for inst in instrumentos_list:
+        # Adiciona o instrumento
+        results.append(SearchResult(tipo="instrumento", nome=inst.nome))
+        # Adiciona professores que ensinam esse instrumento
+        for rel in inst.professores_rel:
+            results.append(SearchResult(tipo="professor", nome=rel.professor.nome, instrumento=inst.nome))
+
+    # Retorna lista vazia se nenhum resultado
+    return results
+
+
 app.include_router(router_user)
 app.include_router(router_auth)
 app.include_router(router_lessons)
@@ -716,3 +781,4 @@ app.include_router(router_schedule)
 app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
+

@@ -4,7 +4,8 @@ import instrumentos from '../../assets/Images-Characters/menino_tocando.png'
 import Swal from 'sweetalert2'
 import './Login.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
 
 function Login() {
   const navigate = useNavigate()
@@ -12,61 +13,69 @@ function Login() {
   const [senha, setSenha] = useState("")
   const [carregando, setCarregando] = useState(false)
   const [lembrar, setLembrar] = useState(false)
-  
 
-async function handleLogin(e) {
-  e.preventDefault();
-  setCarregando(true);
+  async function handleLogin(e) {
+    e.preventDefault();
+    setCarregando(true);
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, senha }),
-    });
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
 
-    const usuario = await res.json();
-    console.log("Usuário retornado:", usuario);
+      const usuario = await res.json();
+      console.log("Usuário retornado:", usuario);
 
-    if (!res.ok) {
-      throw new Error(usuario.detail || "Erro ao fazer login");
-    }
-
-    // salva no localStorage para uso em outras páginas
-    localStorage.setItem("usuario", JSON.stringify(usuario));
-
-    Swal.fire({
-      icon: "success",
-      title: "Login realizado",
-      text: `Bem-vindo(a), ${usuario.nome}!`,
-      background: "#1a1738",
-      color: "#fff",
-      confirmButtonColor: "#00d2ff",
-    }).then(() => {
-      // redirecionamento conforme tipo do usuário
-      if (usuario.tipo_usuario === "ALUNO") {
-        navigate("/home", { replace: true });
-      } else if (usuario.tipo_usuario === "PROFESSOR") {
-        navigate("/instrumentos", { replace: true });
+      if (!res.ok) {
+        throw new Error(usuario.detail || "Erro ao fazer login");
       }
-    });
 
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Erro ao fazer login",
-      text: error.message,
-      background: "#1a1738",
-      color: "#fff",
-      confirmButtonColor: "#00d2ff",
-    });
-  } finally {
-    setCarregando(false);
-  }
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+
+      Swal.fire({
+        icon: "success",
+        title: "Login realizado",
+        text: `Bem-vindo(a), ${usuario.nome}!`,
+        background: "#1a1738",
+        color: "#fff",
+        confirmButtonColor: "#00d2ff",
+      }).then(async () => {
+
+        if (usuario.tipo_usuario === "ALUNO") {
+          navigate("/home", { replace: true });
+          return;
+        }
+        if (usuario.tipo_usuario === "PROFESSOR") {
+          const resp = await fetch(`${API_BASE_URL}/instrumentos/professor/${usuario.id}`);
+          const dados = await resp.json();
+
+           // Se dados não for array, considerar como vazio
+          const instrumentosExistentes = Array.isArray(dados) ? dados : [];
+
+            if (instrumentosExistentes.length > 0) {
+                navigate("/home", { replace: true });
+           } else {
+               navigate("/instrumentos", { replace: true });
+          }
 }
 
 
+        
+
+      }); // <-- FECHOU O then()
+
+    } catch (error) {
+      console.error("Erro no login:", error);
+      Swal.fire("Erro", error.message, "error");
+    } finally {
+      setCarregando(false);
+    }
+  } // <-- FECHOU handleLogin()
+
+  // Agora sim pode vir o return
   return (
     <div className="login-page">
       <div className="left-content">
@@ -78,11 +87,11 @@ async function handleLogin(e) {
       </div>
 
       <div className="Conteiner-login">
-      <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin}>
           <h3>LOGIN</h3>
 
           <div className="input-group">
-            <label>Usuário</label>
+            <label>Email</label>
             <input
               type="text"
               placeholder="E-mail"
@@ -123,7 +132,7 @@ async function handleLogin(e) {
         </form>
       </div>
     </div>
-  )
+  );
 }
 
 export default Login;

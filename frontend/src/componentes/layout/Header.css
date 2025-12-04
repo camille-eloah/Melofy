@@ -142,6 +142,97 @@
   position: relative;
   margin-left: 10px;
 }
+/* Container da notificação e menu */
+.notification-container,
+.menu-container {
+  display: flex;
+  align-items: center;   /* centraliza verticalmente com os nav-links */
+  justify-content: center;
+  gap: 10px;             /* espaço entre botões */
+}
+
+/* Alinhamento do header-nav e containers */
+.header-nav {
+  display: flex;
+  align-items: center;   /* centraliza todos os elementos verticalmente */
+  gap: 16px;
+}
+
+/* Ajuste nos botões de notificação e menu */
+.notification-button,
+.menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 10px;
+  height: 44px;          /* mesmo tamanho dos nav-links */
+  min-width: 44px;       /* largura mínima igual ao tamanho do botão */
+}
+
+/* Ícones dentro dos botões */
+.bell-icon,
+.menu-icon {
+  display: block;
+  vertical-align: middle;  /* garante alinhamento com texto/ícones vizinhos */
+}
+
+/* Overlay */
+/* Overlay do menu */
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 100; /* atrás do modal */
+}
+
+/* Modal do menu */
+.menu-modal {
+  position: absolute;
+  top: 50px; /* ajuste conforme altura do header */
+  right: 0;
+  background: #020b2b;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  z-index: 101;
+  min-width: 200px;
+  padding: 10px 0;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Lista do menu */
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-list li button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.menu-list li button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Animação fadeIn */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
 
 .notification-button {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.1));
@@ -364,6 +455,43 @@
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
 }
+
+/* Botão do menu da navbar */
+.menu-button {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e5e7eb;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;      /* centraliza verticalmente */
+  justify-content: center;  /* centraliza horizontalmente */
+  transition: all 0.3s ease;
+  position: relative;
+  width: 44px;              /* mesmo tamanho que notification-button */
+  height: 44px;             /* mesmo tamanho que notification-button */
+}
+
+.menu-button:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.2));
+  border-color: rgba(14, 165, 233, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(14, 165, 233, 0.2);
+}
+
+.menu-icon {
+  width: 18px;     /* igual ao nav-icon */
+  height: 18px;    /* igual ao nav-icon */
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.menu-button:hover .menu-icon {
+  transform: scale(1.2) rotate(5deg);  /* mesmo efeito hover que nav-link */
+}
+
 
 .notification-item.unread .notification-icon-item {
   background: rgba(14, 165, 233, 0.1);

@@ -11,9 +11,14 @@ from app.services.dev_bypass import (
     eh_usuario_bypass,
     obter_usuario_bypass,
 )
+import jwt
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
+
+SECRET_KEY = "sua_chave_secreta"  # use a mesma chave que você usa para gerar tokens
+ALGORITHM = "HS256"
 
 
 def verificar_email_cpf_disponiveis(db: Session, email: str, cpf: str) -> None:
@@ -88,3 +93,18 @@ def obter_usuario_por_id_tipo(db: Session, user_id: int, tipo: str) -> Professor
     else:
         logger.debug("Usuário não encontrado por id=%s tipo=%s", user_id, tipo_enum.value)
     return usuario
+
+def decode_jwt(token: str) -> int:
+    """
+    Decodifica o token JWT e retorna o user_id
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("sub")  # 'sub' é o user_id que você colocou no token
+        if user_id is None:
+            raise ValueError("Token inválido")
+        return user_id
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expirado")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Token inválido")

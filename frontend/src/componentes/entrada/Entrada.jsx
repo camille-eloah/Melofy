@@ -12,11 +12,11 @@ function Entrada() {
     setShowRoleModal(true);
   };
 
-
   const escolherOpcao = (tipo) => {
-    // salva a escolha temporariamente
+    // Salva o tipo escolhido
     localStorage.setItem("tipoCadastro", tipo);
 
+    // Vai para a página de cadastro
     navigate("/cadastro");
   };
 
@@ -57,7 +57,7 @@ function Entrada() {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Modal escolha */}
       {showRoleModal && (
         <div className="role-choice-overlay">
           <div className="role-choice-modal">
@@ -66,14 +66,14 @@ function Entrada() {
             <div className="role-choice-buttons">
               <button
                 className="role-choice-btn teacher-btn"
-                onClick={() => navigate("/cadastro?role=professor")}
+                onClick={() => escolherOpcao("professor")}
               >
                 Quero ensinar
               </button>
 
               <button
                 className="role-choice-btn student-btn"
-                onClick={() => navigate("/cadastro?role=aluno")}
+                onClick={() => escolherOpcao("aluno")}
               >
                 Quero aprender
               </button>

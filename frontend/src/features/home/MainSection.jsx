@@ -19,31 +19,26 @@ const instrumentosBase = [
   { nome: "Canto", img: cantoImg, categoria: "Vocal" },
 ]
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
+
 function MainSection() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [filteredInstruments, setFilteredInstruments] = useState([])
+  const [searchResults, setSearchResults] = useState([])
   const searchInputRef = useRef(null)
 
   // duplicamos o array para ajudar no loop infinito
   const instrumentos = [...instrumentosBase, ...instrumentosBase]
   const baseLen = instrumentosBase.length
 
-  // index inicia no começo da segunda metade para que possamos "rolar" para frente e voltar sem pulo
   const [index, setIndex] = useState(baseLen)
   const [isTransitioning, setIsTransitioning] = useState(true)
   const innerRef = useRef(null)
   const [hoveredCard, setHoveredCard] = useState(null)
 
-  // largura de cada card (incluindo gap). Ajuste se modificar CSS
-  const CARD_WIDTH = 160 // px (min-width + margin)
-  const GAP = 24 // px (gap between cards)
-
-  // calcular deslocamento em px
-  const getTranslateX = () => {
-    // queremos deslocar de acordo com o index (a partir do início do array duplicado)
-    return -index * (CARD_WIDTH + GAP)
-  }
+  const CARD_WIDTH = 160
+  const GAP = 24
+  const getTranslateX = () => -index * (CARD_WIDTH + GAP)
 
   function next() {
     setIndex((prev) => prev + 1)
@@ -60,84 +55,60 @@ function MainSection() {
     if (!el) return
 
     function handleTransitionEnd() {
-      if (index >= baseLen * 2) {
-        setIsTransitioning(false)
-        setIndex((prev) => prev - baseLen)
-      }
-      // se chegamos antes da primeira metade (index < baseLen), pulamos para a segunda metade equivalente sem transition
-      if (index < baseLen) {
-        setIsTransitioning(false)
-        setIndex((prev) => prev + baseLen)
-      }
+      if (index >= baseLen * 2) setIndex(prev => prev - baseLen)
+      if (index < baseLen) setIndex(prev => prev + baseLen)
+      setIsTransitioning(false)
     }
 
     el.addEventListener('transitionend', handleTransitionEnd)
     return () => el.removeEventListener('transitionend', handleTransitionEnd)
   }, [index, baseLen])
 
-  // quando desligamos a transição (reset instantâneo), react precisa reaplicar a posição sem animação,
-  // então usamos um pequeno efeito para reativar a transição em seguida
   useEffect(() => {
     if (!isTransitioning) {
-      // força repaint antes de reativar transição
-      requestAnimationFrame(() => {
-        setTimeout(() => setIsTransitioning(true), 20)
-      })
+      requestAnimationFrame(() => setTimeout(() => setIsTransitioning(true), 20))
     }
   }, [isTransitioning])
 
-  // Efeito de autoplay
   useEffect(() => {
-    const interval = setInterval(() => {
-      next()
-    }, 3500)
-    
+    const interval = setInterval(() => next(), 3500)
     return () => clearInterval(interval)
   }, [])
-  useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredInstruments([])
-      return
-    }
-    
-    const filtered = instrumentosBase.filter(instrument =>
-      instrument.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      instrument.categoria.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    setFilteredInstruments(filtered)
-  }, [searchQuery])
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {
         setShowSuggestions(false)
       }
     }
-    
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Sugestões populares
   const popularSearches = ["Guitarra", "Piano", "Violão", "Canto", "Bateria", "Violino"]
 
-  const handleSearch = (query = '') => {
-    if (query) {
-      setSearchQuery(query)
+  const handleSearch = async (query = '') => {
+    const searchTerm = query || searchQuery
+    if (!searchTerm) return
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/search?query=${encodeURIComponent(searchTerm)}`)
+      const data = await res.json()
+      setSearchResults(data)
+      setShowSuggestions(true)
+    } catch (error) {
+      console.error("Erro na busca:", error)
+      setSearchResults([])
     }
-    console.log(`Buscando: ${searchQuery || query}`)
-    setShowSuggestions(false)
-    // Aqui você implementaria a lógica de busca real
   }
 
-  const handleSuggestionClick = (instrumentName) => {
-    setSearchQuery(instrumentName)
-    handleSearch(instrumentName)
+  const handleSuggestionClick = (nome) => {
+    setSearchQuery(nome)
+    handleSearch(nome)
   }
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
+    if (e.key === 'Enter') handleSearch()
   }
 
   return (
@@ -146,7 +117,6 @@ function MainSection() {
         <h1 className="logo">Melofy</h1>
         <h2>Encontre o instrumento perfeito para sua jornada musical</h2>
 
-        {/* Barra de pesquisa estilo Google */}
         <div className="google-like-search">
           <div className="search-container-wrapper" ref={searchInputRef}>
             <div className={`search-box ${showSuggestions ? 'active' : ''}`}>
@@ -161,13 +131,13 @@ function MainSection() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Pesquise instrumentos musicais..."
+                placeholder="Pesquise instrumentos ou professores..."
                 className="search-input-google"
               />
               {searchQuery && (
                 <button 
                   className="clear-button"
-                  onClick={() => setSearchQuery('')}
+                  onClick={() => { setSearchQuery(''); setSearchResults([]) }}
                   aria-label="Limpar busca"
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -181,64 +151,10 @@ function MainSection() {
                   onClick={() => handleSearch()}
                   aria-label="Pesquisar"
                 >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z" fill="#4285f4"/>
-                  </svg>
+                  🔍
                 </button>
               </div>
             </div>
-            {showSuggestions && (
-              <div className="suggestions-dropdown">
-                {searchQuery ? (
-                  <>
-                    {filteredInstruments.length > 0 ? (
-                      <div className="suggestions-list">
-                        {filteredInstruments.map((instrument, index) => (
-                          <button
-                            key={index}
-                            className="suggestion-item"
-                            onClick={() => handleSuggestionClick(instrument.nome)}
-                          >
-                            <div className="suggestion-icon">
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                <path d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#5f6368" strokeWidth="2" strokeLinecap="round"/>
-                              </svg>
-                            </div>
-                            <div className="suggestion-content">
-                              <div className="suggestion-title">{instrument.nome}</div>
-                              <div className="suggestion-category">{instrument.categoria}</div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="no-results">
-                        <div className="no-results-icon">🎵</div>
-                        <div className="no-results-text">
-                          <div className="no-results-title">Nenhum resultado para "{searchQuery}"</div>
-                          <div className="no-results-subtitle">Tente buscar por outro instrumento</div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="popular-searches">
-                    <div className="popular-title">Buscas populares</div>
-                    <div className="popular-tags">
-                      {popularSearches.map((search, index) => (
-                        <button
-                          key={index}
-                          className="popular-tag"
-                          onClick={() => handleSuggestionClick(search)}
-                        >
-                          {search}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
           
           <div className="search-buttons">

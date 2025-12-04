@@ -1,19 +1,20 @@
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import instrumentos from '../../assets/Images-Characters/saxofonista.png'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Swal from 'sweetalert2'
+import instrumentos from '../../assets/Images-Characters/saxofonista.png'
 import './Cadastro.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function Cadastro() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const tipoEscolhido = (localStorage.getItem("tipoCadastro") || "").trim().toLowerCase()
 
-  const queryParams = new URLSearchParams(location.search);
-  const tipoEscolhido = queryParams.get("role"); // "professor" ou "aluno"
-
-  console.log("TIPO ESCOLHIDO:", tipoEscolhido);
+  useEffect(() => {
+    if (tipoEscolhido) {
+      console.log("TIPO ESCOLHIDO:", tipoEscolhido)
+    }
+  }, [tipoEscolhido])
 
   const [nome, setNome] = useState('')
   const [cpf, setCpf] = useState('')
@@ -32,22 +33,22 @@ function Cadastro() {
       .replace(/(-\d{2})\d+?$/, '$1')
   }
 
-  const handleCpfChange = (e) => {
-    setCpf(formatarCPF(e.target.value))
-  }
+  const handleCpfChange = (e) => setCpf(formatarCPF(e.target.value))
 
-  async function cadastrarUsuario(e) {
+  const cadastrarUsuario = async (e) => {
     e.preventDefault()
+    setCarregando(true)
 
     if (!nome || cpf.replace(/\D/g, '').length !== 11 || !dataNascimento || !email || !senha || !confirmarSenha) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos obrigatórios',
-        text: 'Por favor, preencha todos os campos corretamente.',
+        text: 'Preencha todos os campos corretamente.',
         background: '#1a1738',
         color: '#fff',
-        confirmButtonColor: '#00d2ff',
+        confirmButtonColor: '#00d2ff'
       })
+      setCarregando(false)
       return
     }
 
@@ -55,11 +56,12 @@ function Cadastro() {
       Swal.fire({
         icon: 'error',
         title: 'Senhas diferentes',
-        text: 'As senhas não conferem. Tente novamente.',
+        text: 'As senhas não conferem.',
         background: '#1a1738',
         color: '#fff',
-        confirmButtonColor: '#00d2ff',
+        confirmButtonColor: '#00d2ff'
       })
+      setCarregando(false)
       return
     }
 
@@ -69,10 +71,8 @@ function Cadastro() {
       data_nascimento: dataNascimento,
       email,
       senha,
-      tipo: tipoEscolhido
+      tipo: tipoEscolhido || 'aluno'
     }
-
-    setCarregando(true)
 
     try {
       const response = await fetch(`${API_BASE_URL}/user/`, {
@@ -84,36 +84,45 @@ function Cadastro() {
       const data = await response.json().catch(() => null)
 
       if (!response.ok) {
-        throw new Error(data?.detail ?? 'Erro ao cadastrar. Tente novamente.')
+        throw new Error(data?.detail ?? "Erro ao cadastrar.")
       }
 
+      // ✅ Salva o usuário no localStorage para a página de instrumentos
+      const usuario = {
+        id: data?.id ?? null,
+        nome: data?.nome ?? nome,
+        tipo_usuario: tipoEscolhido
+      }
+      localStorage.setItem("usuario", JSON.stringify(usuario))
+
+      // Mostra alerta de sucesso
       Swal.fire({
         icon: 'success',
         title: 'Cadastrado com sucesso!',
         text: tipoEscolhido === "professor"
-          ? 'Agora escolha os instrumentos que você ensina.'
-          : 'Bem-vindo! Vamos para a plataforma.',
-        background: '#1a1738',
-        color: '#fff',
-        confirmButtonColor: '#00d2ff',
-        timer: 2000
+          ? "Agora escolha os instrumentos que você ensina."
+          : "Bem-vindo! Vamos começar.",
+        background: "#1a1738",
+        color: "#fff",
+        confirmButtonColor: "#00d2ff",
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
       })
 
-      // redirecionamento pelo tipo
-      if (tipoEscolhido === "professor") {
-        navigate("/instrumentos");
-      } else {
-        navigate("/home");
-      }
+      // Redireciona após 2 segundos
+      setTimeout(() => {
+        navigate(tipoEscolhido === "professor" ? "/instrumentos" : "/home")
+      }, 2000)
 
     } catch (error) {
       Swal.fire({
-        icon: 'error',
-        title: 'Erro no cadastro',
+        icon: "error",
+        title: "Erro no cadastro",
         text: error.message,
-        background: '#1a1738',
-        color: '#fff',
-        confirmButtonColor: '#00d2ff',
+        background: "#1a1738",
+        color: "#fff",
+        confirmButtonColor: "#00d2ff"
       })
     } finally {
       setCarregando(false)
@@ -128,70 +137,38 @@ function Cadastro() {
 
           <div className="input-group">
             <label>Nome Completo</label>
-            <input 
-              type="text" 
-              placeholder="Digite seu nome" 
-              value={nome} 
-              onChange={(e) => setNome(e.target.value)} 
-            />
+            <input type="text" placeholder="Digite seu nome" value={nome} onChange={(e) => setNome(e.target.value)} />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>CPF</label>
-              <input 
-                type="text" 
-                placeholder="000.000.000-00" 
-                value={cpf} 
-                onChange={handleCpfChange} 
-                maxLength="14" 
-              />
+              <input type="text" placeholder="000.000.000-00" value={cpf} onChange={handleCpfChange} maxLength="14" />
             </div>
-
             <div className="input-group">
               <label>Data de Nascimento</label>
-              <input 
-                type="date" 
-                value={dataNascimento} 
-                onChange={(e) => setDataNascimento(e.target.value)} 
-              />
+              <input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
             </div>
           </div>
 
           <div className="input-group">
             <label>E-mail</label>
-            <input 
-              type="email" 
-              placeholder="seu@email.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-            />
+            <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>Senha</label>
-              <input 
-                type="password" 
-                placeholder="Crie uma senha" 
-                value={senha} 
-                onChange={(e) => setSenha(e.target.value)} 
-              />
+              <input type="password" placeholder="Crie uma senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
             </div>
-
             <div className="input-group">
               <label>Confirmar Senha</label>
-              <input 
-                type="password" 
-                placeholder="Repita a senha" 
-                value={confirmarSenha} 
-                onChange={(e) => setConfirmarSenha(e.target.value)} 
-              />
+              <input type="password" placeholder="Repita a senha" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} />
             </div>
           </div>
 
           <button type="submit" disabled={carregando}>
-            {carregando ? 'Cadastrando...' : 'CADASTRAR'}
+            {carregando ? "Cadastrando..." : "CADASTRAR"}
           </button>
 
           <div className="cadastro-link">

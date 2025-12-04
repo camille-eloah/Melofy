@@ -1,3 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+/* =============================
+   Página Principal - Instrumentos
+============================= */
 .instrumentos-page {
   background-color: #071735;
   font-family: 'Inter', sans-serif;
@@ -6,108 +10,104 @@
   flex-direction: column;
   align-items: center;
 }
-/* ===== Cabeçalho azul ===== */
+
+/* =============================
+   Cabeçalho
+============================= */
+
+
 .instrumentos-header {
-  background-color: #020b2b;    
+  background: linear-gradient(135deg, #020b2b 0%, #0a1a3a 100%);
   padding: 18px 80px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
-.instrumentos-header-left {
+.header-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.instrumentos-header-left .logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  background-color: #0ea5e9;    
-}
-
-.instrumentos-header-left .brand {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.header-left .brand {
+  font-family: 'Nunito', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #ffffff;
-}
-
-.instrumentos-header-nav {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  text-shadow: 0 2px 10px rgba(14, 165, 233, 0.5);
 }
 
-.instrumentos-header-nav button,
-.instrumentos-header-nav a {
-  min-width: 120px;
-  border-radius: 999px;
-  padding: 8px 18px;
-  border: 1px solid transparent;
-  background-color: #0ea5e9;   
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
+.brand-icon {
+  font-size: 24px;
+  animation: pulse 2s infinite;
 }
 
-.instrumentos-header-nav button:hover,
-.instrumentos-header-nav a:hover {
-  opacity: 0.9;
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
-/* ===== Parte central ===== */
-
-h1 , h2 {
-  color: rgb(255, 255, 255);
-  margin-top: 1px;
-
-}
-
+/* =============================
+   Conteúdo Central
+============================= */
 .instrumentos-content {
-    margin-top: 80px;
-    text-align: center;
+  margin-top: 80px;
+  text-align: center;
 }
 
-.instrumentos-circles-container {
-    margin-top: 30px;
-    display: flex;
-    align-items:flex-start;
-    gap: 30px;
+h1,
+h2 {
+  color: #ffffff;
+  margin-top: 1px;
 }
+
+/* =============================
+   Circles (Instrumentos)
+============================= */
+.instrumentos-circles-container {
+  margin-top: 30px;
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+}
+
 .instrumentos-circle {
-    width: 150px;
-    margin-top: 20px;
-    height: 150px;
-    border-radius: 50%;
-    position: relative;
-    z-index: 10;
-    cursor: pointer;
-    overflow: visible;
-    display: inline-block;
+  width: 150px;
+  height: 150px;
+  margin-top: 20px;
+  border-radius: 50%;
+  position: relative;
+  z-index: 10;
+  cursor: pointer;
+  overflow: visible;
+  display: inline-block;
 }
 
 .instrumentos-circle img {
-  position: relative;
-  z-index: 2;          
   width: 100%;
   height: 100%;
   border-radius: 50%;
   display: block;
   object-fit: cover;
+  position: relative;
+  z-index: 2;
   transition: filter 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .instrumentos-circle-text {
   position: absolute;
-  z-index: 3;          
+  z-index: 3;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -121,12 +121,12 @@ h1 , h2 {
 }
 
 .instrumentos-circle:hover img {
-    filter: brightness(0.35);
-    transform: scale(1.05);
+  filter: brightness(0.35);
+  transform: scale(1.05);
 }
 
 .instrumentos-circle:hover .instrumentos-circle-text {
-    opacity: 1;
+  opacity: 1;
 }
 
 .instrumentos-circle.selecionado img {
@@ -143,18 +143,13 @@ h1 , h2 {
   opacity: 1;
 }
 
-/* Menino ao lado das fotos */
-.menino-instrumento{
-    margin-top: -200px;
-    margin-left: 40px;
-    width: 400px;
-    height: 400px;
-    filter: drop-shadow(0 0 40px rgba(0, 210, 255, 0.35))
-          drop-shadow(0 0 80px rgba(0, 180, 255, 0.2));
-}
-
+/* =============================
+   Efeito Glowing nos Circles
+============================= */
 .instrumentos-circle::before {
   content: '';
+  position: absolute;
+  inset: -6px;
   background: linear-gradient(
     45deg,
     #ff0000,
@@ -167,19 +162,17 @@ h1 , h2 {
     #ff00c8,
     #ff0000
   );
-  position: absolute;
-  inset: -6px;             
   background-size: 400%;
   z-index: 1;
   filter: blur(6px);
-  animation: glowing 20s linear infinite;
+  border-radius: 50%;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
-  border-radius: 50%;
+  animation: glowing 20s linear infinite;
 }
 
 .instrumentos-circle:hover::before {
-    opacity: 1;
+  opacity: 1;
 }
 
 .instrumentos-circle::after {
@@ -192,7 +185,36 @@ h1 , h2 {
 }
 
 @keyframes glowing {
-    0% { background-position: 0 0; }
-    50% { background-position: 400% 0; }
-    100% { background-position: 0 0; }
+  0% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 400% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* =============================
+   Menino ao lado das fotos
+============================= */
+.menino-instrumento {
+  margin-top: -200px;
+  margin-left: 40px;
+  width: 400px;
+  height: 400px;
+  filter: drop-shadow(0 0 40px rgba(0, 210, 255, 0.35))
+    drop-shadow(0 0 80px rgba(0, 180, 255, 0.2));
+}
+
+/* =============================
+   Botões de instrumentos
+============================= */
+.botao-instrumentos {
+  margin-top: 40px;
+  margin-bottom: 40px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
 }

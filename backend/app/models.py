@@ -6,7 +6,7 @@ from enum import Enum
 from pydantic_settings import BaseSettings
 from typing import List
 from sqlalchemy import Column, Integer, ForeignKey
-
+from pydantic import BaseModel
 
 # ----------------------------
 # Usuários
@@ -118,6 +118,14 @@ class ProfessorInstrumentosEscolha(SQLModel):
     instrumentos_ids: List[int]
 
 
+# -----------------------------
+# Modelos de resposta
+# -----------------------------
+
+class SearchResult(BaseModel):
+    tipo: str  # "professor" ou "instrumento"
+    nome: str
+    instrumento: Optional[str] = None
 # ----------------------------
 # Aulas e Pacotes 
 # ----------------------------

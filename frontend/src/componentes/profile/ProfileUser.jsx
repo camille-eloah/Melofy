@@ -283,10 +283,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             <div className="botoes">
               <button className="btn-editar">Editar Perfil</button>
               <button className="btn-deletar">Deletar Conta</button>
+      
             </div>
           )}
         </div>
         </div>
+        
 
         {isModalOpen && (
           <div className="modal-backdrop" onClick={closeModal}>
