@@ -332,11 +332,13 @@
 
 /* ===== Container top-items ===== */
 .top-items {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   width: 100%;
   max-width: 600px;
+  padding-right: 52px; /* espaço para o botão fixo à direita */
   margin-bottom: 20px;
 }
 
@@ -389,6 +391,9 @@
 
 /* ===== Botão de edição do texto principal ===== */
 .btn-editar-texto {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 40px;
   height: 40px;
   border: none;
