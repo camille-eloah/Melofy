@@ -44,7 +44,7 @@ class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    global_uuid: str
+    global_uuid: str | None = None
     nome: str
     cpf: str
     data_nascimento: date

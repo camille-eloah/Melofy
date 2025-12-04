@@ -389,6 +389,7 @@ def excluir_pacote(pacote_id: int):
 # 5. Instrumentos musicais
 # ----------------------------
 
+# ROTAS SEM PARÂMETROS PRIMEIRO
 @router_instruments.post("/", response_model=InstrumentoRead, status_code=201)
 def criar_instrumento(
     instrumento: InstrumentoCreate,
@@ -401,6 +402,51 @@ def criar_instrumento(
     return novo
 
 
+# ROTA DE ESCOLHER INSTRUMENTOS (PRECISA VIR ANTES DAS ROTAS COM PARÂMETRO)
+@router_instruments.post("/escolher")
+def escolher_instrumentos_professor(
+    dados: ProfessorInstrumentosCreate,
+    db: Session = Depends(get_session),
+):
+    professor = db.get(Professor, dados.professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    antigos = db.exec(
+        select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+    ).all()
+    for rel in antigos:
+        db.delete(rel)
+
+    for instr_id in dados.instrumentos_ids:
+        instrumento = db.get(Instrumento, instr_id)
+        if not instrumento:
+            raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
+
+        rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
+        db.add(rel)
+
+    db.commit()
+
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(
+        ProfessorInstrumento.professor_id == dados.professor_id
+    )
+    instrumentos_professor = db.exec(stmt).all()
+
+    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
+
+
+# ROTAS ESPECÍFICAS QUE NÃO PODEM SER CONFUNDIDAS COM /{instrumento_id}
+@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(
+        ProfessorInstrumento.professor_id == professor_id
+    )
+    instrumentos = db.exec(stmt).all()
+    return instrumentos
+
+
+# ROTAS COM PARÂMETRO NO FINAL
 @router_instruments.get("/{instrumento_id}", response_model=InstrumentoRead)
 def obter_instrumento(
     instrumento_id: int,
@@ -410,14 +456,6 @@ def obter_instrumento(
     if not instrumento:
         raise HTTPException(status_code=404, detail="Instrumento não encontrado")
     return instrumento
-
-@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
-def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == professor_id
-    )
-    instrumentos = db.exec(stmt).all()
-    return instrumentos
 
 
 @router_instruments.put("/{instrumento_id}", response_model=InstrumentoRead)
@@ -453,40 +491,6 @@ def deletar_instrumento(
     db.commit()
     return
 
-router_instruments = APIRouter(prefix="/instrumentos")
-
-@router_instruments.post("/escolher")
-def escolher_instrumentos_professor(
-    dados: ProfessorInstrumentosCreate,
-    db: Session = Depends(get_session),
-):
-    professor = db.get(Professor, dados.professor_id)
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-    # Apaga escolhas antigas
-    antigos = db.exec(
-        select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
-    ).all()
-    for rel in antigos:
-        db.delete(rel)
-
-    # Salva novas escolhas
-    for instr_id in dados.instrumentos_ids:
-        instrumento = db.get(Instrumento, instr_id)
-        if not instrumento:
-            raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
-
-        rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
-        db.add(rel)
-
-    db.commit()
-
-    # Retorna os instrumentos do professor
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
-    instrumentos_professor = db.exec(stmt).all()
-
-    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
 
 # ----------------------------
 # 6. Filtragem

@@ -98,15 +98,18 @@ class ProfessorInstrumento(SQLModel, table=True):
     __tablename__ = "tb_professor_instrumento"
 
     id: Optional[int] = Field(default=None, primary_key=True)
+
     professor_id: int = Field(
-        sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
+        sa_column=Column("professor_id", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
+
     instrumento_id: int = Field(
-        sa_column=Column("id_instrumento", Integer, ForeignKey("tb_instrumento.id"), nullable=False)
+        sa_column=Column("instrumento_id", Integer, ForeignKey("tb_instrumento.id"), nullable=False)
     )
 
     professor: Professor = Relationship(back_populates="instrumentos_rel")
     instrumento: Instrumento = Relationship(back_populates="professores_rel")
+
 
 
 class ProfessorInstrumentosEscolha(SQLModel):
