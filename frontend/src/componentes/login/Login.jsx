@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import instrumentos from '../../assets/Images-Characters/menino_tocando.png'
+import jovem_aprendendo from '../../assets/Images-Characters/jovem_aprendendo.png'
 import Swal from 'sweetalert2'
 import './Login.css'
 
@@ -12,59 +13,61 @@ function Login() {
   const [senha, setSenha] = useState("")
   const [carregando, setCarregando] = useState(false)
   const [lembrar, setLembrar] = useState(false)
-  
+  const [showRoleModal, setShowRoleModal] = useState(false);
 
-async function handleLogin(e) {
-  e.preventDefault();
-  setCarregando(true);
 
-  try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, senha }),
-    });
 
-    const usuario = await res.json();
-    console.log("Usuário retornado:", usuario);
+  async function handleLogin(e) {
+    e.preventDefault();
+    setCarregando(true);
 
-    if (!res.ok) {
-      throw new Error(usuario.detail || "Erro ao fazer login");
-    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, senha }),
+      });
 
-    // salva no localStorage para uso em outras páginas
-    localStorage.setItem("usuario", JSON.stringify(usuario));
+      const usuario = await res.json();
+      console.log("Usuário retornado:", usuario);
 
-    Swal.fire({
-      icon: "success",
-      title: "Login realizado",
-      text: `Bem-vindo(a), ${usuario.nome}!`,
-      background: "#1a1738",
-      color: "#fff",
-      confirmButtonColor: "#00d2ff",
-    }).then(() => {
-      // redirecionamento conforme tipo do usuário
-      if (usuario.tipo_usuario === "ALUNO") {
-        navigate("/home", { replace: true });
-      } else if (usuario.tipo_usuario === "PROFESSOR") {
-        navigate("/instrumentos", { replace: true });
+      if (!res.ok) {
+        throw new Error(usuario.detail || "Erro ao fazer login");
       }
-    });
 
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Erro ao fazer login",
-      text: error.message,
-      background: "#1a1738",
-      color: "#fff",
-      confirmButtonColor: "#00d2ff",
-    });
-  } finally {
-    setCarregando(false);
+      // salva no localStorage para uso em outras páginas
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+
+      Swal.fire({
+        icon: "success",
+        title: "Login realizado",
+        text: `Bem-vindo(a), ${usuario.nome}!`,
+        background: "#1a1738",
+        color: "#fff",
+        confirmButtonColor: "#00d2ff",
+      }).then(() => {
+        // redirecionamento conforme tipo do usuário
+        if (usuario.tipo_usuario === "ALUNO") {
+          navigate("/home", { replace: true });
+        } else if (usuario.tipo_usuario === "PROFESSOR") {
+          navigate("/instrumentos", { replace: true });
+        }
+      });
+
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Erro ao fazer login",
+        text: error.message,
+        background: "#1a1738",
+        color: "#fff",
+        confirmButtonColor: "#00d2ff",
+      });
+    } finally {
+      setCarregando(false);
+    }
   }
-}
 
 
   return (
@@ -78,7 +81,7 @@ async function handleLogin(e) {
       </div>
 
       <div className="Conteiner-login">
-      <form onSubmit={handleLogin}>
+        <form onSubmit={handleLogin}>
           <h3>LOGIN</h3>
 
           <div className="input-group">
@@ -118,10 +121,69 @@ async function handleLogin(e) {
           </button>
 
           <div className="cadastro-link">
-            Não possui conta? <a href="/cadastro">Cadastre-se</a>
+            Não possui conta?
+            <span className="cadastre-link-text" onClick={() => setShowRoleModal(true)}> Cadastre-se</span>
           </div>
+
+
         </form>
       </div>
+      {showRoleModal && (
+        <div className="role-choice-overlay">
+          <div className="role-choice-modal new-role-modal">
+
+            {/* LADO ESQUERDO */}
+            <div className="role-left">
+              <h1 className="role-title">Aprender música, agora simples e acessível</h1>
+
+              <p className="role-description">
+                Melofy é a plataforma digital que conecta a paixão pela música ao conhecimento.
+                De maneira simples e organizada, ligamos alunos de todos os níveis a professores ideais,
+                seja para aulas online ou presenciais. Encontre o seu instrumento e comece a jornada musical.
+              </p>
+
+              <div className="role-choice-buttons">
+                <button
+                  className="role-choice-btn student-btn"
+                  onClick={() => {
+                    setShowRoleModal(false);
+                    navigate("/cadastro?role=aluno");
+                  }}
+                >
+                  Para quem quer aprender
+                </button>
+
+                <button
+                  className="role-choice-btn teacher-btn"
+                  onClick={() => {
+                    setShowRoleModal(false);
+                    navigate("/cadastro?role=professor");
+                  }}
+                >
+                  Para educadores musicais
+                </button>
+              </div>
+
+              <button
+                className="role-choice-close close-left"
+                onClick={() => setShowRoleModal(false)}
+              >
+                Fechar
+              </button>
+            </div>
+
+            {/* LADO DIREITO */}
+            <div className="role-right">
+              <img
+                src={jovem_aprendendo}
+                alt="Ilustração musical"
+              />
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }

@@ -205,6 +205,18 @@
   font-weight: 500;
 }
 
+.cadastre-link-text {
+  color: #00d2ff;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cadastre-link-text:hover {
+  text-decoration: underline;
+}
+
+
 @media (max-width: 1200px) {
   .login-page { padding: 40px 50px; }
   .text-content h1 { font-size: 4.2rem; }
