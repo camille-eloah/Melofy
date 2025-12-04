@@ -19,6 +19,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isSavingTexts, setIsSavingTexts] = useState(false);
   const [cacheBust, setCacheBust] = useState(Date.now());
   const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [tagsDraft, setTagsDraft] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+  const [hasEditedTags, setHasEditedTags] = useState(false);
   const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
   const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
   const [introDraft, setIntroDraft] = useState("");
@@ -233,12 +237,21 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     };
   }, [isProfessor, usuarioId]);
 
+  useEffect(() => {
+    if (hasEditedTags) return;
+    const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
+    setTags(nomesInstrumentos);
+    setTagsDraft(nomesInstrumentos);
+  }, [instrumentosProfessor, hasEditedTags]);
+
   const closeModal = () => setIsModalOpen(false);
   const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
 
   const openEditTextsModal = () => {
     setIntroDraft(introText);
     setDescDraft(descText);
+    setTagsDraft(tags);
+    setTagInput("");
     setIsEditTextsModalOpen(true);
   };
 
@@ -263,11 +276,49 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       setIntroText(data?.texto_intro ?? introDraft);
       setDescText(data?.texto_desc ?? descDraft);
       setHasEditedTexts(true);
+      setTags(tagsDraft);
+      setHasEditedTags(true);
       setIsEditTextsModalOpen(false);
     } catch (error) {
       console.error("Erro ao salvar textos do perfil", error);
     } finally {
       setIsSavingTexts(false);
+    }
+  };
+
+  const displayTags = tags && tags.length > 0 ? tags : instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
+
+  const formatTag = (value) => {
+    const trimmed = (value || "").trim();
+    if (!trimmed) return "";
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  };
+
+  const handleAddTag = () => {
+    if (tagsDraft.length >= 12) return;
+    const formatted = formatTag(tagInput);
+    if (!formatted) return;
+    const exists = tagsDraft.some((tag) => tag.toLowerCase() === formatted.toLowerCase());
+    if (exists) {
+      setTagInput("");
+      return;
+    }
+    const next = [...tagsDraft, formatted];
+    setTagsDraft(next);
+    setHasEditedTags(true);
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const next = tagsDraft.filter((tag) => tag.toLowerCase() !== String(tagToRemove || "").toLowerCase());
+    setTagsDraft(next);
+    setHasEditedTags(true);
+  };
+
+  const handleTagInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddTag();
     }
   };
 
@@ -286,16 +337,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 {badgeInfo.label}
               </span>
             )}
-            {isProfessor &&
-              instrumentosProfessor.map((instrumento) => {
-                const nomeInstrumento = instrumento?.nome || instrumento?.tipo || "Instrumento";
-                const key = instrumento?.id ?? nomeInstrumento;
-                return (
-                  <span key={key} className="categoria-item">
-                    {nomeInstrumento}
-                  </span>
-                );
-              })}
+            {displayTags.map((tag, index) => {
+              const key = `${tag}-${index}`;
+              return (
+                <span key={key} className="categoria-item">
+                  {tag}
+                </span>
+              );
+            })}
           </div>
 
           {/* Botao de edicao no final (direita)*/}
@@ -468,6 +517,44 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                     style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
                   />
                 </label>
+                <div className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
+                  <div className="tags-editor">
+                    <div className="tags-list">
+                      {tagsDraft.map((tag) => (
+                        <span key={tag} className="tag-badge">
+                          <span className="tag-label">{tag}</span>
+                          <button
+                            type="button"
+                            className="tag-remove"
+                            aria-label={`Remover tag ${tag}`}
+                            onClick={() => handleRemoveTag(tag)}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {tagsDraft.length < 12 && (
+                        <div className="tag-add">
+                          <input
+                            type="text"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagInputKeyDown}
+                            maxLength={30}
+                            placeholder="Nova tag"
+                          />
+                          <button type="button" onClick={handleAddTag} aria-label="Adicionar nova tag">
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="tags-helper">
+                      {tagsDraft.length}/12 tags
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="modal-footer">
                 <button className="btn-upload" type="button" onClick={handleSaveTexts} disabled={isSavingTexts}>
