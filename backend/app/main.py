@@ -488,6 +488,12 @@ def escolher_instrumentos_professor(
 
     return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
 
+@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == professor_id)
+    instrumentos = db.exec(stmt).all()
+    return instrumentos
+
 # ----------------------------
 # 6. Filtragem
 # ----------------------------

@@ -14,6 +14,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [cacheBust, setCacheBust] = useState(Date.now());
+  const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,6 +120,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
+  const usuarioId = usuario?.id ?? null;
+  const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
     (absoluteProfilePicture
@@ -179,6 +182,42 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    if (!isProfessor || !usuarioId) {
+      setInstrumentosProfessor([]);
+      return;
+    }
+
+    let isActive = true;
+    const endpoints = [
+      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
+      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
+    ];
+
+    const carregarInstrumentos = async () => {
+      for (const url of endpoints) {
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) continue;
+          const data = await resp.json();
+          if (!isActive) return;
+          const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
+          setInstrumentosProfessor(instrumentos || []);
+          return;
+        } catch (error) {
+          /* tenta prximo endpoint */
+        }
+      }
+      if (isActive) setInstrumentosProfessor([]);
+    };
+
+    carregarInstrumentos();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isProfessor, usuarioId]);
+
   const closeModal = () => setIsModalOpen(false);
 
   return (
@@ -196,9 +235,16 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 {badgeInfo.label}
               </span>
             )}
-            <span className="categoria-item">Guitarra</span>
-            <span className="categoria-item">Violao</span>
-            <span className="categoria-item">Ukulele</span>
+            {isProfessor &&
+              instrumentosProfessor.map((instrumento) => {
+                const nomeInstrumento = instrumento?.nome || instrumento?.tipo || "Instrumento";
+                const key = instrumento?.id ?? nomeInstrumento;
+                return (
+                  <span key={key} className="categoria-item">
+                    {nomeInstrumento}
+                  </span>
+                );
+              })}
           </div>
 
           {/* Botao de edicao no final (direita)*/}
