@@ -7,14 +7,22 @@ import { useEffect, useRef, useState } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
+  const defaultIntroText = "Aulas totalmente voltadas ao repertorio que o aluno quer aprender! Guitarra, Violao e Ukulele.";
+  const defaultDescText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [cacheBust, setCacheBust] = useState(Date.now());
   const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
+  const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
+  const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
+  const [introDraft, setIntroDraft] = useState("");
+  const [descDraft, setDescDraft] = useState("");
+  const [hasEditedTexts, setHasEditedTexts] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -183,6 +191,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [previewUrl]);
 
   useEffect(() => {
+    if (hasEditedTexts) return;
+    setIntroText(usuario?.texto_intro || defaultIntroText);
+    setDescText(usuario?.texto_desc || defaultDescText);
+  }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
+
+  useEffect(() => {
     if (!isProfessor || !usuarioId) {
       setInstrumentosProfessor([]);
       return;
@@ -219,6 +233,20 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [isProfessor, usuarioId]);
 
   const closeModal = () => setIsModalOpen(false);
+  const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
+
+  const openEditTextsModal = () => {
+    setIntroDraft(introText);
+    setDescDraft(descText);
+    setIsEditTextsModalOpen(true);
+  };
+
+  const handleSaveTexts = () => {
+    setIntroText(introDraft);
+    setDescText(descDraft);
+    setHasEditedTexts(true);
+    setIsEditTextsModalOpen(false);
+  };
 
   return (
     <div className="profile-page">
@@ -249,7 +277,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
           {/* Botao de edicao no final (direita)*/}
           {isOwner && (
-            <button className="btn-editar-texto" title="Editar textos">
+            <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
               <span aria-hidden="true">✎</span>
             </button>
           )}
@@ -259,12 +287,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="main-text">
           <div className="texto-intro">
             <p>
-              Aulas totalmente voltadas ao repertorio que o aluno quer aprender! Guitarra, Violao e Ukulele.
+              {introText}
             </p>
           </div>
 
           <div className="texto-desc">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p>{descText}</p>
           </div>
         </div>
 
@@ -377,6 +405,53 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                   disabled={!selectedFile || isUploading}
                 >
                   {isUploading ? "Enviando..." : "Salvar foto"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditTextsModalOpen && (
+          <div className="modal-backdrop" onClick={closeEditTextsModal}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Editar textos do perfil"
+            >
+              <div className="modal-header">
+                <h5>Editar textos do perfil</h5>
+                <button className="modal-close" onClick={closeEditTextsModal} aria-label="Fechar modal">
+                  x
+                </button>
+              </div>
+              <div className="modal-body" style={{ flexDirection: "column", gap: "12px" }}>
+                <label className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Título</span>
+                  <textarea
+                    value={introDraft}
+                    onChange={(e) => setIntroDraft(e.target.value)}
+                    rows={3}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+                  />
+                </label>
+                <label className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descrição</span>
+                  <textarea
+                    value={descDraft}
+                    onChange={(e) => setDescDraft(e.target.value)}
+                    rows={4}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+                  />
+                </label>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-upload" type="button" onClick={handleSaveTexts}>
+                  Salvar
+                </button>
+                <button className="btn-select-file" type="button" onClick={closeEditTextsModal}>
+                  Cancelar
                 </button>
               </div>
             </div>
