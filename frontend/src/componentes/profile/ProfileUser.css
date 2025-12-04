@@ -112,6 +112,10 @@
   margin-bottom: 20px;
 }
 
+.texto-desc p {
+  white-space: pre-line; /* preserva quebras de linha digitadas pelo usuario */
+}
+
 /* ===== Card do perfil ===== */
 .card-perfil {
   flex: 1 1 32%;
