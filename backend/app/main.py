@@ -162,6 +162,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             data_nascimento=user.data_nascimento,
             telefone=user.telefone,
             bio=user.bio,
+            texto_intro=user.texto_intro,
+            texto_desc=user.texto_desc,
             hashed_password=_hash_password(user.senha),
         )
     else:
@@ -172,6 +174,8 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
             data_nascimento=user.data_nascimento,
             telefone=user.telefone,
             bio=user.bio,
+            texto_intro=user.texto_intro,
+            texto_desc=user.texto_desc,
             hashed_password=_hash_password(user.senha),
         )
 
@@ -317,6 +321,10 @@ def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session
         usuario.telefone = dados.telefone
     if dados.bio is not None:
         usuario.bio = dados.bio
+    if hasattr(dados, "texto_intro") and dados.texto_intro is not None:
+        usuario.texto_intro = dados.texto_intro
+    if hasattr(dados, "texto_desc") and dados.texto_desc is not None:
+        usuario.texto_desc = dados.texto_desc
 
     db.add(usuario)
     db.commit()

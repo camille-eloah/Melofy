@@ -17,6 +17,8 @@ class UserCreate(BaseModel):
     tipo: TipoUsuario
     telefone: str | None = None
     bio: str | None = None
+    texto_intro: str | None = None
+    texto_desc: str | None = None
 
     @field_validator("tipo", mode="before")
     @classmethod
@@ -52,12 +54,16 @@ class UserResponse(BaseModel):
     tipo_usuario: TipoUsuario
     telefone: str | None = None
     bio: str | None = None
+    texto_intro: str | None = None
+    texto_desc: str | None = None
     profile_picture: str | None = None
 
 
 class UserUpdate(BaseModel):
     telefone: str | None = None
     bio: str | None = None
+    texto_intro: str | None = None
+    texto_desc: str | None = None
 
     @field_validator("telefone", mode="before")
     @classmethod
