@@ -16,6 +16,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSavingTexts, setIsSavingTexts] = useState(false);
   const [cacheBust, setCacheBust] = useState(Date.now());
   const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
   const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
@@ -241,11 +242,33 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setIsEditTextsModalOpen(true);
   };
 
-  const handleSaveTexts = () => {
-    setIntroText(introDraft);
-    setDescText(descDraft);
-    setHasEditedTexts(true);
-    setIsEditTextsModalOpen(false);
+  const handleSaveTexts = async () => {
+    if (!usuario?.id || isSavingTexts || !isOwner) return;
+    setIsSavingTexts(true);
+    try {
+      const payload = { texto_intro: introDraft, texto_desc: descDraft };
+      const resp = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Falha ao salvar textos: ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      setUsuario((prev) => ({ ...prev, ...data }));
+      setIntroText(data?.texto_intro ?? introDraft);
+      setDescText(data?.texto_desc ?? descDraft);
+      setHasEditedTexts(true);
+      setIsEditTextsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao salvar textos do perfil", error);
+    } finally {
+      setIsSavingTexts(false);
+    }
   };
 
   return (
@@ -447,8 +470,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 </label>
               </div>
               <div className="modal-footer">
-                <button className="btn-upload" type="button" onClick={handleSaveTexts}>
-                  Salvar
+                <button className="btn-upload" type="button" onClick={handleSaveTexts} disabled={isSavingTexts}>
+                  {isSavingTexts ? "Salvando..." : "Salvar"}
                 </button>
                 <button className="btn-select-file" type="button" onClick={closeEditTextsModal}>
                   Cancelar
