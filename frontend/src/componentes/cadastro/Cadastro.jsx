@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEffect } from "react"
 import { useNavigate, useLocation } from 'react-router-dom'
 import instrumentos from '../../assets/Images-Characters/saxofonista.png'
 import Swal from 'sweetalert2'
@@ -12,9 +13,6 @@ function Cadastro() {
 
   const queryParams = new URLSearchParams(location.search);
   const tipoEscolhido = queryParams.get("role"); // "professor" ou "aluno"
-
-  console.log("TIPO ESCOLHIDO:", tipoEscolhido);
-
   const [nome, setNome] = useState('')
   const [cpf, setCpf] = useState('')
   const [dataNascimento, setDataNascimento] = useState('')
@@ -120,6 +118,14 @@ function Cadastro() {
     }
   }
 
+  useEffect(() => {
+    const valido = tipoEscolhido === "aluno" || tipoEscolhido === "professor";
+
+    if (!valido) {
+      navigate("/", { replace: true });
+    }
+  }, [tipoEscolhido, navigate]);
+
   return (
     <div className="cadastro-page">
       <div className="Conteiner-cadastro">
@@ -128,64 +134,64 @@ function Cadastro() {
 
           <div className="input-group">
             <label>Nome Completo</label>
-            <input 
-              type="text" 
-              placeholder="Digite seu nome" 
-              value={nome} 
-              onChange={(e) => setNome(e.target.value)} 
+            <input
+              type="text"
+              placeholder="Digite seu nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
             />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>CPF</label>
-              <input 
-                type="text" 
-                placeholder="000.000.000-00" 
-                value={cpf} 
-                onChange={handleCpfChange} 
-                maxLength="14" 
+              <input
+                type="text"
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={handleCpfChange}
+                maxLength="14"
               />
             </div>
 
             <div className="input-group">
               <label>Data de Nascimento</label>
-              <input 
-                type="date" 
-                value={dataNascimento} 
-                onChange={(e) => setDataNascimento(e.target.value)} 
+              <input
+                type="date"
+                value={dataNascimento}
+                onChange={(e) => setDataNascimento(e.target.value)}
               />
             </div>
           </div>
 
           <div className="input-group">
             <label>E-mail</label>
-            <input 
-              type="email" 
-              placeholder="seu@email.com" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>Senha</label>
-              <input 
-                type="password" 
-                placeholder="Crie uma senha" 
-                value={senha} 
-                onChange={(e) => setSenha(e.target.value)} 
+              <input
+                type="password"
+                placeholder="Crie uma senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
               />
             </div>
 
             <div className="input-group">
               <label>Confirmar Senha</label>
-              <input 
-                type="password" 
-                placeholder="Repita a senha" 
-                value={confirmarSenha} 
-                onChange={(e) => setConfirmarSenha(e.target.value)} 
+              <input
+                type="password"
+                placeholder="Repita a senha"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
               />
             </div>
           </div>
