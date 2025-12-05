@@ -3,7 +3,7 @@ USE db_melofy;
 
 CREATE TABLE tb_professor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    global_uuid CHAR(36) NOT NULL UNIQUE DEFAULT (UUID()),
+    global_uuid CHAR(36) NOT NULL UNIQUE,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
@@ -21,7 +21,7 @@ CREATE TABLE tb_professor (
 
 CREATE TABLE tb_aluno (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    global_uuid CHAR(36) NOT NULL UNIQUE DEFAULT (UUID()),
+    global_uuid CHAR(36) NOT NULL UNIQUE,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
