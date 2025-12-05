@@ -89,6 +89,17 @@ class Instrumento(SQLModel, table=True):
     aulas: List["Aula"] = Relationship(back_populates="instrumento")
     professores_rel: List["ProfessorInstrumento"] = Relationship(back_populates="instrumento")
 
+class InstrumentoRead(BaseModel):
+    id: int
+    nome: str
+
+class UserReadWithInstrumentos(BaseModel):
+    id: int
+    nome: str
+    email: str
+    instrumentos: list[InstrumentoRead] = []
+
+
 # ----------------------------
 # Instrumentos professores
 # ----------------------------

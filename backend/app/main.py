@@ -21,7 +21,6 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -42,20 +41,13 @@ from app.services.auth import decode_jwt
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from app.models import Professor, Instrumento, ProfessorInstrumento, SearchResult
-
+from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, SearchResult, UserReadWithInstrumentos
 import logging
 from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
 from fastapi import FastAPI
-
-
-  # importar router
+from sqlalchemy.orm import selectinload
 
 app = FastAPI()
-
-# incluir o router
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -200,10 +192,53 @@ def listar_usuarios(db: Session = Depends(get_session)):
     return [montar_resposta_usuario(usuario) for usuario in [*professores, *alunos]]
 
 # Listar professores
-@router_user.get("/professores", response_model=list[UserResponse])
-def listar_professores(db: Session = Depends(get_session)):
-    professores = db.exec(select(Professor)).all()
-    return [montar_resposta_usuario(professor) for professor in professores]
+@router_user.get("/professores/por-instrumento")
+def professores_por_instrumento(nome: str, session: Session = Depends(get_session)):
+
+    professores = session.exec(
+        select(Professor)
+        .join(ProfessorInstrumento)
+        .join(Instrumento)
+        .where(Instrumento.nome.ilike(f"%{nome}%"))
+        .options(
+            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
+        )
+        .distinct()
+    ).all()
+
+    return [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
+        }
+        for p in professores
+    ]
+
+@router_user.get("/professores/buscar")
+def buscar_professores_ou_instrumento(q: str, session: Session = Depends(get_session)):
+    professores = session.exec(
+        select(Professor)
+        .join(ProfessorInstrumento)
+        .join(Instrumento)
+        .where(
+            (Professor.nome.ilike(f"%{q}%")) |
+            (Instrumento.nome.ilike(f"%{q}%"))
+        )
+        .options(
+            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
+        )
+        .distinct()
+    ).all()
+
+    return [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
+        }
+        for p in professores
+    ]
 
 @router_user.get("/alunos", response_model=list[UserResponse])
 def listar_alunos(db: Session = Depends(get_session)):
@@ -773,12 +808,13 @@ def search(
     return results
 
 
-app.include_router(router_user)
-app.include_router(router_auth)
-app.include_router(router_lessons)
-app.include_router(router_instruments)
-app.include_router(router_schedule)
-app.include_router(router_finance)
-app.include_router(router_ratings)
-app.include_router(router_feedback)
+app.include_router(router_user, prefix="/api")
+app.include_router(router_auth, prefix="/api")
+app.include_router(router_lessons, prefix="/api")
+app.include_router(router_instruments, prefix="/api")
+app.include_router(router_schedule, prefix="/api")
+app.include_router(router_filter, prefix="/api")
+app.include_router(router_finance, prefix="/api")
+app.include_router(router_ratings, prefix="/api")
+app.include_router(router_feedback, prefix="/api")
 

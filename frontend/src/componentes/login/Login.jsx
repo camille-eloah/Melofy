@@ -6,7 +6,6 @@ import './Login.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-
 function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
@@ -27,14 +26,26 @@ function Login() {
       });
 
       const usuario = await res.json();
-      console.log("Usuário retornado:", usuario);
+      if (!res.ok) throw new Error(usuario.detail || "Erro ao fazer login");
 
-      if (!res.ok) {
-        throw new Error(usuario.detail || "Erro ao fazer login");
-      }
-
+      // Salva dados do usuário
       localStorage.setItem("usuario", JSON.stringify(usuario));
 
+      // -------- DEFINIR ROTA FINAL ANTES DO SweetAlert --------
+      let rotaFinal = "/home";
+
+      if (usuario.tipo_usuario === "PROFESSOR") {
+        const resp = await fetch(`${API_BASE_URL}/instrumentos/professor/${usuario.id}`);
+        const dados = await resp.json();
+        const instrumentosExistentes = Array.isArray(dados) ? dados : [];
+
+        // Se o professor NÃO tem instrumento → vai para instrumentos
+        if (instrumentosExistentes.length === 0) {
+          rotaFinal = "/instrumentos";
+        }
+      }
+
+      // -------- SweetAlert e navegação final --------
       Swal.fire({
         icon: "success",
         title: "Login realizado",
@@ -42,40 +53,18 @@ function Login() {
         background: "#1a1738",
         color: "#fff",
         confirmButtonColor: "#00d2ff",
-      }).then(async () => {
-
-        if (usuario.tipo_usuario === "ALUNO") {
-          navigate("/home", { replace: true });
-          return;
-        }
-        if (usuario.tipo_usuario === "PROFESSOR") {
-          const resp = await fetch(`${API_BASE_URL}/instrumentos/professor/${usuario.id}`);
-          const dados = await resp.json();
-
-           // Se dados não for array, considerar como vazio
-          const instrumentosExistentes = Array.isArray(dados) ? dados : [];
-
-            if (instrumentosExistentes.length > 0) {
-                navigate("/home", { replace: true });
-           } else {
-               navigate("/instrumentos", { replace: true });
-          }
-}
-
-
-        
-
-      }); // <-- FECHOU O then()
+      }).then(() => {
+        // fromLogin evita redirecionamentos internos da página instrumentos
+        navigate(rotaFinal, { replace: true, state: { fromLogin: true } });
+      });
 
     } catch (error) {
-      console.error("Erro no login:", error);
       Swal.fire("Erro", error.message, "error");
     } finally {
       setCarregando(false);
     }
-  } // <-- FECHOU handleLogin()
+  }
 
-  // Agora sim pode vir o return
   return (
     <div className="login-page">
       <div className="left-content">
