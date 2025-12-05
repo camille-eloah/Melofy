@@ -242,7 +242,8 @@
 }
 
 .btn-editar,
-.btn-deletar {
+.btn-agendar,
+.btn-cadastrarpacote  {
   border: none;
   padding: 10px 16px;
   border-radius: 999px;
@@ -263,7 +264,7 @@
 }
 
 /* Botão branco com texto azul */
-.btn-deletar {
+.btn-agendar, .btn-cadastrarpacote {
   background-color: #ffffff;
   color: #0284c7;
   border: 1px solid #e2e8f0;
@@ -674,4 +675,122 @@
 .tags-helper {
   font-size: 11px;
   color: #475569;
+}
+
+
+/* CSS que to criando para os modais */
+.pacote-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(220, 220, 220, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2048;
+}
+
+.pacote-modal-container {
+  width: 380px;
+  max-width: 90%;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 140, 200, 0.25);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  padding: 26px 34px;
+  font-family: 'Segoe UI', sans-serif;
+  animation: pacoteFadeUp 0.25s ease;
+}
+
+.pacote-modal-container h3 {
+  text-align: center;
+  font-size: 1.6rem;
+  color: #0077aa;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.pacote-input-group {
+  margin-bottom: 18px;
+}
+
+.pacote-input-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #005f89;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.pacote-input-group input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 140, 200, 0.4);
+  background: rgba(245, 248, 255, 0.9);
+  color: #003a4f;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+}
+
+.pacote-input-group input:focus {
+  border-color: #0099cc;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 150, 220, 0.25);
+}
+
+.pacote-btn-confirmar {
+  width: 100%;
+  padding: 9px;
+  margin-top: 4px;
+  background: linear-gradient(135deg, #00baff, #0087cc);
+  color: #ffffff;
+  font-weight: 700;
+  border: none;
+  font-size: 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  box-shadow: 0 6px 18px rgba(0, 170, 230, 0.35);
+}
+
+.pacote-btn-confirmar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 28px rgba(0, 150, 210, 0.45);
+}
+
+.pacote-btn-cancelar {
+  width: 100%;
+  padding: 9px;
+  margin-top: 10px;
+  background: rgba(200, 200, 200, 0.2);
+  border: 1px solid rgba(0, 130, 180, 0.35);
+  color: #005f89;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: 0.3s ease;
+}
+
+.pacote-btn-cancelar:hover {
+  color: #ffffff;
+  border-color: rgba(0, 130, 180, 0.75);
+  background: rgba(0, 130, 180, 0.6);
+  box-shadow: 0 6px 20px rgba(0, 130, 180, 0.35);
+}
+
+/* animação */
+@keyframes pacoteFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

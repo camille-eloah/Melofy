@@ -40,6 +40,59 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
   const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
 
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [pacote, setPacote] = useState({
+    quantidade: "",
+    valor: "",
+  });
+
+  useEffect(() => {
+    // SIMULA usuário logado professor para eu poder entrar sem acesso ao back
+    setCurrentUser({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
+    setUsuario({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
+  }, []);
+
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [agendamento, setAgendamento] = useState({
+    data: "",
+    horario: "",
+    atividade: "",
+  });
+  const openScheduleModal = () => setIsScheduleModalOpen(true);
+  const closeScheduleModal = () => setIsScheduleModalOpen(false);
+  const handleChangeAgendamento = (e) => {
+    const { name, value } = e.target;
+    setAgendamento(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleConfirmarAgendamento = () => {
+    console.log("Dados do agendamento enviados:", agendamento);
+
+    // Quando o backend estiver pronto, usar:
+    /*
+    fetch(`${API_BASE_URL}/agendamentos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(agendamento),
+      credentials: "include"
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Agendamento salvo!", data);
+        alert("Agendamento concluído!");
+        closeScheduleModal();
+      })
+      .catch(error => console.error("Erro ao salvar agendamento:", error));
+    */
+
+    // Código temporário só pra mostrar feedback
+    alert("Agendamento enviado! (quando o back estiver pronto irá salvar)");
+    closeScheduleModal();
+  };
+
+
   console.log("[ProfileUser] params", {
     userIdParam,
     userUuidParam,
@@ -152,6 +205,31 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       fileInputRef.current.click();
     }
   };
+  async function handleSubmitPacote() {
+    if (!pacote.quantidade || !pacote.valor) {
+      alert("Preencha os campos corretamente");
+      return;
+    }
+
+    try {
+      await fetch(`${API_BASE_URL}/pacotes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          qtd_aulas: pacote.quantidade,
+          preco: pacote.valor,
+        }),
+      });
+
+      alert("Pacote cadastrado com sucesso!");
+      setIsPackageModalOpen(false);
+      setPacote({ quantidade: "", valor: "" });
+
+    } catch (error) {
+      alert("Erro ao cadastrar pacote");
+    }
+  }
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -328,110 +406,123 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
       <div className="profile-container">
         <div className="lado-esquerdo-profile">
-        {/* Container top-items acima do main-text */}
-        <div className="top-items">
-          {/* Categorias no inicio (esquerda) */}
-          <div className="categorias">
-            {badgeInfo && (
-              <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
-                {badgeInfo.label}
-              </span>
-            )}
-            {displayTags.map((tag, index) => {
-              const key = `${tag}-${index}`;
-              return (
-                <span key={key} className="categoria-item">
-                  {tag}
+          {/* Container top-items acima do main-text */}
+          <div className="top-items">
+            {/* Categorias no inicio (esquerda) */}
+            <div className="categorias">
+              {badgeInfo && (
+                <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
+                  {badgeInfo.label}
                 </span>
-              );
-            })}
+              )}
+              {displayTags.map((tag, index) => {
+                const key = `${tag}-${index}`;
+                return (
+                  <span key={key} className="categoria-item">
+                    {tag}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Botao de edicao no final (direita)*/}
+            {isOwner && (
+              <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
+                <span aria-hidden="true">✎</span>
+              </button>
+            )}
+
           </div>
 
-          {/* Botao de edicao no final (direita)*/}
-          {isOwner && (
-            <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
-              <span aria-hidden="true">✎</span>
-            </button>
-          )}
-        </div>
+          {/* Texto principal a esquerda */}
+          <div className="main-text">
+            <div className="texto-intro">
+              <p>
+                {introText}
+              </p>
+            </div>
 
-        {/* Texto principal a esquerda */}
-        <div className="main-text">
-          <div className="texto-intro">
-            <p>
-              {introText}
-            </p>
+            <div className="texto-desc">
+              <p>{descText}</p>
+            </div>
           </div>
-
-          <div className="texto-desc">
-            <p>{descText}</p>
-          </div>
-        </div>
 
         </div>
 
         {/* Cartao de perfil a direita */}
         <div className="lado-direito-profile">
-        <div className="card-perfil">
-          <div
-            className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
-            onClick={isOwner ? handleFotoClick : undefined}
-            role={isOwner ? "button" : undefined}
-            tabIndex={isOwner ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (isOwner && (e.key === "Enter" || e.key === " ")) {
-                e.preventDefault();
-                handleFotoClick();
-              }
-            }}
-          >
-            {displayedPicture ? (
-              <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
-            ) : (
-              <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
-            )}
+          <div className="card-perfil">
+            <div
+              className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
+              onClick={isOwner ? handleFotoClick : undefined}
+              role={isOwner ? "button" : undefined}
+              tabIndex={isOwner ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (isOwner && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  handleFotoClick();
+                }
+              }}
+
+            >
+
+              {displayedPicture ? (
+                <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
+              ) : (
+                <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
+              )}
+              {isOwner && (
+                <div className="foto-overlay">
+                  <span className="camera-icon" aria-hidden="true">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
+                      <circle cx="12" cy="13" r="3.2" />
+                    </svg>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <h3>{nomeUsuario}</h3>
+            <p className="avaliacao">&lt;Avaliacao&gt;</p>
+
+            <div className="info">
+              <p>
+                <span>Email:</span>
+                <span>{usuario.email || "Nao informado"}</span>
+              </p>
+              <p>
+                <span>Telefone:</span>
+                <span>{usuario.telefone || "Nao informado"}</span>
+              </p>
+              <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
+            </div>
+
             {isOwner && (
-              <div className="foto-overlay">
-                <span className="camera-icon" aria-hidden="true">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
-                    <circle cx="12" cy="13" r="3.2" />
-                  </svg>
-                </span>
+              <div className="botoes">
+                <button className="btn-editar">Editar Perfil</button>
+                <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
+                  Cadastrar Pacote
+                </button>
+              </div>
+            )}
+
+            {!isOwner && (
+              <div className="botoes">
+                <button className="btn-agendar" onClick={openScheduleModal}>
+                  Agendar Aula
+                </button>
               </div>
             )}
           </div>
-
-          <h3>{nomeUsuario}</h3>
-          <p className="avaliacao">&lt;Avaliacao&gt;</p>
-
-          <div className="info">
-            <p>
-              <span>Email:</span>
-              <span>{usuario.email || "Nao informado"}</span>
-            </p>
-            <p>
-              <span>Telefone:</span>
-              <span>{usuario.telefone || "Nao informado"}</span>
-            </p>
-            <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
-          </div>
-
-          {isOwner && (
-            <div className="botoes">
-              <button className="btn-editar">Editar Perfil</button>
-              <button className="btn-deletar">Deletar Conta</button>
-            </div>
-          )}
-        </div>
         </div>
 
         {isModalOpen && (
@@ -580,6 +671,124 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
+      {isScheduleModalOpen && (
+        <div className="modal-backdrop" onClick={closeScheduleModal}>
+          <div
+            className="modal-container"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+          >
+            <div className="modal-header">
+              <h5>Agendar Aula</h5>
+              <button className="modal-close" onClick={closeScheduleModal}>x</button>
+            </div>
+
+            <div className="modal-body">
+              <label>
+                Data:
+                <input
+                  type="date"
+                  name="data"
+                  value={agendamento.data}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+
+              <label>
+                Horário:
+                <input
+                  type="time"
+                  name="horario"
+                  value={agendamento.horario}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+
+              <label>
+                Atividade:
+                <input
+                  type="text"
+                  name="atividade"
+                  placeholder="Ex: Aula de Canto"
+                  value={agendamento.atividade}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+            </div>
+
+            <button onClick={handleConfirmarAgendamento}>
+              Confirmar
+            </button>
+
+          </div>
+        </div>
+      )}
+
+      {isPackageModalOpen && (
+        <div className="pacote-modal-overlay">
+          <div className="pacote-modal-container">
+
+            <h3>Cadastrar Pacote de Aula</h3>
+
+            {/* Nome/Descrição do Pacote */}
+            <div className="pacote-input-group">
+              <label>Nome ou Descrição do Pacote</label>
+              <input
+                type="text"
+                placeholder="Ex.: Pacote Mensal Premium"
+                value={pacote.nome}
+                onChange={(e) =>
+                  setPacote({ ...pacote, nome: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Quantidade de aulas */}
+            <div className="pacote-input-group">
+              <label>Quantidade de Aulas</label>
+              <input
+                type="number"
+                min={1}
+                placeholder="Ex.: 4"
+                value={pacote.quantidade}
+                onChange={(e) =>
+                  setPacote({ ...pacote, quantidade: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Valor total */}
+            <div className="pacote-input-group">
+              <label>Valor Total (R$)</label>
+              <input
+                type="number"
+                placeholder="Ex.: 280"
+                value={pacote.valorTotal}
+                onChange={(e) =>
+                  setPacote({ ...pacote, valorTotal: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Ações */}
+            <button
+              className="pacote-btn-confirmar"
+              onClick={handleSubmitPacote}
+            >
+              Salvar Pacote
+            </button>
+
+            <button
+              className="pacote-btn-cancelar"
+              onClick={() => setIsPackageModalOpen(false)}
+            >
+              Cancelar
+            </button>
+
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
