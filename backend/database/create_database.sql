@@ -36,6 +36,24 @@ CREATE TABLE tb_aluno (
     conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
 );
 
+CREATE TABLE tb_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL UNIQUE,
+    slug VARCHAR(255) NULL,
+    tipo ENUM('INSTRUMENTO','LIVRE') NOT NULL DEFAULT 'LIVRE',
+    instrumento_id INT NULL,
+    CONSTRAINT fk_tag_instrumento FOREIGN KEY (instrumento_id) REFERENCES tb_instrumento(id)
+);
+
+CREATE TABLE tb_professor_tag (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    professor_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    UNIQUE KEY uk_professor_tag (professor_id, tag_id),
+    FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
+);
+
 CREATE TABLE tb_categoria (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(50) NOT NULL UNIQUE
