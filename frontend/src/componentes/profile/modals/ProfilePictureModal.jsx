@@ -1,3 +1,5 @@
+import "./ProfilePictureModal.css";
+
 function ProfilePictureModal({
   open,
   onClose,
@@ -13,28 +15,28 @@ function ProfilePictureModal({
   if (!open) return null;
 
   return (
-    <div className="profile-modal-backdrop" onClick={onClose}>
+    <div className="profile-picture-backdrop" onClick={onClose}>
       <div
-        className="profile-modal-container"
+        className="profile-picture-container"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Pre-visualizacao da foto de perfil"
       >
-        <div className="profile-modal-header">
+        <div className="profile-picture-header">
           <h5>Pré-visualização</h5>
-          <button className="profile-modal-close" onClick={onClose} aria-label="Fechar modal">
+          <button className="profile-picture-close" onClick={onClose} aria-label="Fechar modal">
             x
           </button>
         </div>
-        <div className="profile-modal-body">
+        <div className="profile-picture-body">
           {displayedPicture ? (
             <img src={displayedPicture} alt={`Pre-visualizacao de ${nomeUsuario}`} />
           ) : (
-            <div className="profile-modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
+            <div className="profile-picture-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
           )}
         </div>
-        <div className="profile-modal-footer">
+        <div className="profile-picture-footer">
           <input
             ref={fileInputRef}
             type="file"
@@ -42,14 +44,14 @@ function ProfilePictureModal({
             style={{ display: "none" }}
             onChange={onFileChange}
           />
-          <div className="profile-modal-file-info">
+          <div className="profile-picture-file-info">
             {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
           </div>
-          <button className="profile-btn-select-file" type="button" onClick={onSelectFileClick}>
+          <button className="profile-picture-btn-select" type="button" onClick={onSelectFileClick}>
             Selecionar imagem
           </button>
           <button
-            className="profile-btn-upload"
+            className="profile-picture-btn-upload"
             type="button"
             onClick={onUpload}
             disabled={!selectedFile || isUploading}
