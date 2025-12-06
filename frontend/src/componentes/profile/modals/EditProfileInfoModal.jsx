@@ -62,9 +62,7 @@ function EditProfileInfoModal({ open, onClose, displayedPicture, nomeUsuario = "
                   </div>
                 )}
               </div>
-              <button type="button" className="edit-profile-info-btn-select-file" onClick={onPhotoClick}>
-                Selecionar imagem
-              </button>
+
             </div>
           </div>
 
