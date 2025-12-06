@@ -5,6 +5,7 @@ import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
 import EditProfileTextModal from "./modals/EditProfileTextModal";
 import EditProfileInfoModal from "./modals/EditProfileInfoModal";
+import ProfilePictureModal from "./modals/ProfilePictureModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -649,54 +650,18 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
 
-        {isModalOpen && (
-          <div className="modal-backdrop" onClick={closeModal}>
-            <div
-              className="modal-container"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Pre-visualizacao da foto de perfil"
-            >
-              <div className="modal-header">
-                <h5>Pré-visualizacao</h5>
-                <button className="modal-close" onClick={closeModal} aria-label="Fechar modal">
-                  x
-                </button>
-              </div>
-              <div className="modal-body">
-                {displayedPicture ? (
-                  <img src={displayedPicture} alt={`Pre-visualizacao de ${nomeUsuario}`} />
-                ) : (
-                  <div className="modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                />
-                <div className="modal-file-info">
-                  {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
-                </div>
-                <button className="btn-select-file" type="button" onClick={handleUploadClick}>
-                  Selecionar imagem
-                </button>
-                <button
-                  className="btn-upload"
-                  type="button"
-                  onClick={handleUploadSubmit}
-                  disabled={!selectedFile || isUploading}
-                >
-                  {isUploading ? "Enviando..." : "Salvar foto"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ProfilePictureModal
+          open={isModalOpen}
+          onClose={closeModal}
+          displayedPicture={displayedPicture}
+          nomeUsuario={nomeUsuario}
+          fileInputRef={fileInputRef}
+          selectedFile={selectedFile}
+          onFileChange={handleFileChange}
+          onSelectFileClick={handleUploadClick}
+          onUpload={handleUploadSubmit}
+          isUploading={isUploading}
+        />
 
         <EditProfileTextModal
           open={isEditTextsModalOpen}
