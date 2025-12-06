@@ -1,0 +1,123 @@
+.edit-profile-text-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.edit-profile-text-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.edit-profile-text-header,
+.edit-profile-text-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.edit-profile-text-header h5 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.edit-profile-text-close {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #334155;
+}
+
+.edit-profile-text-body {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-profile-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-profile-text-label {
+  font-weight: 600;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.edit-profile-textarea,
+.edit-profile-text-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.edit-profile-text-footer {
+  border-top: 1px solid #e2e8f0;
+  border-bottom: none;
+  gap: 12px;
+}
+
+.edit-profile-text-btn-save {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.edit-profile-text-btn-save:hover {
+  background: #0369a1;
+}
+
+.edit-profile-text-btn-save:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.edit-profile-text-btn-cancel {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-profile-text-btn-cancel:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}

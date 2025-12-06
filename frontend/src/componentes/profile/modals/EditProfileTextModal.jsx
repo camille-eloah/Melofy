@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useProfileTextForm } from "../hooks/useProfileTextForm";
+import "./EditProfileTextModal.css";
 
 function EditProfileTextModal({
   open,
@@ -43,44 +44,44 @@ function EditProfileTextModal({
   };
 
   return (
-    <div className="profile-modal-backdrop" onClick={onClose}>
+    <div className="edit-profile-text-backdrop" onClick={onClose}>
       <div
-        className="profile-modal-container"
+        className="edit-profile-text-container"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Editar textos do perfil"
       >
-        <div className="profile-modal-header">
+        <div className="edit-profile-text-header">
           <h5>Editar textos do perfil</h5>
-          <button className="profile-modal-close" onClick={onClose} aria-label="Fechar modal">
+          <button className="edit-profile-text-close" onClick={onClose} aria-label="Fechar modal">
             x
           </button>
         </div>
 
-        <div className="profile-modal-body" style={{ flexDirection: "column", gap: "12px" }}>
-          <label className="profile-modal-input-group">
-            <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Titulo</span>
+        <div className="edit-profile-text-body">
+          <label className="edit-profile-text-group">
+            <span className="edit-profile-text-label">Titulo</span>
             <textarea
               value={intro}
               onChange={(e) => setIntro(e.target.value)}
               rows={3}
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+              className="edit-profile-textarea"
             />
           </label>
 
-          <label className="profile-modal-input-group">
-            <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descricao</span>
+          <label className="edit-profile-text-group">
+            <span className="edit-profile-text-label">Descricao</span>
             <textarea
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               rows={4}
-              style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+              className="edit-profile-textarea"
             />
           </label>
 
-          <div className="profile-modal-input-group">
-            <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
+          <div className="edit-profile-text-group">
+            <span className="edit-profile-text-label">Tags</span>
             <div className="tags-editor">
               <div className="tags-list">
                 {[...tags]
@@ -134,11 +135,11 @@ function EditProfileTextModal({
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="profile-btn-upload" type="button" onClick={handleSaveClick} disabled={isSaving}>
+        <div className="edit-profile-text-footer">
+          <button className="edit-profile-text-btn-save" type="button" onClick={handleSaveClick} disabled={isSaving}>
             {isSaving ? "Salvando..." : "Salvar"}
           </button>
-          <button className="profile-btn-select-file" type="button" onClick={onClose}>
+          <button className="edit-profile-text-btn-cancel" type="button" onClick={onClose}>
             Cancelar
           </button>
         </div>
