@@ -687,18 +687,18 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         </div>
       </div>
       {isScheduleModalOpen && (
-        <div className="modal-backdrop" onClick={closeScheduleModal}>
+        <div className="profile-modal-backdrop" onClick={closeScheduleModal}>
           <div
-            className="modal-container"
+            className="profile-modal-container"
             onClick={(e) => e.stopPropagation()}
             role="dialog"
           >
-            <div className="modal-header">
+            <div className="profile-modal-header">
               <h5>Agendar Aula</h5>
-              <button className="modal-close" onClick={closeScheduleModal}>x</button>
+              <button className="profile-modal-close" onClick={closeScheduleModal}>x</button>
             </div>
 
-            <div className="modal-body">
+            <div className="profile-modal-body">
               <label>
                 Data:
                 <input

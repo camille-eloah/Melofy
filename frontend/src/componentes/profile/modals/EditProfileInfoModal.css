@@ -1,5 +1,5 @@
 /* === BACKDROP === */
-.modal-backdrop {
+.edit-profile-info-backdrop {
   position: fixed;
   top: 0;
   left: 0;
@@ -15,7 +15,7 @@
 }
 
 /* === CONTAINER === */
-.modal-container {
+.edit-profile-info-container {
   width: 400px;
   max-width: 92%;
   background: #ffffff;
@@ -28,21 +28,21 @@
 }
 
 /* === HEADER === */
-.modal-header {
+.edit-profile-info-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 18px;
 }
 
-.modal-header h5 {
+.edit-profile-info-header h5 {
   margin: 0;
   font-size: 1.45rem;
   color: #0077aa;
   font-weight: 700;
 }
 
-.modal-close {
+.edit-profile-info-close {
   background: transparent;
   border: none;
   font-size: 1.2rem;
@@ -52,34 +52,34 @@
   transition: 0.2s;
 }
 
-.modal-close:hover {
+.edit-profile-info-close:hover {
   color: #0087cc;
   transform: scale(1.2);
 }
 
 /* === BODY === */
-.modal-body {
+.edit-profile-info-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
 /* GRUPOS */
-.modal-input-group {
+.edit-profile-info-input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.modal-input-group span {
+.edit-profile-info-label {
   font-size: 0.9rem;
   color: #005f89;
   font-weight: 600;
 }
 
 /* INPUTS / TEXTAREA */
-.modal-input-group input,
-.modal-input-group textarea {
+.edit-profile-info-input-group input,
+.edit-profile-info-input-group textarea {
   width: 100%;
   padding: 10px;
   border-radius: 10px;
@@ -92,15 +92,21 @@
   resize: none;
 }
 
-.modal-input-group input:focus,
-.modal-input-group textarea:focus {
+.edit-profile-info-input-group input:focus,
+.edit-profile-info-input-group textarea:focus {
   border-color: #0099cc;
   background: #ffffff;
   box-shadow: 0 0 10px rgba(0, 150, 220, 0.25);
 }
 
+.edit-profile-info-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* === FOTO PREVIEW === */
-.profile-preview {
+.edit-profile-info-preview {
   width: 64px;
   height: 64px;
   border-radius: 50%;
@@ -111,6 +117,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.edit-profile-info-btn-select-file {
+  padding: 10px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-profile-info-btn-select-file:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
 }
 
 /* === BOTÕES === */
@@ -154,7 +176,7 @@
 }
 
 /* === FOOTER === */
-.modal-footer {
+.edit-profile-info-footer {
   display: flex;
   gap: 12px;
   margin-top: 16px;

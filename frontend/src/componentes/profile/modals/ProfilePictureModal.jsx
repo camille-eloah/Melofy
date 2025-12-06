@@ -13,28 +13,28 @@ function ProfilePictureModal({
   if (!open) return null;
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="profile-modal-backdrop" onClick={onClose}>
       <div
-        className="modal-container"
+        className="profile-modal-container"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Pre-visualizacao da foto de perfil"
       >
-        <div className="modal-header">
+        <div className="profile-modal-header">
           <h5>Pré-visualização</h5>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar modal">
+          <button className="profile-modal-close" onClick={onClose} aria-label="Fechar modal">
             x
           </button>
         </div>
-        <div className="modal-body">
+        <div className="profile-modal-body">
           {displayedPicture ? (
             <img src={displayedPicture} alt={`Pre-visualizacao de ${nomeUsuario}`} />
           ) : (
-            <div className="modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
+            <div className="profile-modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
           )}
         </div>
-        <div className="modal-footer">
+        <div className="profile-modal-footer">
           <input
             ref={fileInputRef}
             type="file"
@@ -42,14 +42,14 @@ function ProfilePictureModal({
             style={{ display: "none" }}
             onChange={onFileChange}
           />
-          <div className="modal-file-info">
+          <div className="profile-modal-file-info">
             {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
           </div>
-          <button className="btn-select-file" type="button" onClick={onSelectFileClick}>
+          <button className="profile-btn-select-file" type="button" onClick={onSelectFileClick}>
             Selecionar imagem
           </button>
           <button
-            className="btn-upload"
+            className="profile-btn-upload"
             type="button"
             onClick={onUpload}
             disabled={!selectedFile || isUploading}

@@ -43,23 +43,23 @@ function EditProfileTextModal({
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="profile-modal-backdrop" onClick={onClose}>
       <div
-        className="modal-container"
+        className="profile-modal-container"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Editar textos do perfil"
       >
-        <div className="modal-header">
+        <div className="profile-modal-header">
           <h5>Editar textos do perfil</h5>
-          <button className="modal-close" onClick={onClose} aria-label="Fechar modal">
+          <button className="profile-modal-close" onClick={onClose} aria-label="Fechar modal">
             x
           </button>
         </div>
 
-        <div className="modal-body" style={{ flexDirection: "column", gap: "12px" }}>
-          <label className="modal-input-group">
+        <div className="profile-modal-body" style={{ flexDirection: "column", gap: "12px" }}>
+          <label className="profile-modal-input-group">
             <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Titulo</span>
             <textarea
               value={intro}
@@ -69,7 +69,7 @@ function EditProfileTextModal({
             />
           </label>
 
-          <label className="modal-input-group">
+          <label className="profile-modal-input-group">
             <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descricao</span>
             <textarea
               value={desc}
@@ -79,7 +79,7 @@ function EditProfileTextModal({
             />
           </label>
 
-          <div className="modal-input-group">
+          <div className="profile-modal-input-group">
             <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
             <div className="tags-editor">
               <div className="tags-list">
@@ -135,10 +135,10 @@ function EditProfileTextModal({
         </div>
 
         <div className="modal-footer">
-          <button className="btn-upload" type="button" onClick={handleSaveClick} disabled={isSaving}>
+          <button className="profile-btn-upload" type="button" onClick={handleSaveClick} disabled={isSaving}>
             {isSaving ? "Salvando..." : "Salvar"}
           </button>
-          <button className="btn-select-file" type="button" onClick={onClose}>
+          <button className="profile-btn-select-file" type="button" onClick={onClose}>
             Cancelar
           </button>
         </div>
