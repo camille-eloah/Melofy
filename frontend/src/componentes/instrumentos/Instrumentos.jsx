@@ -42,6 +42,7 @@ function Instrumentos() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalSearch, setModalSearch] = useState("");
   const [modalSelected, setModalSelected] = useState("");
+  const [modalOptions, setModalOptions] = useState([]);
 
   // Bloqueio de acesso para alunos
   useEffect(() => {
@@ -99,11 +100,40 @@ function Instrumentos() {
     setIsModalOpen(false);
     setModalSearch("");
     setModalSelected("");
+    setModalOptions([]);
   }
 
   function handleAddInstrument() {
     closeModal();
   }
+
+  useEffect(() => {
+    if (!isModalOpen) return undefined;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const params = modalSearch ? `?q=${encodeURIComponent(modalSearch)}` : "";
+        const resp = await fetch(`${API_BASE_URL}/instruments${params}`, {
+          signal: controller.signal,
+        });
+        if (!resp.ok) {
+          throw new Error("Erro ao buscar instrumentos");
+        }
+        const data = await resp.json();
+        setModalOptions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error(err);
+        setModalOptions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [isModalOpen, modalSearch]);
 
   return (
     <div className="instrumentos-page">
@@ -181,7 +211,7 @@ function Instrumentos() {
           onSearchChange={setModalSearch}
           selectedValue={modalSelected}
           onSelectChange={setModalSelected}
-          options={INSTRUMENTOS}
+          options={modalOptions}
           onAdd={handleAddInstrument}
         />
       </div>

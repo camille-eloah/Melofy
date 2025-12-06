@@ -495,6 +495,14 @@ def obter_instrumento(
         raise HTTPException(status_code=404, detail="Instrumento não encontrado")
     return _instrumento_to_read(instrumento)
 
+@router_instruments.get("/", response_model=List[InstrumentoRead])
+def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)):
+    stmt = select(Instrumento)
+    if q:
+        stmt = stmt.where(Instrumento.nome.ilike(f"%{q}%"))
+    instrumentos = db.exec(stmt).all()
+    return [_instrumento_to_read(instr) for instr in instrumentos]
+
 @router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
 def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
     stmt = select(Instrumento).join(ProfessorInstrumento).where(
