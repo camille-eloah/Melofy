@@ -270,7 +270,6 @@ function MainSection() {
                   onMouseLeave={() => setHoveredCard(null)}
                   onClick={() => handleSuggestionClick(item.nome)}
                 >
-                  <div className="card-glow"></div>
                   <div className="card-content">
                     <img src={item.img} alt={item.nome} className="instrument-img" />
                     <span className="instrument-name">{item.nome}</span>

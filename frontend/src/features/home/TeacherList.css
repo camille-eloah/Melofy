@@ -14,7 +14,8 @@
 
 .teacher-list {
   width: 100%;
-  padding: 40px 60px;
+  padding: 60px 60px;
+  margin-top: -120px;
 }
 
 /* Título */
@@ -24,6 +25,7 @@
   color: #0b1f3f;
   margin-bottom: 30px;
   text-align: left;
+  margin-top: -40px;
 }
 
 /* GRID de 3 colunas */
