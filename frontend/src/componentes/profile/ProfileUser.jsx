@@ -717,9 +717,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             {isOwner && (
               <div className="botoes">
                 <button className="btn-editar" onClick={openEditProfileModal}>Editar Perfil</button>
-                <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
-                  Cadastrar Pacote
-                </button>
+                {isProfessor && (
+                  <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
+                    Cadastrar Pacote
+                  </button>
+                )}
               </div>
             )}
 
