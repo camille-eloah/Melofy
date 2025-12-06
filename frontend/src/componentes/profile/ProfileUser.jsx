@@ -1,8 +1,9 @@
 import "./ProfileUser.css";
 import Header from "../layout/Header";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
+import EditProfileTextModal from "./modals/EditProfileTextModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -20,13 +21,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [cacheBust, setCacheBust] = useState(Date.now());
   const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
   const [tags, setTags] = useState([]);
-  const [tagsDraft, setTagsDraft] = useState([]);
-  const [tagInput, setTagInput] = useState("");
   const [hasEditedTags, setHasEditedTags] = useState(false);
   const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
   const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
-  const [introDraft, setIntroDraft] = useState("");
-  const [descDraft, setDescDraft] = useState("");
   const [hasEditedTexts, setHasEditedTexts] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -319,25 +316,23 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     if (hasEditedTags) return;
     const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
     setTags(nomesInstrumentos);
-    setTagsDraft(nomesInstrumentos);
   }, [instrumentosProfessor, hasEditedTags]);
 
   const closeModal = () => setIsModalOpen(false);
   const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
 
   const openEditTextsModal = () => {
-    setIntroDraft(introText);
-    setDescDraft(descText);
-    setTagsDraft(tags);
-    setTagInput("");
     setIsEditTextsModalOpen(true);
   };
 
-  const handleSaveTexts = async () => {
+  const handleSaveTexts = async (values) => {
     if (!usuario?.id || isSavingTexts || !isOwner) return;
     setIsSavingTexts(true);
+    const introPayload = values?.intro ?? introText;
+    const descPayload = values?.desc ?? descText;
+    const tagsPayload = Array.isArray(values?.tags) ? values.tags : tags;
     try {
-      const payload = { texto_intro: introDraft, texto_desc: descDraft };
+      const payload = { texto_intro: introPayload, texto_desc: descPayload };
       const resp = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -351,10 +346,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
       const data = await resp.json();
       setUsuario((prev) => ({ ...prev, ...data }));
-      setIntroText(data?.texto_intro ?? introDraft);
-      setDescText(data?.texto_desc ?? descDraft);
+      setIntroText(data?.texto_intro ?? introPayload);
+      setDescText(data?.texto_desc ?? descPayload);
       setHasEditedTexts(true);
-      setTags(tagsDraft);
+      setTags(tagsPayload);
       setHasEditedTags(true);
       setIsEditTextsModalOpen(false);
     } catch (error) {
@@ -365,40 +360,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   };
 
   const displayTags = tags && tags.length > 0 ? tags : instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
-
-  const formatTag = (value) => {
-    const trimmed = (value || "").trim();
-    if (!trimmed) return "";
-    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-  };
-
-  const handleAddTag = () => {
-    if (tagsDraft.length >= 12) return;
-    const formatted = formatTag(tagInput);
-    if (!formatted) return;
-    const exists = tagsDraft.some((tag) => tag.toLowerCase() === formatted.toLowerCase());
-    if (exists) {
-      setTagInput("");
-      return;
-    }
-    const next = [...tagsDraft, formatted];
-    setTagsDraft(next);
-    setHasEditedTags(true);
-    setTagInput("");
-  };
-
-  const handleRemoveTag = (tagToRemove) => {
-    const next = tagsDraft.filter((tag) => tag.toLowerCase() !== String(tagToRemove || "").toLowerCase());
-    setTagsDraft(next);
-    setHasEditedTags(true);
-  };
-
-  const handleTagInputKeyDown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleAddTag();
-    }
-  };
 
   return (
     <div className="profile-page">
@@ -574,90 +535,15 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         )}
 
-        {isEditTextsModalOpen && (
-          <div className="modal-backdrop" onClick={closeEditTextsModal}>
-            <div
-              className="modal-container"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Editar textos do perfil"
-            >
-              <div className="modal-header">
-                <h5>Editar textos do perfil</h5>
-                <button className="modal-close" onClick={closeEditTextsModal} aria-label="Fechar modal">
-                  x
-                </button>
-              </div>
-              <div className="modal-body" style={{ flexDirection: "column", gap: "12px" }}>
-                <label className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Título</span>
-                  <textarea
-                    value={introDraft}
-                    onChange={(e) => setIntroDraft(e.target.value)}
-                    rows={3}
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
-                  />
-                </label>
-                <label className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descrição</span>
-                  <textarea
-                    value={descDraft}
-                    onChange={(e) => setDescDraft(e.target.value)}
-                    rows={4}
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
-                  />
-                </label>
-                <div className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
-                  <div className="tags-editor">
-                    <div className="tags-list">
-                      {tagsDraft.map((tag) => (
-                        <span key={tag} className="tag-badge">
-                          <span className="tag-label">{tag}</span>
-                          <button
-                            type="button"
-                            className="tag-remove"
-                            aria-label={`Remover tag ${tag}`}
-                            onClick={() => handleRemoveTag(tag)}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {tagsDraft.length < 12 && (
-                        <div className="tag-add">
-                          <input
-                            type="text"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleTagInputKeyDown}
-                            maxLength={30}
-                            placeholder="Nova tag"
-                          />
-                          <button type="button" onClick={handleAddTag} aria-label="Adicionar nova tag">
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="tags-helper">
-                      {tagsDraft.length}/12 tags
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn-upload" type="button" onClick={handleSaveTexts} disabled={isSavingTexts}>
-                  {isSavingTexts ? "Salvando..." : "Salvar"}
-                </button>
-                <button className="btn-select-file" type="button" onClick={closeEditTextsModal}>
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditProfileTextModal
+          open={isEditTextsModalOpen}
+          onClose={closeEditTextsModal}
+          onSave={handleSaveTexts}
+          initialIntro={introText}
+          initialDesc={descText}
+          initialTags={tags}
+          isSaving={isSavingTexts}
+        />
 
         {/* Avaliacoes abaixo */}
         <div className="avaliacoes">
