@@ -122,7 +122,7 @@ function Cadastro() {
     const valido = tipoEscolhido === "aluno" || tipoEscolhido === "professor";
 
     if (!valido) {
-      navigate("/", { replace: true });
+      navigate("/notfound", { replace: true });
     }
   }, [tipoEscolhido, navigate]);
 

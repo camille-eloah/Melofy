@@ -1,14 +1,16 @@
 import { Routes, Route } from 'react-router-dom'
 import Login from '../componentes/login/Login'
-{/*import RequireAuth from '../componentes/requireauth/RequireAuth'*/}
+{/*import RequireAuth from '../componentes/requireauth/RequireAuth'*/ }
 import Cadastro from '../componentes/cadastro/Cadastro'
 import Home from '../features/home/HomePage'
 import ProfileUser from '../componentes/profile/ProfileUser'
-import Localizacao from  "../componentes/localizacao/Localizacao"
+import Localizacao from "../componentes/localizacao/Localizacao"
 import Entrada from '../componentes/entrada/Entrada'
 import Instrumentos from '../componentes/instrumentos/Instrumentos'
 import Feedback from '../componentes/feedback/FeedBack'
 import ChatMelofy from '../componentes/chat/Chat'
+import NotFound from '../componentes/notfound/NotFound'
+
 
 export default function AppRoutes() {
   return (
@@ -24,9 +26,11 @@ export default function AppRoutes() {
       <Route path="/aluno/:uuid" element={<ProfileUser />} />
       <Route path="/localizacao" element={<Localizacao />} />
       <Route path="/instrumentos" element={<Instrumentos />} />
-      <Route path="/feedback" element={<Feedback /> } />
-      <Route path= "/chat" element={ <ChatMelofy /> } />
-      
+      <Route path="/feedback" element={<Feedback />} />
+      <Route path="/chat" element={<ChatMelofy />} />
+      <Route path="/notfound" element={<NotFound />} />
+
+
     </Routes>
   )
 }
