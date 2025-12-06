@@ -193,6 +193,15 @@ def _get_or_create_tag_by_name(db: Session, nome: str) -> Tag:
     return novo
 
 
+def _email_em_uso_por_outro(db: Session, email: str, user_id: int) -> bool:
+  """Verifica se o email informado pertence a outro usuario (professor ou aluno)."""
+  for model in (Professor, Aluno):
+      existente = db.exec(select(model).where(model.email == email)).first()
+      if existente and existente.id != user_id:
+          return True
+  return False
+
+
 # ----------------------------
 # 0. Usuário
 # ----------------------------
@@ -367,6 +376,14 @@ def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session
     usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    if dados.email is not None:
+        if _email_em_uso_por_outro(db, dados.email, user_id):
+            raise HTTPException(status_code=400, detail="E-mail jÇ  cadastrado")
+        usuario.email = dados.email
+
+    if dados.nome is not None:
+        usuario.nome = dados.nome
 
     if dados.telefone is not None:
         usuario.telefone = dados.telefone
