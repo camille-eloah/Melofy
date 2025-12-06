@@ -39,6 +39,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isSavingProfileInfo, setIsSavingProfileInfo] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -548,6 +549,39 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
 
+  const handleSaveProfileInfo = async (values) => {
+    if (!usuario?.id || isSavingProfileInfo || !isOwner) return;
+
+    const payload = {
+      nome: values?.nome ?? usuario.nome ?? "",
+      email: values?.email ?? usuario.email ?? "",
+      telefone: values?.telefone ?? "",
+      bio: values?.bio ?? "",
+    };
+
+    setIsSavingProfileInfo(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha ao salvar info: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUsuario((prev) => ({ ...prev, ...data }));
+      closeEditProfileModal();
+    } catch (error) {
+      console.error("Erro ao salvar informaÇðes do perfil", error);
+    } finally {
+      setIsSavingProfileInfo(false);
+    }
+  };
+
   const sortTagsWithInstrumentsFirst = (list = []) => {
     return [...list].sort((a, b) => {
       const aIsInst = Boolean(a?.isInstrument || a?.instrumento_id);
@@ -728,6 +762,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           nomeUsuario={nomeUsuario}
           isOwner={isOwner}
           onPhotoClick={handleFotoClick}
+          initialName={usuario?.nome || ""}
+          initialEmail={usuario?.email || ""}
+          initialPhone={usuario?.telefone || ""}
+          initialBio={usuario?.bio || ""}
+          onSave={handleSaveProfileInfo}
+          isSaving={isSavingProfileInfo}
         />
 
         {/* Avaliacoes abaixo */}

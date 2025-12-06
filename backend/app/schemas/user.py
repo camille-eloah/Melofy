@@ -60,6 +60,8 @@ class UserResponse(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    nome: str | None = None
+    email: EmailStr | None = None
     telefone: str | None = None
     bio: str | None = None
     texto_intro: str | None = None
