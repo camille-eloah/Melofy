@@ -481,12 +481,15 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       setHasEditedTexts(true);
 
       if (tagsResp) {
-        if (!tagsResp.ok) {
-          throw new Error(`Falha ao salvar tags: ${tagsResp.status}`);
+        if (tagsResp.ok) {
+          const tagsData = await tagsResp.json();
+          const normalized = (tagsData || []).map(normalizeTagResponse).filter(Boolean);
+          setTags(normalized);
+        } else {
+          // Se der 404 (ex.: backend sem professor para o id), segue sem interromper o fluxo
+          console.warn("[ProfileUser] falha ao salvar tags, prosseguindo", { status: tagsResp.status });
+          setTags(tagsPayload);
         }
-        const tagsData = await tagsResp.json();
-        const normalized = (tagsData || []).map(normalizeTagResponse).filter(Boolean);
-        setTags(normalized);
       } else {
         setTags(tagsPayload);
       }

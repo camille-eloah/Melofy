@@ -21,7 +21,7 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha
+from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha, Tag, TagTipo, ProfessorTag
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -44,6 +44,7 @@ from app.models import Professor, Instrumento, ProfessorInstrumento
 
 import logging
 from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
+from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
 
 
 logger = logging.getLogger(__name__)
@@ -140,6 +141,56 @@ router_feedback = APIRouter(
     prefix="/feedback",
     tags=["feedback"]
 )
+
+router_tags = APIRouter(
+    prefix="/tags",
+    tags=["tags"]
+)
+
+
+def _normalize_tag_name(value: str) -> str:
+    return (value or "").strip()
+
+
+def _tag_to_response(tag: Tag) -> TagRead:
+    return TagRead(
+        id=tag.id,
+        nome=tag.nome,
+        tipo=tag.tipo,
+        instrumento_id=tag.instrumento_id,
+        is_instrument=bool(tag.instrumento_id),
+    )
+
+
+def _get_or_create_tag_by_name(db: Session, nome: str) -> Tag:
+    normalized = _normalize_tag_name(nome)
+    if not normalized:
+        raise HTTPException(status_code=400, detail="Nome da tag invalido")
+
+    existing = db.exec(select(Tag).where(Tag.nome.ilike(normalized))).first()
+    instrument = db.exec(select(Instrumento).where(Instrumento.nome.ilike(normalized))).first()
+
+    if existing:
+        updated = False
+        if instrument and (existing.instrumento_id != instrument.id or existing.tipo != TagTipo.INSTRUMENTO):
+            existing.instrumento_id = instrument.id
+            existing.tipo = TagTipo.INSTRUMENTO
+            updated = True
+        if updated:
+            db.add(existing)
+            db.commit()
+            db.refresh(existing)
+        return existing
+
+    novo = Tag(
+        nome=normalized,
+        tipo=TagTipo.INSTRUMENTO if instrument else TagTipo.LIVRE,
+        instrumento_id=instrument.id if instrument else None,
+    )
+    db.add(novo)
+    db.commit()
+    db.refresh(novo)
+    return novo
 
 
 # ----------------------------
@@ -503,6 +554,111 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
     return instrumentos
 
 # ----------------------------
+# 5.1 Tags
+# ----------------------------
+
+@router_tags.get("/", response_model=List[TagRead])
+def listar_tags(q: str | None = None, db: Session = Depends(get_session)):
+    stmt = select(Tag)
+    if q:
+        stmt = stmt.where(Tag.nome.ilike(f"%{q}%"))
+    tags = db.exec(stmt).all()
+    return [_tag_to_response(tag) for tag in tags]
+
+
+@router_tags.post("/", response_model=TagRead, status_code=201)
+def criar_tag(tag_in: TagCreate, db: Session = Depends(get_session)):
+    tag = _get_or_create_tag_by_name(db, tag_in.nome)
+    return _tag_to_response(tag)
+
+
+@router_user.get("/{user_id}/tags", response_model=List[TagRead])
+def listar_tags_professor(user_id: int, db: Session = Depends(get_session)):
+    professor = db.get(Professor, user_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor nao encontrado")
+    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.professor_id == user_id)
+    tags = db.exec(stmt).all()
+    return [_tag_to_response(tag) for tag in tags]
+
+
+@router_user.patch("/{user_id}/tags", response_model=List[TagRead])
+def atualizar_tags_professor(
+    user_id: int,
+    dados: TagsSyncRequest,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    token = request.cookies.get("access_token") if request else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Nao autenticado")
+    try:
+        payload = _decode_token(token)
+        sub = int(payload.get("sub"))
+        tipo_token = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token invalido")
+    if sub != user_id or tipo_token != TipoUsuario.PROFESSOR.value:
+        raise HTTPException(status_code=403, detail="Operacao nao permitida")
+
+    professor = db.get(Professor, user_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor nao encontrado")
+
+    nomes_unicos: List[str] = []
+    vistos: set[str] = set()
+    for nome in dados.tags:
+        normalizado = _normalize_tag_name(nome)
+        if not normalizado:
+            continue
+        chave = normalizado.lower()
+        if chave in vistos:
+            continue
+        vistos.add(chave)
+        nomes_unicos.append(normalizado)
+
+    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.professor_id == user_id)).all()
+    for rel in antigos:
+        db.delete(rel)
+    db.commit()
+
+    tags_resultado: List[Tag] = []
+    for nome in nomes_unicos:
+        tag = _get_or_create_tag_by_name(db, nome)
+        rel = ProfessorTag(professor_id=user_id, tag_id=tag.id)
+        db.add(rel)
+        tags_resultado.append(tag)
+
+    # Sincroniza tabela de instrumentos do professor com as tags de instrumento
+    instrument_ids = {tag.instrumento_id for tag in tags_resultado if tag.instrumento_id}
+    if instrument_ids:
+        existentes = db.exec(
+            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+        ).all()
+        existentes_ids = {rel.instrumento_id for rel in existentes}
+
+        # Remover instrumentos que saíram
+        for rel in existentes:
+            if rel.instrumento_id not in instrument_ids:
+                db.delete(rel)
+
+        # Adicionar instrumentos novos
+        for instr_id in instrument_ids:
+            if instr_id not in existentes_ids:
+                db.add(ProfessorInstrumento(professor_id=user_id, instrumento_id=instr_id))
+
+    else:
+        # Nenhuma tag de instrumento: limpa relacionamentos existentes
+        antigos_instr = db.exec(
+            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+        ).all()
+        for rel in antigos_instr:
+            db.delete(rel)
+
+    db.commit()
+    return [_tag_to_response(tag) for tag in tags_resultado]
+
+# ----------------------------
 # 6. Filtragem
 # ----------------------------
 
@@ -726,3 +882,4 @@ app.include_router(router_schedule)
 app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
+app.include_router(router_tags)
