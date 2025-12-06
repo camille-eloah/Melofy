@@ -101,7 +101,7 @@ function EditProfileTextModal({
                       <span className="tag-label">{name}</span>
                       <button
                         type="button"
-                        className="tag-remove"
+                        className={`tag-remove${isInstrument ? " white-color-text" : ""}`}
                         aria-label={`Remover tag ${name}`}
                         onClick={() => removeTag(tag)}
                       >

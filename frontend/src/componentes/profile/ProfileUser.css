@@ -363,7 +363,7 @@
 }
 
 .categoria-item-instrument {
-  background-color: #142aa1;;
+  background-color: #142aa1;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
   padding: 8px 16px;
@@ -379,6 +379,11 @@
   border-color: #cbd5e1;
   transform: translateY(-1px);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.categoria-item-instrument:hover
+{
+  background-color: #191188;
 }
 
 .categoria-badge {
@@ -633,7 +638,7 @@
 }
 
 .tag-badge-instrument {
-  background: #2563eb;
+  background: #142aa1;
   color: #f8fafc;
 }
 
@@ -645,6 +650,10 @@
   font-weight: 700;
   line-height: 1;
   padding: 0 4px;
+}
+
+.white-color-text {
+  color: #ffffff;
 }
 
 .tag-remove:hover {
