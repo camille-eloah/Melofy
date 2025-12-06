@@ -38,6 +38,9 @@ function Instrumentos() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalSearch, setModalSearch] = useState("");
+  const [modalSelected, setModalSelected] = useState("");
 
   // Bloqueio de acesso para alunos
   useEffect(() => {
@@ -91,6 +94,12 @@ function Instrumentos() {
     }
   }
 
+  function closeModal() {
+    setIsModalOpen(false);
+    setModalSearch("");
+    setModalSelected("");
+  }
+
   return (
     <div className="instrumentos-page">
       <header className="instrumentos-header">
@@ -141,6 +150,15 @@ function Instrumentos() {
           <img className="menino-instrumento" src={menino} alt="Menino Apontando" />
         </div>
 
+        <div className="instrumentos-circles-container instrumentos-add-container">
+          <div
+            className="instrumentos-circle instrumentos-add-circle"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <span className="instrumentos-add-icon">+</span>
+          </div>
+        </div>
+
         <button
           className="botao-salvar-instrumentos"
           onClick={salvarInstrumentos}
@@ -151,6 +169,55 @@ function Instrumentos() {
 
         {mensagem && <p className="mensagem-instrumentos">{mensagem}</p>}
       </div>
+      {isModalOpen && (
+        <div className="instrumentos-modal-backdrop" onClick={closeModal}>
+          <div
+            className="instrumentos-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="instrumentos-modal-close" onClick={closeModal}>
+              x
+            </button>
+            <h3>Adicionar novo instrumento</h3>
+            <p className="instrumentos-modal-subtitle">
+              Use a busca para filtrar e selecione o instrumento que deseja incluir.
+            </p>
+            <div className="instrumentos-modal-field">
+              <label htmlFor="instrument-search">Pesquisar</label>
+              <input
+                id="instrument-search"
+                type="text"
+                placeholder="Digite para filtrar"
+                value={modalSearch}
+                onChange={(e) => setModalSearch(e.target.value)}
+              />
+            </div>
+            <div className="instrumentos-modal-field">
+              <label htmlFor="instrument-select">Selecione o instrumento</label>
+              <select
+                id="instrument-select"
+                value={modalSelected}
+                onChange={(e) => setModalSelected(e.target.value)}
+              >
+                <option value="">Escolha uma opção</option>
+                {INSTRUMENTOS.map((inst) => (
+                  <option key={inst.id} value={inst.id}>
+                    {inst.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="instrumentos-modal-actions">
+              <button className="instrumentos-modal-button ghost" onClick={closeModal}>
+                Cancelar
+              </button>
+              <button className="instrumentos-modal-button primary" onClick={closeModal}>
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Footer />
     </div>
   );
