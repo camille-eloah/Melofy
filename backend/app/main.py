@@ -21,7 +21,7 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha, Tag, TagTipo, ProfessorTag
+from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -40,19 +40,11 @@ settings = get_settings()
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-#importação das classes no models
-from app.models import Professor, Instrumento, ProfessorInstrumento, SearchResult, TipoUsuario, Aluno, Feedback  
-from app.schemas.instrumentos import InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate, InstrumentoCreate, UserReadWithInstrumentos,  ProfessorInstrumentosEscolha
+from app.models import Professor, Instrumento, ProfessorInstrumento
 
-from fastapi import Header, Query, Depends
-from app.services.auth import decode_jwt
 import logging
 from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
-from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
-from fastapi import FastAPI
-from sqlalchemy.orm import selectinload
 
-app = FastAPI()
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +111,7 @@ router_lessons = APIRouter(
 
 router_instruments = APIRouter(
     prefix="/instruments",
-    tags=["instrumentos"]
+    tags=["instruments"]
 )
 
 # Router schedule - rotas de agendamento
@@ -148,56 +140,6 @@ router_feedback = APIRouter(
     prefix="/feedback",
     tags=["feedback"]
 )
-
-router_tags = APIRouter(
-    prefix="/tags",
-    tags=["tags"]
-)
-
-
-def _normalize_tag_name(value: str) -> str:
-    return (value or "").strip()
-
-
-def _tag_to_response(tag: Tag) -> TagRead:
-    return TagRead(
-        id=tag.id,
-        nome=tag.nome,
-        tipo=tag.tipo,
-        instrumento_id=tag.instrumento_id,
-        is_instrument=bool(tag.instrumento_id),
-    )
-
-
-def _get_or_create_tag_by_name(db: Session, nome: str) -> Tag:
-    normalized = _normalize_tag_name(nome)
-    if not normalized:
-        raise HTTPException(status_code=400, detail="Nome da tag invalido")
-
-    existing = db.exec(select(Tag).where(Tag.nome.ilike(normalized))).first()
-    instrument = db.exec(select(Instrumento).where(Instrumento.nome.ilike(normalized))).first()
-
-    if existing:
-        updated = False
-        if instrument and (existing.instrumento_id != instrument.id or existing.tipo != TagTipo.INSTRUMENTO):
-            existing.instrumento_id = instrument.id
-            existing.tipo = TagTipo.INSTRUMENTO
-            updated = True
-        if updated:
-            db.add(existing)
-            db.commit()
-            db.refresh(existing)
-        return existing
-
-    novo = Tag(
-        nome=normalized,
-        tipo=TagTipo.INSTRUMENTO if instrument else TagTipo.LIVRE,
-        instrumento_id=instrument.id if instrument else None,
-    )
-    db.add(novo)
-    db.commit()
-    db.refresh(novo)
-    return novo
 
 
 # ----------------------------
@@ -256,57 +198,10 @@ def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
 
-@router_user.get("/professores/buscar")
-def buscar_professores_ou_instrumento(q: str, session: Session = Depends(get_session)):
-    professores = session.exec(
-        select(Professor)
-        .join(ProfessorInstrumento)
-        .join(Instrumento)
-        .where(
-            (Professor.nome.ilike(f"%{q}%")) |
-            (Instrumento.nome.ilike(f"%{q}%"))
-        )
-        .options(
-            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
-        )
-        .distinct()
-    ).all()
-
-    return [
-        {
-            "id": p.id,
-            "nome": p.nome,
-            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
-        }
-        for p in professores
-    ]
-
 @router_user.get("/alunos", response_model=list[UserResponse])
 def listar_alunos(db: Session = Depends(get_session)):
     alunos = db.exec(select(Aluno)).all()
     return [montar_resposta_usuario(aluno) for aluno in alunos]
-
-@router_user.get("/professor/me")
-def obter_professor_logado(
-    authorization: str = Header(None),  # pega o token do header
-    db: Session = Depends(get_session)
-):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Token ausente")
-
-    token = authorization.replace("Bearer ", "")
-
-    # decodifica o token e pega o user_id (você já deve ter função para isso)
-    user_id = decode_jwt(token)  # use sua função de decodificação
-    professor = db.get(Professor, user_id)
-
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
-
-    if professor.tipo_usuario != TipoUsuario.PROFESSOR:
-        raise HTTPException(status_code=403, detail="Usuário não é professor")
-
-    return montar_resposta_usuario(professor)
 
 
 @router_user.get("/professor/{user_id}", response_model=UserResponse)
@@ -502,7 +397,6 @@ def excluir_pacote(pacote_id: int):
 # 5. Instrumentos musicais
 # ----------------------------
 
-
 @router_instruments.post("/", response_model=InstrumentoRead, status_code=201)
 def criar_instrumento(
     instrumento: InstrumentoCreate,
@@ -567,12 +461,13 @@ def deletar_instrumento(
     db.commit()
     return
 
+router_instruments = APIRouter(prefix="/instrumentos")
+
 @router_instruments.post("/escolher")
 def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
-    db: Session = Depends(get_session)
+    db: Session = Depends(get_session),
 ):
-    # Verifica se o professor existe
     professor = db.get(Professor, dados.professor_id)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
@@ -596,9 +491,7 @@ def escolher_instrumentos_professor(
     db.commit()
 
     # Retorna os instrumentos do professor
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == dados.professor_id
-    )
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
     instrumentos_professor = db.exec(stmt).all()
 
     return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
@@ -608,133 +501,6 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
     stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == professor_id)
     instrumentos = db.exec(stmt).all()
     return instrumentos
-
-@router_user.get("/professores/por-instrumento")
-def professores_por_instrumento(nome: str, session: Session = Depends(get_session)):
-
-    professores = session.exec(
-        select(Professor)
-        .join(ProfessorInstrumento)
-        .join(Instrumento)
-        .where(Instrumento.nome.ilike(f"%{nome}%"))
-        .options(
-            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
-        )
-        .distinct()
-    ).all()
-
-    return [
-        {
-            "id": p.id,
-            "nome": p.nome,
-            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
-        }
-        for p in professores
-    ]
-# ----------------------------
-# 5.1 Tags
-# ----------------------------
-
-@router_tags.get("/", response_model=List[TagRead])
-def listar_tags(q: str | None = None, db: Session = Depends(get_session)):
-    stmt = select(Tag)
-    if q:
-        stmt = stmt.where(Tag.nome.ilike(f"%{q}%"))
-    tags = db.exec(stmt).all()
-    return [_tag_to_response(tag) for tag in tags]
-
-
-@router_tags.post("/", response_model=TagRead, status_code=201)
-def criar_tag(tag_in: TagCreate, db: Session = Depends(get_session)):
-    tag = _get_or_create_tag_by_name(db, tag_in.nome)
-    return _tag_to_response(tag)
-
-
-@router_user.get("/{user_id}/tags", response_model=List[TagRead])
-def listar_tags_professor(user_id: int, db: Session = Depends(get_session)):
-    professor = db.get(Professor, user_id)
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor nao encontrado")
-    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.professor_id == user_id)
-    tags = db.exec(stmt).all()
-    return [_tag_to_response(tag) for tag in tags]
-
-
-@router_user.patch("/{user_id}/tags", response_model=List[TagRead])
-def atualizar_tags_professor(
-    user_id: int,
-    dados: TagsSyncRequest,
-    request: Request,
-    db: Session = Depends(get_session),
-):
-    token = request.cookies.get("access_token") if request else None
-    if not token:
-        raise HTTPException(status_code=401, detail="Nao autenticado")
-    try:
-        payload = _decode_token(token)
-        sub = int(payload.get("sub"))
-        tipo_token = payload.get("tipo")
-    except (JWTError, TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Token invalido")
-    if sub != user_id or tipo_token != TipoUsuario.PROFESSOR.value:
-        raise HTTPException(status_code=403, detail="Operacao nao permitida")
-
-    professor = db.get(Professor, user_id)
-    if not professor:
-        raise HTTPException(status_code=404, detail="Professor nao encontrado")
-
-    nomes_unicos: List[str] = []
-    vistos: set[str] = set()
-    for nome in dados.tags:
-        normalizado = _normalize_tag_name(nome)
-        if not normalizado:
-            continue
-        chave = normalizado.lower()
-        if chave in vistos:
-            continue
-        vistos.add(chave)
-        nomes_unicos.append(normalizado)
-
-    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.professor_id == user_id)).all()
-    for rel in antigos:
-        db.delete(rel)
-    db.commit()
-
-    tags_resultado: List[Tag] = []
-    for nome in nomes_unicos:
-        tag = _get_or_create_tag_by_name(db, nome)
-        rel = ProfessorTag(professor_id=user_id, tag_id=tag.id)
-        db.add(rel)
-        tags_resultado.append(tag)
-
-    # Sincroniza tabela de instrumentos do professor com as tags de instrumento
-    instrument_ids = {tag.instrumento_id for tag in tags_resultado if tag.instrumento_id}
-    if instrument_ids:
-        existentes = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
-        ).all()
-        existentes_ids = {rel.instrumento_id for rel in existentes}
-
-        # Remover instrumentos que saíram
-        for rel in existentes:
-            if rel.instrumento_id not in instrument_ids:
-                db.delete(rel)
-
-        # Adicionar instrumentos novos
-        for instr_id in instrument_ids:
-            if instr_id not in existentes_ids:
-                db.add(ProfessorInstrumento(professor_id=user_id, instrumento_id=instr_id))
-
-    else:
-        # Nenhuma tag de instrumento: limpa relacionamentos existentes
-        antigos_instr = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
-        ).all()
-        for rel in antigos_instr:
-            db.delete(rel)
-
-    db.commit()
-    return [_tag_to_response(tag) for tag in tags_resultado]
 
 # ----------------------------
 # 6. Filtragem
@@ -950,38 +716,6 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Feedback não encontrado")
     return feedback
 
-# -----------------------------
-# Rota de busca
-# -----------------------------
-@app.get("/search", response_model=List[SearchResult])
-def search(
-    query: str = Query(..., min_length=1),
-    session: Session = Depends(get_session)
-):
-    query_lower = query.lower()
-    results: List[SearchResult] = []
-
-    # Buscar professores pelo nome
-    professores_stmt = select(Professor).where(Professor.nome.ilike(f"%{query_lower}%"))
-    professores_list = session.exec(professores_stmt).all()
-    for prof in professores_list:
-        instrumentos = [rel.instrumento.nome for rel in prof.instrumentos_rel]
-        for inst_nome in instrumentos:
-            results.append(SearchResult(tipo="professor", nome=prof.nome, instrumento=inst_nome))
-
-    # Buscar instrumentos
-    instrumentos_stmt = select(Instrumento).where(Instrumento.nome.ilike(f"%{query_lower}%"))
-    instrumentos_list = session.exec(instrumentos_stmt).all()
-    for inst in instrumentos_list:
-        # Adiciona o instrumento
-        results.append(SearchResult(tipo="instrumento", nome=inst.nome))
-        # Adiciona professores que ensinam esse instrumento
-        for rel in inst.professores_rel:
-            results.append(SearchResult(tipo="professor", nome=rel.professor.nome, instrumento=inst.nome))
-
-    # Retorna lista vazia se nenhum resultado
-    return results
-
 
 
 app.include_router(router_user)
@@ -990,7 +724,5 @@ app.include_router(router_lessons)
 app.include_router(router_instruments)
 app.include_router(router_schedule)
 app.include_router(router_finance)
-app.include_router(router_filter)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
-app.include_router(router_tags)

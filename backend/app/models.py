@@ -57,7 +57,6 @@ class Professor(UserBase, table=True):
     # cada professor pode ter 1 ou N contas bancárias
     dados_bancarios: list["DadosBancarios"] = Relationship(back_populates="professor")
     instrumentos_rel: List["ProfessorInstrumento"] = Relationship(back_populates="professor")
-    tags_rel: List["ProfessorTag"] = Relationship(back_populates="professor")
 
 
 class Aluno(UserBase, table=True):
@@ -93,28 +92,6 @@ class Instrumento(SQLModel, table=True):
 
     aulas: List["Aula"] = Relationship(back_populates="instrumento")
     professores_rel: List["ProfessorInstrumento"] = Relationship(back_populates="instrumento")
-    tags_rel: List["Tag"] = Relationship(back_populates="instrumento")
-
-# ----------------------------
-# Tags
-# ----------------------------
-
-class TagTipo(str, Enum):
-    INSTRUMENTO = "INSTRUMENTO"
-    LIVRE = "LIVRE"
-
-
-class Tag(SQLModel, table=True):
-    __tablename__ = "tb_tags"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nome: str = Field(nullable=False, unique=True, index=True)
-    slug: Optional[str] = Field(default=None)
-    tipo: TagTipo = Field(default=TagTipo.LIVRE, nullable=False)
-    instrumento_id: Optional[int] = Field(default=None, foreign_key="tb_instrumento.id")
-
-    instrumento: Optional[Instrumento] = Relationship(back_populates="tags_rel")
-    professores_rel: List["ProfessorTag"] = Relationship(back_populates="tag")
 
 # ----------------------------
 # Instrumentos professores
@@ -140,21 +117,6 @@ class ProfessorInstrumentosEscolha(SQLModel):
     # schema usado só no body da requisição (não é tabela!)
     professor_id: int
     instrumentos_ids: List[int]
-
-
-class ProfessorTag(SQLModel, table=True):
-    __tablename__ = "tb_professor_tag"
-
-    id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(
-        sa_column=Column("professor_id", Integer, ForeignKey("tb_professor.id"), nullable=False)
-    )
-    tag_id: int = Field(
-        sa_column=Column("tag_id", Integer, ForeignKey("tb_tags.id"), nullable=False)
-    )
-
-    professor: Professor = Relationship(back_populates="tags_rel")
-    tag: Tag = Relationship(back_populates="professores_rel")
 
 
 # ----------------------------
@@ -309,4 +271,3 @@ class Feedback(SQLModel, table=True):
     mensagem: str
     criado_em: datetime = Field(default_factory=datetime.utcnow)
     
-
