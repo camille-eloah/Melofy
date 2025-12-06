@@ -1,7 +1,8 @@
-import "./Instrumentos.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Footer from '../layout/Footer'
+import AddInstrumentModal from "./AddInstrumentModal";
+import "./Instrumentos.css";
+import Footer from "../layout/Footer";
 
 import Swal from "sweetalert2";
 
@@ -22,7 +23,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const INSTRUMENTOS = [
   { id: 1, nome: "Saxofone", img: saxofone },
   { id: 2, nome: "Guitarra", img: guitarra },
-  { id: 3, nome: "Violão", img: violao },
+  { id: 3, nome: "ViolÇœo", img: violao },
   { id: 4, nome: "Flauta", img: flauta },
   { id: 5, nome: "Partitura", img: partitura },
   { id: 6, nome: "Baixo", img: baixo },
@@ -69,7 +70,7 @@ function Instrumentos() {
       setMensagem("");
 
       const user = JSON.parse(localStorage.getItem("usuario"));
-      if (!user) throw new Error("Usuário não encontrado");
+      if (!user) throw new Error("UsuÇ­rio nÇœo encontrado");
 
       const resp = await fetch(`${API_BASE_URL}/instruments/escolher`, {
         method: "POST",
@@ -98,6 +99,10 @@ function Instrumentos() {
     setIsModalOpen(false);
     setModalSearch("");
     setModalSelected("");
+  }
+
+  function handleAddInstrument() {
+    closeModal();
   }
 
   return (
@@ -168,56 +173,18 @@ function Instrumentos() {
         </button>
 
         {mensagem && <p className="mensagem-instrumentos">{mensagem}</p>}
+
+        <AddInstrumentModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          searchValue={modalSearch}
+          onSearchChange={setModalSearch}
+          selectedValue={modalSelected}
+          onSelectChange={setModalSelected}
+          options={INSTRUMENTOS}
+          onAdd={handleAddInstrument}
+        />
       </div>
-      {isModalOpen && (
-        <div className="instrumentos-modal-backdrop" onClick={closeModal}>
-          <div
-            className="instrumentos-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button className="instrumentos-modal-close" onClick={closeModal}>
-              x
-            </button>
-            <h3>Adicionar novo instrumento</h3>
-            <p className="instrumentos-modal-subtitle">
-              Use a busca para filtrar e selecione o instrumento que deseja incluir.
-            </p>
-            <div className="instrumentos-modal-field">
-              <label htmlFor="instrument-search">Pesquisar</label>
-              <input
-                id="instrument-search"
-                type="text"
-                placeholder="Digite para filtrar"
-                value={modalSearch}
-                onChange={(e) => setModalSearch(e.target.value)}
-              />
-            </div>
-            <div className="instrumentos-modal-field">
-              <label htmlFor="instrument-select">Selecione o instrumento</label>
-              <select
-                id="instrument-select"
-                value={modalSelected}
-                onChange={(e) => setModalSelected(e.target.value)}
-              >
-                <option value="">Escolha uma opção</option>
-                {INSTRUMENTOS.map((inst) => (
-                  <option key={inst.id} value={inst.id}>
-                    {inst.nome}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="instrumentos-modal-actions">
-              <button className="instrumentos-modal-button ghost" onClick={closeModal}>
-                Cancelar
-              </button>
-              <button className="instrumentos-modal-button primary" onClick={closeModal}>
-                Adicionar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <Footer />
     </div>
   );
