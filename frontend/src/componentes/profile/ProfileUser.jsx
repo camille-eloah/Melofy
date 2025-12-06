@@ -494,16 +494,29 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
 
+  const sortTagsWithInstrumentsFirst = (list = []) => {
+    return [...list].sort((a, b) => {
+      const aIsInst = Boolean(a?.isInstrument || a?.instrumento_id);
+      const bIsInst = Boolean(b?.isInstrument || b?.instrumento_id);
+      if (aIsInst === bIsInst) {
+        return (a?.name || a?.nome || "").localeCompare(b?.name || b?.nome || "");
+      }
+      return aIsInst ? -1 : 1;
+    });
+  };
+
   const displayTags =
     tags && tags.length > 0
-      ? tags
-      : instrumentosProfessor
-        .map((instrumento) => {
-          const name = instrumento?.nome || instrumento?.tipo;
-          if (!name) return null;
-          return { name, isInstrument: true };
-        })
-        .filter(Boolean);
+      ? sortTagsWithInstrumentsFirst(tags)
+      : sortTagsWithInstrumentsFirst(
+        instrumentosProfessor
+          .map((instrumento) => {
+            const name = instrumento?.nome || instrumento?.tipo;
+            if (!name) return null;
+            return { name, isInstrument: true };
+          })
+          .filter(Boolean),
+      );
 
   return (
     <div className="profile-page">

@@ -83,7 +83,16 @@ function EditProfileTextModal({
             <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
             <div className="tags-editor">
               <div className="tags-list">
-                {tags.map((tag) => {
+                {[...tags]
+                  .sort((a, b) => {
+                    const aIsInst = Boolean(a?.isInstrument || a?.instrumento_id);
+                    const bIsInst = Boolean(b?.isInstrument || b?.instrumento_id);
+                    if (aIsInst === bIsInst) {
+                      return (a?.name || a?.nome || "").localeCompare(b?.name || b?.nome || "");
+                    }
+                    return aIsInst ? -1 : 1;
+                  })
+                  .map((tag) => {
                   const name = tag?.name || tag?.nome || String(tag);
                   const isInstrument = Boolean(tag?.isInstrument || tag?.instrumento_id);
                   const badgeClass = `tag-badge${isInstrument ? " tag-badge-instrument" : ""}`;
