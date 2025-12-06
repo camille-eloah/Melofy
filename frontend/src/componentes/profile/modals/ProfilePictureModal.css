@@ -9,7 +9,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2048;
+  z-index: 4096;
   animation: fadeInProfilePic 0.25s ease;
 }
 
@@ -22,6 +22,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-picture-header {

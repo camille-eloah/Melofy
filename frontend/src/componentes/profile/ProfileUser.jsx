@@ -721,7 +721,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           initialTags={displayTags}
           isSaving={isSavingTexts}
         />
-        <EditProfileInfoModal open={isEditProfileModalOpen} onClose={closeEditProfileModal} />
+        <EditProfileInfoModal
+          open={isEditProfileModalOpen}
+          onClose={closeEditProfileModal}
+          displayedPicture={displayedPicture}
+          nomeUsuario={nomeUsuario}
+          isOwner={isOwner}
+          onPhotoClick={handleFotoClick}
+        />
 
         {/* Avaliacoes abaixo */}
         <div className="avaliacoes">

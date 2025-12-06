@@ -103,6 +103,22 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.edit-profile-info-photo-row .foto-wrapper {
+  margin-bottom: 0;
+}
+
+.edit-profile-info-photo-row .foto-perfil,
+.edit-profile-info-photo-row .foto-vazia {
+  width: 96px;
+  height: 96px;
+  border-radius: 18px;
+}
+
+.edit-profile-info-photo-row .foto-overlay {
+  border-radius: 18px;
 }
 
 /* === FOTO PREVIEW === */
