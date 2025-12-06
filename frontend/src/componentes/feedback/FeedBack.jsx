@@ -3,6 +3,7 @@ import Swal from 'sweetalert2'
 import './FeedBack.css'
 import Header from "../layout/Header"
 import Footer from '../layout/Footer'
+import ChatButton from '../layout/ButtonChat'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -216,6 +217,7 @@ function Feedback() {
               </button>
             </form>
           </div>
+          <ChatButton />
         </div>
       </div>
       <Footer />

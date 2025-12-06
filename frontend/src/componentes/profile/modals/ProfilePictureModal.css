@@ -1,0 +1,135 @@
+.profile-picture-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(220, 220, 220, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2048;
+  animation: fadeInProfilePic 0.25s ease;
+}
+
+.profile-picture-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-picture-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-picture-header h5 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.profile-picture-close {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #334155;
+}
+
+.profile-picture-body {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-picture-body img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.profile-picture-placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 24px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.profile-picture-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+.profile-picture-file-info {
+  width: 100%;
+  font-size: 12px;
+  color: #475569;
+  text-align: left;
+}
+
+.profile-picture-btn-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.profile-picture-btn-select:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.profile-picture-btn-upload {
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.profile-picture-btn-upload:hover {
+  background: #0369a1;
+}
+
+.profile-picture-btn-upload:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+@keyframes fadeInProfilePic {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

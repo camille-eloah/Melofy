@@ -110,12 +110,10 @@ function Header() {
   }
 
   const markAsRead = (id) => {
-    // Simulação - em produção faria uma chamada API
     console.log('Marcando como lida:', id)
   }
 
   const markAllAsRead = () => {
-    // Simulação
     console.log('Marcando todas como lidas')
   }
 
@@ -145,7 +143,7 @@ function Header() {
         timerProgressBar: true,
       })
 
-      // volta para a tela de login e substitui a página atual no histórico
+      
       navigate('/login', { replace: true })
     } catch (error) {
       Swal.fire({
@@ -220,6 +218,7 @@ function Header() {
           <span className="nav-text">Localização</span>
           <span className="nav-glow"></span>
         </Link>
+
         <Link
           to="/feedback"
           className={`nav-link ${activeLink === 'feedback' ? 'active' : ''}`}
@@ -227,7 +226,7 @@ function Header() {
           onMouseLeave={() => setActiveLink('')}
         >
           <span className="nav-icon">
-            <svg className="icon-feedback"
+            <svg
               width="18"
               height="18"
               viewBox="0 0 24 24"
@@ -238,9 +237,10 @@ function Header() {
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
           </span>
-
+          <span className="nav-text">Feedback</span>
           <span className="nav-glow"></span>
         </Link>
+
         <div className="notification-container">
           <button
             className={`notification-button ${showNotifications ? 'active' : ''}`}
@@ -338,10 +338,7 @@ function Header() {
                     Ver todas as notificações
                   </button>
                 </div>
-
               </div>
-
-
             </>
           )}
         </div>

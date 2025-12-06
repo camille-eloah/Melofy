@@ -1,18 +1,42 @@
 import "./ProfileUser.css";
 import Header from "../layout/Header";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
+import EditProfileTextModal from "./modals/EditProfileTextModal";
+import EditProfileInfoModal from "./modals/EditProfileInfoModal";
+import ProfilePictureModal from "./modals/ProfilePictureModal";
+import CreatePackageModal from "./modals/CreatePackageModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
   const defaultIntroText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
   const defaultDescText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ac dui quis libero suscipit volutpat in ut lacus. In blandit cursus nibh quis eleifend. Praesent a leo ut nibh mattis ultrices at at ex. Donec finibus felis neque, a suscipit mauris imperdiet nec. Sed ex ipsum, porttitor a sodales eget, tempor nec nisi. Morbi tortor diam, iaculis in volutpat a, pharetra eget erat. Nam elementum nisi ex, id facilisis enim facilisis eu. Praesent a ipsum lorem. Sed ac massa aliquam, rutrum ligula nec, sagittis tellus. Nam egestas urna lectus, ut ultricies sem hendrerit ut. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque mattis malesuada erat eget pellentesque. Nunc feugiat mauris condimentum mauris rutrum aliquet. Praesent dui diam, maximus vel ultrices sit amet, aliquam a quam.\nPhasellus malesuada est ut accumsan efficitur. Proin laoreet quis magna consectetur malesuada. Cras nec felis non eros pulvinar mollis. Aliquam egestas nunc at fringilla porttitor. Mauris facilisis arcu id nulla dapibus egestas quis ac eros. Nullam fermentum ultrices tellus, malesuada tempus est. Donec viverra, tortor non efficitur ultricies, diam tortor faucibus ante, id porta leo nisi nec purus.";
+  const normalizeTagResponse = (tag) => {
+    const name = tag?.nome || tag?.name || tag;
+    if (!name) return null;
+    return {
+      name,
+      isInstrument: Boolean(tag?.is_instrument || tag?.instrumento_id || (tag?.tipo || "").toUpperCase() === "INSTRUMENTO"),
+    };
+  };
+  const mergeTagsUnique = (base = [], extra = []) => {
+    const seen = new Set((base || []).map((t) => (t?.name || t?.nome || t || "").toLowerCase()));
+    const merged = [...(base || [])];
+    (extra || []).forEach((t) => {
+      const key = (t?.name || t?.nome || t || "").toLowerCase();
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(t);
+    });
+    return merged;
+  };
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -20,13 +44,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [cacheBust, setCacheBust] = useState(Date.now());
   const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
   const [tags, setTags] = useState([]);
-  const [tagsDraft, setTagsDraft] = useState([]);
-  const [tagInput, setTagInput] = useState("");
   const [hasEditedTags, setHasEditedTags] = useState(false);
   const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
   const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
-  const [introDraft, setIntroDraft] = useState("");
-  const [descDraft, setDescDraft] = useState("");
   const [hasEditedTexts, setHasEditedTexts] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
@@ -39,6 +59,58 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
   const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
   const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
+  const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+  const [pacote, setPacote] = useState({
+    quantidade: "",
+    valor: "",
+  });
+
+  useEffect(() => {
+    // SIMULA usuário logado professor para eu poder entrar sem acesso ao back
+    setCurrentUser({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
+    setUsuario({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
+  }, []);
+
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [agendamento, setAgendamento] = useState({
+    data: "",
+    horario: "",
+    atividade: "",
+  });
+  const openScheduleModal = () => setIsScheduleModalOpen(true);
+  const closeScheduleModal = () => setIsScheduleModalOpen(false);
+  const handleChangeAgendamento = (e) => {
+    const { name, value } = e.target;
+    setAgendamento(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleConfirmarAgendamento = () => {
+    console.log("Dados do agendamento enviados:", agendamento);
+
+    // Quando o backend estiver pronto, usar:
+    /*
+    fetch(`${API_BASE_URL}/agendamentos`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(agendamento),
+      credentials: "include"
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Agendamento salvo!", data);
+        alert("Agendamento concluído!");
+        closeScheduleModal();
+      })
+      .catch(error => console.error("Erro ao salvar agendamento:", error));
+    */
+
+    // Código temporário só pra mostrar feedback
+    alert("Agendamento enviado! (quando o back estiver pronto irá salvar)");
+    closeScheduleModal();
+  };
+
 
   console.log("[ProfileUser] params", {
     userIdParam,
@@ -133,7 +205,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
-  const usuarioId = usuario?.id ?? null;
+  const usuarioId = usuario?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null);
   const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
@@ -152,6 +224,31 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       fileInputRef.current.click();
     }
   };
+  async function handleSubmitPacote() {
+    if (!pacote.quantidade || !pacote.valor) {
+      alert("Preencha os campos corretamente");
+      return;
+    }
+
+    try {
+      await fetch(`${API_BASE_URL}/pacotes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          qtd_aulas: pacote.quantidade,
+          preco: pacote.valor,
+        }),
+      });
+
+      alert("Pacote cadastrado com sucesso!");
+      setIsPackageModalOpen(false);
+      setPacote({ quantidade: "", valor: "" });
+
+    } catch (error) {
+      alert("Erro ao cadastrar pacote");
+    }
+  }
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -202,15 +299,21 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
 
   useEffect(() => {
-    if (!isProfessor || !usuarioId) {
+    if (!isProfessor) {
       setInstrumentosProfessor([]);
+      setTags([]);
+      console.log("[ProfileUser] instrumentos: reset (nao professor)", { isProfessor, usuarioId });
+      return;
+    }
+    if (!usuarioId) {
+      console.log("[ProfileUser] instrumentos: aguardando usuarioId", { usuarioId, userIdentifier });
       return;
     }
 
     let isActive = true;
     const endpoints = [
-      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
-      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
+      `${API_BASE_URL}/instrumentos/professor/${usuarioId}` ,
+      `${API_BASE_URL}/instruments/professor/${usuarioId}` ,
     ];
 
     const carregarInstrumentos = async () => {
@@ -222,12 +325,40 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           if (!isActive) return;
           const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
           setInstrumentosProfessor(instrumentos || []);
+          console.log("[ProfileUser] instrumentos carregados", { url, instrumentos });
+          const mapped = instrumentos
+            .map((instrumento) => {
+              const name = instrumento?.nome || instrumento?.tipo;
+              if (!name) return null;
+              return { name, isInstrument: true };
+            })
+            .filter(Boolean);
+          if (!hasEditedTags && mapped.length > 0) {
+            setTags(mapped);
+            console.log("[ProfileUser] tags definidas a partir de instrumentos (sem edicao)", { mapped });
+          } else if (mapped.length > 0) {
+            setTags((prev) => {
+              const existing = new Set(
+                (prev || []).map((tag) => (tag?.name || tag?.nome || tag || "").toLowerCase()),
+              );
+              const merged = [
+                ...prev,
+                ...mapped.filter((tag) => !existing.has((tag?.name || "").toLowerCase())),
+              ];
+              console.log("[ProfileUser] tags mescladas com instrumentos", { prev, mapped, merged });
+              return merged;
+            });
+          }
           return;
         } catch (error) {
-          /* tenta prximo endpoint */
+          /* tenta proximo endpoint */
         }
       }
-      if (isActive) setInstrumentosProfessor([]);
+      if (isActive) {
+        setInstrumentosProfessor([]);
+        if (!hasEditedTags) setTags([]);
+        console.log("[ProfileUser] instrumentos: fallback vazio");
+      }
     };
 
     carregarInstrumentos();
@@ -235,48 +366,134 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     return () => {
       isActive = false;
     };
-  }, [isProfessor, usuarioId]);
+  }, [isProfessor, usuarioId, hasEditedTags]);
+
+  useEffect(() => {
+    if (!isProfessor) {
+      setTags([]);
+      console.log("[ProfileUser] tags reset (nao professor)");
+      return;
+    }
+    if (!usuarioId) {
+      console.log("[ProfileUser] tags: aguardando usuarioId", { usuarioId, userIdentifier });
+      return;
+    }
+
+    let active = true;
+    fetch(`${API_BASE_URL}/user/${usuarioId}/tags`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("tags_fetch_failed");
+        return res.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        const mapped = (data || []).map(normalizeTagResponse).filter(Boolean);
+        const instrumentTags = instrumentosProfessor
+          .map((instrumento) => {
+            const name = instrumento?.nome || instrumento?.tipo;
+            if (!name) return null;
+            return { name, isInstrument: true };
+          })
+          .filter(Boolean);
+        if (mapped.length > 0) {
+          const merged = mergeTagsUnique(mapped, instrumentTags);
+          setTags(merged);
+          setHasEditedTags(true);
+          console.log("[ProfileUser] tags carregadas do backend + instrumentos", { mapped, instrumentTags, merged });
+        } else {
+          const fallback = instrumentTags;
+          setTags(fallback);
+          console.log("[ProfileUser] tags fallback instrumentos (backend vazio)", { fallback });
+        }
+      })
+      .catch(() => {
+        /* ignora erros silenciosamente */
+        console.log("[ProfileUser] erro ao buscar tags; mantendo estado atual");
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isProfessor, usuarioId, hasEditedTags, instrumentosProfessor]);
 
   useEffect(() => {
     if (hasEditedTags) return;
+    if (!usuarioId) {
+      console.log("[ProfileUser] tags derivadas: aguardando usuarioId", { usuarioId });
+      return;
+    }
     const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
-    setTags(nomesInstrumentos);
-    setTagsDraft(nomesInstrumentos);
-  }, [instrumentosProfessor, hasEditedTags]);
+    const mapped = nomesInstrumentos.map((nome) => ({ name: nome, isInstrument: true }));
+    if (mapped.length > 0) {
+      setTags(mapped);
+      console.log("[ProfileUser] tags derivadas de instrumentos (hasEditedTags=false)", { mapped });
+    }
+  }, [instrumentosProfessor, hasEditedTags, usuarioId]);
 
   const closeModal = () => setIsModalOpen(false);
   const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
+  const openEditProfileModal = () => setIsEditProfileModalOpen(true);
+  const closeEditProfileModal = () => setIsEditProfileModalOpen(false);
 
   const openEditTextsModal = () => {
-    setIntroDraft(introText);
-    setDescDraft(descText);
-    setTagsDraft(tags);
-    setTagInput("");
     setIsEditTextsModalOpen(true);
   };
 
-  const handleSaveTexts = async () => {
+  const handleSaveTexts = async (values) => {
     if (!usuario?.id || isSavingTexts || !isOwner) return;
     setIsSavingTexts(true);
+    const introPayload = values?.intro ?? introText;
+    const descPayload = values?.desc ?? descText;
+    const tagsPayload = Array.isArray(values?.tags) ? values.tags : tags;
+    const tagNames = (tagsPayload || [])
+      .map((tag) => {
+        if (typeof tag === "string") return tag;
+        return tag?.name || tag?.nome || "";
+      })
+      .map((name) => (name || "").trim())
+      .filter(Boolean);
     try {
-      const payload = { texto_intro: introDraft, texto_desc: descDraft };
-      const resp = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+      const payload = { texto_intro: introPayload, texto_desc: descPayload };
+      const textoPromise = fetch(`${API_BASE_URL}/user/${usuario.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       });
 
-      if (!resp.ok) {
-        throw new Error(`Falha ao salvar textos: ${resp.status}`);
-      }
+      const tagsPromise = isProfessor
+        ? fetch(`${API_BASE_URL}/user/${usuario.id}/tags`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: tagNames }),
+          credentials: "include",
+        })
+        : null;
 
-      const data = await resp.json();
+      const [textoResp, tagsResp] = await Promise.all([textoPromise, tagsPromise]);
+
+      if (!textoResp.ok) {
+        throw new Error(`Falha ao salvar textos: ${textoResp.status}`);
+      }
+      const data = await textoResp.json();
       setUsuario((prev) => ({ ...prev, ...data }));
-      setIntroText(data?.texto_intro ?? introDraft);
-      setDescText(data?.texto_desc ?? descDraft);
+      setIntroText(data?.texto_intro ?? introPayload);
+      setDescText(data?.texto_desc ?? descPayload);
       setHasEditedTexts(true);
-      setTags(tagsDraft);
+
+      if (tagsResp) {
+        if (tagsResp.ok) {
+          const tagsData = await tagsResp.json();
+          const normalized = (tagsData || []).map(normalizeTagResponse).filter(Boolean);
+          setTags(normalized);
+        } else {
+          // Se der 404 (ex.: backend sem professor para o id), segue sem interromper o fluxo
+          console.warn("[ProfileUser] falha ao salvar tags, prosseguindo", { status: tagsResp.status });
+          setTags(tagsPayload);
+        }
+      } else {
+        setTags(tagsPayload);
+      }
       setHasEditedTags(true);
       setIsEditTextsModalOpen(false);
     } catch (error) {
@@ -286,41 +503,29 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
 
-  const displayTags = tags && tags.length > 0 ? tags : instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
-
-  const formatTag = (value) => {
-    const trimmed = (value || "").trim();
-    if (!trimmed) return "";
-    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  const sortTagsWithInstrumentsFirst = (list = []) => {
+    return [...list].sort((a, b) => {
+      const aIsInst = Boolean(a?.isInstrument || a?.instrumento_id);
+      const bIsInst = Boolean(b?.isInstrument || b?.instrumento_id);
+      if (aIsInst === bIsInst) {
+        return (a?.name || a?.nome || "").localeCompare(b?.name || b?.nome || "");
+      }
+      return aIsInst ? -1 : 1;
+    });
   };
 
-  const handleAddTag = () => {
-    if (tagsDraft.length >= 12) return;
-    const formatted = formatTag(tagInput);
-    if (!formatted) return;
-    const exists = tagsDraft.some((tag) => tag.toLowerCase() === formatted.toLowerCase());
-    if (exists) {
-      setTagInput("");
-      return;
-    }
-    const next = [...tagsDraft, formatted];
-    setTagsDraft(next);
-    setHasEditedTags(true);
-    setTagInput("");
-  };
-
-  const handleRemoveTag = (tagToRemove) => {
-    const next = tagsDraft.filter((tag) => tag.toLowerCase() !== String(tagToRemove || "").toLowerCase());
-    setTagsDraft(next);
-    setHasEditedTags(true);
-  };
-
-  const handleTagInputKeyDown = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleAddTag();
-    }
-  };
+  const displayTags =
+    tags && tags.length > 0
+      ? sortTagsWithInstrumentsFirst(tags)
+      : sortTagsWithInstrumentsFirst(
+        instrumentosProfessor
+          .map((instrumento) => {
+            const name = instrumento?.nome || instrumento?.tipo;
+            if (!name) return null;
+            return { name, isInstrument: true };
+          })
+          .filter(Boolean),
+      );
 
   return (
     <div className="profile-page">
@@ -328,245 +533,150 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
       <div className="profile-container">
         <div className="lado-esquerdo-profile">
-        {/* Container top-items acima do main-text */}
-        <div className="top-items">
-          {/* Categorias no inicio (esquerda) */}
-          <div className="categorias">
-            {badgeInfo && (
-              <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
-                {badgeInfo.label}
-              </span>
-            )}
-            {displayTags.map((tag, index) => {
-              const key = `${tag}-${index}`;
-              return (
-                <span key={key} className="categoria-item">
-                  {tag}
+          {/* Container top-items acima do main-text */}
+          <div className="top-items">
+            {/* Categorias no inicio (esquerda) */}
+            <div className="categorias">
+              {badgeInfo && (
+                <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
+                  {badgeInfo.label}
                 </span>
-              );
-            })}
+              )}
+              {displayTags.map((tag, index) => {
+                const name = tag?.name || tag?.nome || String(tag);
+                const key = `${name}-${index}`;
+                const isInstrument = Boolean(tag?.isInstrument || tag?.instrumento_id);
+                return (
+                  <span key={key} className={`categoria-item${isInstrument ? " categoria-item-instrument" : ""}`}>
+                    {name}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Botao de edicao no final (direita)*/}
+            {isOwner && (
+              <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
+                <span aria-hidden="true">✎</span>
+              </button>
+            )}
+
           </div>
 
-          {/* Botao de edicao no final (direita)*/}
-          {isOwner && (
-            <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
-              <span aria-hidden="true">✎</span>
-            </button>
-          )}
-        </div>
+          {/* Texto principal a esquerda */}
+          <div className="main-text">
+            <div className="texto-intro">
+              <p>
+                {introText}
+              </p>
+            </div>
 
-        {/* Texto principal a esquerda */}
-        <div className="main-text">
-          <div className="texto-intro">
-            <p>
-              {introText}
-            </p>
+            <div className="texto-desc">
+              <p>{descText}</p>
+            </div>
           </div>
-
-          <div className="texto-desc">
-            <p>{descText}</p>
-          </div>
-        </div>
 
         </div>
 
         {/* Cartao de perfil a direita */}
         <div className="lado-direito-profile">
-        <div className="card-perfil">
-          <div
-            className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
-            onClick={isOwner ? handleFotoClick : undefined}
-            role={isOwner ? "button" : undefined}
-            tabIndex={isOwner ? 0 : undefined}
-            onKeyDown={(e) => {
-              if (isOwner && (e.key === "Enter" || e.key === " ")) {
-                e.preventDefault();
-                handleFotoClick();
-              }
-            }}
-          >
-            {displayedPicture ? (
-              <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
-            ) : (
-              <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
-            )}
+          <div className="card-perfil">
+            <div
+              className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
+              onClick={isOwner ? handleFotoClick : undefined}
+              role={isOwner ? "button" : undefined}
+              tabIndex={isOwner ? 0 : undefined}
+              onKeyDown={(e) => {
+                if (isOwner && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  handleFotoClick();
+                }
+              }}
+
+            >
+
+              {displayedPicture ? (
+                <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
+              ) : (
+                <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
+              )}
+              {isOwner && (
+                <div className="foto-overlay">
+                  <span className="camera-icon" aria-hidden="true">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
+                      <circle cx="12" cy="13" r="3.2" />
+                    </svg>
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <h3>{nomeUsuario}</h3>
+            <p className="avaliacao">&lt;Avaliacao&gt;</p>
+
+            <div className="info">
+              <p>
+                <span>Email:</span>
+                <span>{usuario.email || "Nao informado"}</span>
+              </p>
+              <p>
+                <span>Telefone:</span>
+                <span>{usuario.telefone || "Nao informado"}</span>
+              </p>
+              <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
+            </div>
+
             {isOwner && (
-              <div className="foto-overlay">
-                <span className="camera-icon" aria-hidden="true">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
-                    <circle cx="12" cy="13" r="3.2" />
-                  </svg>
-                </span>
+              <div className="botoes">
+                <button className="btn-editar" onClick={openEditProfileModal}>Editar Perfil</button>
+                <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
+                  Cadastrar Pacote
+                </button>
+              </div>
+            )}
+
+            {!isOwner && (
+              <div className="botoes">
+                <button className="btn-agendar" onClick={openScheduleModal}>
+                  Agendar Aula
+                </button>
               </div>
             )}
           </div>
-
-          <h3>{nomeUsuario}</h3>
-          <p className="avaliacao">&lt;Avaliacao&gt;</p>
-
-          <div className="info">
-            <p>
-              <span>Email:</span>
-              <span>{usuario.email || "Nao informado"}</span>
-            </p>
-            <p>
-              <span>Telefone:</span>
-              <span>{usuario.telefone || "Nao informado"}</span>
-            </p>
-            <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
-          </div>
-
-          {isOwner && (
-            <div className="botoes">
-              <button className="btn-editar">Editar Perfil</button>
-              <button className="btn-deletar">Deletar Conta</button>
-            </div>
-          )}
-        </div>
         </div>
 
-        {isModalOpen && (
-          <div className="modal-backdrop" onClick={closeModal}>
-            <div
-              className="modal-container"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Pre-visualizacao da foto de perfil"
-            >
-              <div className="modal-header">
-                <h5>Pré-visualizacao</h5>
-                <button className="modal-close" onClick={closeModal} aria-label="Fechar modal">
-                  x
-                </button>
-              </div>
-              <div className="modal-body">
-                {displayedPicture ? (
-                  <img src={displayedPicture} alt={`Pre-visualizacao de ${nomeUsuario}`} />
-                ) : (
-                  <div className="modal-placeholder">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  style={{ display: "none" }}
-                  onChange={handleFileChange}
-                />
-                <div className="modal-file-info">
-                  {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
-                </div>
-                <button className="btn-select-file" type="button" onClick={handleUploadClick}>
-                  Selecionar imagem
-                </button>
-                <button
-                  className="btn-upload"
-                  type="button"
-                  onClick={handleUploadSubmit}
-                  disabled={!selectedFile || isUploading}
-                >
-                  {isUploading ? "Enviando..." : "Salvar foto"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ProfilePictureModal
+          open={isModalOpen}
+          onClose={closeModal}
+          displayedPicture={displayedPicture}
+          nomeUsuario={nomeUsuario}
+          fileInputRef={fileInputRef}
+          selectedFile={selectedFile}
+          onFileChange={handleFileChange}
+          onSelectFileClick={handleUploadClick}
+          onUpload={handleUploadSubmit}
+          isUploading={isUploading}
+        />
 
-        {isEditTextsModalOpen && (
-          <div className="modal-backdrop" onClick={closeEditTextsModal}>
-            <div
-              className="modal-container"
-              onClick={(e) => e.stopPropagation()}
-              role="dialog"
-              aria-modal="true"
-              aria-label="Editar textos do perfil"
-            >
-              <div className="modal-header">
-                <h5>Editar textos do perfil</h5>
-                <button className="modal-close" onClick={closeEditTextsModal} aria-label="Fechar modal">
-                  x
-                </button>
-              </div>
-              <div className="modal-body" style={{ flexDirection: "column", gap: "12px" }}>
-                <label className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Título</span>
-                  <textarea
-                    value={introDraft}
-                    onChange={(e) => setIntroDraft(e.target.value)}
-                    rows={3}
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
-                  />
-                </label>
-                <label className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descrição</span>
-                  <textarea
-                    value={descDraft}
-                    onChange={(e) => setDescDraft(e.target.value)}
-                    rows={4}
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
-                  />
-                </label>
-                <div className="modal-input-group">
-                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
-                  <div className="tags-editor">
-                    <div className="tags-list">
-                      {tagsDraft.map((tag) => (
-                        <span key={tag} className="tag-badge">
-                          <span className="tag-label">{tag}</span>
-                          <button
-                            type="button"
-                            className="tag-remove"
-                            aria-label={`Remover tag ${tag}`}
-                            onClick={() => handleRemoveTag(tag)}
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                      {tagsDraft.length < 12 && (
-                        <div className="tag-add">
-                          <input
-                            type="text"
-                            value={tagInput}
-                            onChange={(e) => setTagInput(e.target.value)}
-                            onKeyDown={handleTagInputKeyDown}
-                            maxLength={30}
-                            placeholder="Nova tag"
-                          />
-                          <button type="button" onClick={handleAddTag} aria-label="Adicionar nova tag">
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                    <div className="tags-helper">
-                      {tagsDraft.length}/12 tags
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn-upload" type="button" onClick={handleSaveTexts} disabled={isSavingTexts}>
-                  {isSavingTexts ? "Salvando..." : "Salvar"}
-                </button>
-                <button className="btn-select-file" type="button" onClick={closeEditTextsModal}>
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <EditProfileTextModal
+          open={isEditTextsModalOpen}
+          onClose={closeEditTextsModal}
+          onSave={handleSaveTexts}
+          initialIntro={introText}
+          initialDesc={descText}
+          initialTags={displayTags}
+          isSaving={isSavingTexts}
+        />
+        <EditProfileInfoModal open={isEditProfileModalOpen} onClose={closeEditProfileModal} />
 
         {/* Avaliacoes abaixo */}
         <div className="avaliacoes">
@@ -580,10 +690,127 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
+      {isScheduleModalOpen && (
+        <div className="profile-modal-backdrop" onClick={closeScheduleModal}>
+          <div
+            className="profile-modal-container"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+          >
+            <div className="profile-modal-header">
+              <h5>Agendar Aula</h5>
+              <button className="profile-modal-close" onClick={closeScheduleModal}>x</button>
+            </div>
+
+            <div className="profile-modal-body">
+              <label>
+                Data:
+                <input
+                  type="date"
+                  name="data"
+                  value={agendamento.data}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+
+              <label>
+                Horário:
+                <input
+                  type="time"
+                  name="horario"
+                  value={agendamento.horario}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+
+              <label>
+                Atividade:
+                <input
+                  type="text"
+                  name="atividade"
+                  placeholder="Ex: Aula de Canto"
+                  value={agendamento.atividade}
+                  onChange={handleChangeAgendamento}
+                />
+              </label>
+            </div>
+
+            <button onClick={handleConfirmarAgendamento}>
+              Confirmar
+            </button>
+
+          </div>
+        </div>
+      )}
+
+      {isPackageModalOpen && (
+        <div className="pacote-modal-overlay">
+          <div className="pacote-modal-container">
+
+            <h3>Cadastrar Pacote de Aula</h3>
+
+            {/* Nome/Descrição do Pacote */}
+            <div className="pacote-input-group">
+              <label>Nome ou Descrição do Pacote</label>
+              <input
+                type="text"
+                placeholder="Ex.: Pacote Mensal Premium"
+                value={pacote.nome}
+                onChange={(e) =>
+                  setPacote({ ...pacote, nome: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Quantidade de aulas */}
+            <div className="pacote-input-group">
+              <label>Quantidade de Aulas</label>
+              <input
+                type="number"
+                min={1}
+                placeholder="Ex.: 4"
+                value={pacote.quantidade}
+                onChange={(e) =>
+                  setPacote({ ...pacote, quantidade: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Valor total */}
+            <div className="pacote-input-group">
+              <label>Valor Total (R$)</label>
+              <input
+                type="number"
+                placeholder="Ex.: 280"
+                value={pacote.valorTotal}
+                onChange={(e) =>
+                  setPacote({ ...pacote, valorTotal: e.target.value })
+                }
+              />
+            </div>
+
+            {/* Ações */}
+            <button
+              className="pacote-btn-confirmar"
+              onClick={handleSubmitPacote}
+            >
+              Salvar Pacote
+            </button>
+
+            <button
+              className="pacote-btn-cancelar"
+              onClick={() => setIsPackageModalOpen(false)}
+            >
+              Cancelar
+            </button>
+
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
 }
 
 export default ProfileUser;
-
