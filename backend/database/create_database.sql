@@ -56,10 +56,10 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
 
 CREATE TABLE tb_professor_instrumento (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_professor INT NOT NULL,
-    id_instrumento INT NOT NULL,
-    FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
-    FOREIGN KEY (id_instrumento) REFERENCES tb_instrumento(id)
+    professor_id INT NOT NULL,
+    instrumento_id INT NOT NULL,
+    FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
+    FOREIGN KEY (instrumento_id) REFERENCES tb_instrumento(id)
 );
 
 CREATE TABLE tb_aula (

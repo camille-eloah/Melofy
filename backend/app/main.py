@@ -48,6 +48,7 @@ import logging
 from fastapi import FastAPI
 from sqlalchemy.orm import selectinload
 
+app = FastAPI()
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,7 @@ router_lessons = APIRouter(
 
 router_instruments = APIRouter(
     prefix="/instruments",
-    tags=["instruments"]
+    tags=["instrumentos"]
 )
 
 # Router schedule - rotas de agendamento
@@ -200,29 +201,6 @@ def listar_usuarios(db: Session = Depends(get_session)):
 def listar_professores(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
     return [montar_resposta_usuario(professor) for professor in professores]
-
-@router_user.get("/professores/por-instrumento")
-def professores_por_instrumento(nome: str, session: Session = Depends(get_session)):
-
-    professores = session.exec(
-        select(Professor)
-        .join(ProfessorInstrumento)
-        .join(Instrumento)
-        .where(Instrumento.nome.ilike(f"%{nome}%"))
-        .options(
-            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
-        )
-        .distinct()
-    ).all()
-
-    return [
-        {
-            "id": p.id,
-            "nome": p.nome,
-            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
-        }
-        for p in professores
-    ]
 
 @router_user.get("/professores/buscar")
 def buscar_professores_ou_instrumento(q: str, session: Session = Depends(get_session)):
@@ -470,6 +448,7 @@ def excluir_pacote(pacote_id: int):
 # 5. Instrumentos musicais
 # ----------------------------
 
+
 @router_instruments.post("/", response_model=InstrumentoRead, status_code=201)
 def criar_instrumento(
     instrumento: InstrumentoCreate,
@@ -534,10 +513,7 @@ def deletar_instrumento(
     db.commit()
     return
 
-router_instruments = APIRouter(prefix="/instrumentos")
-
 @router_instruments.post("/escolher")
-
 def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
     db: Session = Depends(get_session)
@@ -579,6 +555,28 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
     instrumentos = db.exec(stmt).all()
     return instrumentos
 
+@router_user.get("/professores/por-instrumento")
+def professores_por_instrumento(nome: str, session: Session = Depends(get_session)):
+
+    professores = session.exec(
+        select(Professor)
+        .join(ProfessorInstrumento)
+        .join(Instrumento)
+        .where(Instrumento.nome.ilike(f"%{nome}%"))
+        .options(
+            selectinload(Professor.instrumentos_rel).selectinload(ProfessorInstrumento.instrumento)
+        )
+        .distinct()
+    ).all()
+
+    return [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "instrumentos": [rel.instrumento.nome for rel in p.instrumentos_rel]
+        }
+        for p in professores
+    ]
 # ----------------------------
 # 6. Filtragem
 # ----------------------------
