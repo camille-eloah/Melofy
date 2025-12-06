@@ -97,12 +97,8 @@ function Cadastro() {
         timer: 2000
       })
 
-      // redirecionamento pelo tipo
-      if (tipoEscolhido === "professor") {
-        navigate("/instrumentos");
-      } else {
-        navigate("/home");
-      }
+      // redirecionamento
+      navigate("/login");
 
     } catch (error) {
       Swal.fire({
