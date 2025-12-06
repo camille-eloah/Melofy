@@ -1,56 +1,66 @@
 .edit-profile-text-backdrop {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(220, 220, 220, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  z-index: 999;
+  z-index: 2048;
+  animation: fadeIn 0.25s ease;
 }
 
 .edit-profile-text-container {
+  width: 420px;
+  max-width: 92%;
   background: #ffffff;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 520px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 140, 200, 0.25);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  padding: 24px 28px;
+  font-family: "Segoe UI", sans-serif;
+  animation: slideUp 0.3s ease;
   display: flex;
   flex-direction: column;
   max-height: 90vh;
 }
 
-.edit-profile-text-header,
-.edit-profile-text-footer {
+.edit-profile-text-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+  margin-bottom: 18px;
 }
 
 .edit-profile-text-header h5 {
   margin: 0;
-  font-size: 1.05rem;
-  color: #0f172a;
+  font-size: 1.45rem;
+  color: #0077aa;
   font-weight: 700;
 }
 
 .edit-profile-text-close {
   background: transparent;
   border: none;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: bold;
   cursor: pointer;
-  color: #334155;
+  color: #005f89;
+  transition: 0.2s;
+}
+
+.edit-profile-text-close:hover {
+  color: #0087cc;
+  transform: scale(1.1);
 }
 
 .edit-profile-text-body {
-  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .edit-profile-text-group {
@@ -60,9 +70,9 @@
 }
 
 .edit-profile-text-label {
+  font-size: 0.9rem;
+  color: #005f89;
   font-weight: 600;
-  font-size: 13px;
-  color: #0f172a;
 }
 
 .edit-profile-textarea,
@@ -70,54 +80,90 @@
   width: 100%;
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid rgba(0, 140, 200, 0.4);
+  background: rgba(245, 248, 255, 0.9);
+  color: #003a4f;
   font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+  resize: none;
   box-sizing: border-box;
-  resize: vertical;
+}
+
+.edit-profile-textarea:focus,
+.edit-profile-text-input:focus {
+  border-color: #0099cc;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 150, 220, 0.25);
 }
 
 .edit-profile-text-footer {
-  border-top: 1px solid #e2e8f0;
-  border-bottom: none;
+  display: flex;
   gap: 12px;
+  margin-top: 16px;
 }
 
 .edit-profile-text-btn-save {
   width: 100%;
-  padding: 10px 14px;
-  border: none;
+  padding: 9px 14px;
   border-radius: 10px;
-  background: #0284c7;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+  border: none;
+  background: linear-gradient(135deg, #00baff, #0087cc);
   color: #ffffff;
   font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease;
+  box-shadow: 0 6px 18px rgba(0, 170, 230, 0.35);
 }
 
 .edit-profile-text-btn-save:hover {
-  background: #0369a1;
+  transform: translateY(-3px);
+  box-shadow: 0 9px 28px rgba(0, 150, 210, 0.45);
 }
 
 .edit-profile-text-btn-save:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .edit-profile-text-btn-cancel {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px dashed #cbd5e1;
+  padding: 9px 14px;
   border-radius: 10px;
-  background: #ffffff;
-  color: #0f172a;
-  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: 0.3s ease;
+  border: 1px solid rgba(0, 130, 180, 0.35);
+  background: rgba(200, 200, 200, 0.2);
+  color: #005f89;
 }
 
 .edit-profile-text-btn-cancel:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
+  background: rgba(0, 130, 180, 0.6);
+  border-color: rgba(0, 130, 180, 0.75);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 130, 180, 0.35);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
