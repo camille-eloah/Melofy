@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
 import EditProfileTextModal from "./modals/EditProfileTextModal";
+import EditProfileInfoModal from "./modals/EditProfileInfoModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -33,6 +34,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
+  const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -428,6 +430,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
   const closeModal = () => setIsModalOpen(false);
   const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
+  const openEditProfileModal = () => setIsEditProfileModalOpen(true);
+  const closeEditProfileModal = () => setIsEditProfileModalOpen(false);
 
   const openEditTextsModal = () => {
     setIsEditTextsModalOpen(true);
@@ -628,7 +632,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
             {isOwner && (
               <div className="botoes">
-                <button className="btn-editar">Editar Perfil</button>
+                <button className="btn-editar" onClick={openEditProfileModal}>Editar Perfil</button>
                 <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
                   Cadastrar Pacote
                 </button>
@@ -703,6 +707,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           initialTags={displayTags}
           isSaving={isSavingTexts}
         />
+        <EditProfileInfoModal open={isEditProfileModalOpen} onClose={closeEditProfileModal} />
 
         {/* Avaliacoes abaixo */}
         <div className="avaliacoes">

@@ -1,0 +1,182 @@
+/* === BACKDROP === */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(220, 220, 220, 0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2048;
+  animation: fadeIn 0.25s ease;
+}
+
+/* === CONTAINER === */
+.modal-container {
+  width: 400px;
+  max-width: 92%;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 140, 200, 0.25);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  padding: 24px 28px;
+  font-family: "Segoe UI", sans-serif;
+  animation: slideUp 0.3s ease;
+}
+
+/* === HEADER === */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.modal-header h5 {
+  margin: 0;
+  font-size: 1.45rem;
+  color: #0077aa;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #005f89;
+  transition: 0.2s;
+}
+
+.modal-close:hover {
+  color: #0087cc;
+  transform: scale(1.2);
+}
+
+/* === BODY === */
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* GRUPOS */
+.modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-input-group span {
+  font-size: 0.9rem;
+  color: #005f89;
+  font-weight: 600;
+}
+
+/* INPUTS / TEXTAREA */
+.modal-input-group input,
+.modal-input-group textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 140, 200, 0.4);
+  background: rgba(245, 248, 255, 0.9);
+  color: #003a4f;
+  font-size: 0.95rem;
+  outline: none;
+  transition: 0.3s;
+  resize: none;
+}
+
+.modal-input-group input:focus,
+.modal-input-group textarea:focus {
+  border-color: #0099cc;
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 150, 220, 0.25);
+}
+
+/* === FOTO PREVIEW === */
+.profile-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 18px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === BOTÕES === */
+
+.btn-cancel-edit-profile,
+.btn-upload-edit-profile {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: 0.3s ease;
+  border: none;
+}
+
+/* Primary (btn-upload) */
+.btn-upload-edit-profile {
+  background: linear-gradient(135deg, #00baff, #0087cc);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0, 170, 230, 0.35);
+}
+
+.btn-upload-edit-profile:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 9px 28px rgba(0, 150, 210, 0.45);
+}
+
+/* Secondary (btn-select-file & cancelar) */
+.btn-cancel-edit-profile {
+  background: rgba(200, 200, 200, 0.2);
+  border: 1px solid rgba(0, 130, 180, 0.35);
+  color: #005f89;
+}
+
+.btn-cancel-edit-profile:hover {
+  background: rgba(0, 130, 180, 0.6);
+  border-color: rgba(0, 130, 180, 0.75);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(0, 130, 180, 0.35);
+}
+
+/* === FOOTER === */
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* === ANIMAÇÕES === */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
