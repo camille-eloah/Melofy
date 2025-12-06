@@ -4,11 +4,12 @@ import Header from "../layout/Header";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
-import EditProfileTextModal from "./modals/EditProfileTextModal";
-import EditProfileInfoModal from "./modals/EditProfileInfoModal";
-import ProfilePictureModal from "./modals/ProfilePictureModal";
-import CreatePackageModal from "./modals/CreatePackageModal";
-import ScheduleClassModal from "./modals/ScheduleClassModal";
+import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextModal";
+import EditProfileInfoModal from "./modals/editProfileInfoModal/EditProfileInfoModal";
+import ProfilePictureModal from "./modals/profilePictureModal/ProfilePictureModal";
+import CreatePackageModal from "./modals/createPackageModal/CreatePackageModal";
+import ScheduleClassModal from "./modals/scheduleClassModal/ScheduleClassModal";
+import Reviews from "./modals/reviews/Reviews";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -771,7 +772,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         />
 
         {/* Avaliacoes abaixo */}
-        <div className="avaliacoes">
+        <Reviews />
+
+        {/* <div className="avaliacoes">
           <h4>&lt;Avaliacoes&gt;</h4>
           <div className="box-avaliacao avaliacao-card">
             <span className="star">★</span>
@@ -780,7 +783,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
               maximus, purus ligula viverra eros, eu pellentesque.
             </span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <ScheduleClassModal
