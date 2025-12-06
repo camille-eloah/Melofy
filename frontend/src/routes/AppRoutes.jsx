@@ -8,6 +8,7 @@ import Localizacao from  "../componentes/localizacao/Localizacao"
 import Entrada from '../componentes/entrada/Entrada'
 import Instrumentos from '../componentes/instrumentos/Instrumentos'
 import Feedback from '../componentes/feedback/FeedBack'
+import ChatMelofy from '../componentes/chat/Chat'
 
 export default function AppRoutes() {
   return (
@@ -24,6 +25,7 @@ export default function AppRoutes() {
       <Route path="/localizacao" element={<Localizacao />} />
       <Route path="/instrumentos" element={<Instrumentos />} />
       <Route path="/feedback" element={<Feedback /> } />
+      <Route path= "/chat" element={ <ChatMelofy /> } />
       
     </Routes>
   )

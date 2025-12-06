@@ -135,7 +135,7 @@
 }
 
 .nav-link[href*="feedback"]:hover .nav-icon {
-  color: #9b5de5; /* qualquer cor que você quiser */
+  color: #9b5de5;
 }
 
 .notification-container {
@@ -482,8 +482,8 @@
   }
   
   .nav-link {
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 8px 10px;
+    font-size: 12px;
   }
   
   .notification-modal {
@@ -494,4 +494,3 @@
     width: auto;
   }
 }
-
