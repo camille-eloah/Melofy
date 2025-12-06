@@ -36,23 +36,192 @@ CREATE TABLE tb_aluno (
     conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
 );
 
+CREATE TABLE tb_categoria (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(50) NOT NULL UNIQUE
+);
+
+INSERT INTO tb_categoria (nome) VALUES
+    ('Cordas'),
+    ('Sopro'),
+    ('Percussão'),
+    ('Teclas'),
+    ('Voz'),
+    ('Eletrônico'),
+    ('Acessório'),
+    ('Outros');
+
 CREATE TABLE tb_instrumento (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    tipo VARCHAR(255) NOT NULL
+    nome VARCHAR(100) NOT NULL,
+    tipo INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
 );
 
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
-    (1, 'Saxofone', 'Sopro'),
-    (2, 'Guitarra', 'Cordas'),
-    (3, 'Violão', 'Cordas'),
-    (4, 'Flauta', 'Sopro'),
-    (5, 'Partitura', 'Acessório'),
-    (6, 'Baixo', 'Cordas'),
-    (7, 'Violino', 'Cordas'),
-    (8, 'Canto', 'Voz'),
-    (9, 'Teclado', 'Teclas'),
-    (10, 'Acordeão', 'Teclas');
+    -- 🎸 CORDAS
+    (2, 'Guitarra', 1),
+    (3, 'Violão', 1),
+    (6, 'Baixo', 1),
+    (7, 'Violino', 1),
+    (15, 'Ukulele', 1),
+    (16, 'Harpa', 1),
+    (17, 'Bandolim', 1),
+    (18, 'Cavaquinho', 1),
+    (19, 'Cello', 1),
+    (20, 'Contrabaixo Acústico', 1),
+    (21, 'Banjo', 1),
+    (22, 'Rabeca', 1),
+    (57, 'Sitar', 1),
+    (58, 'Shamisen', 1),
+    (60, 'Berimbau', 1),
+    (61, 'Charango', 1),
+    (62, 'Balalaica', 1),
+    (63, 'Erhu', 1),
+    (64, 'Koto', 1),
+    (65, 'Viola Caipira', 1),
+    (66, 'Lute', 1),
+    (67, 'Mandola', 1),
+    (68, 'Tar', 1),
+    (69, 'Oud', 1),
+    (70, 'Nyckelharpa', 1),
+    (71, 'Gayageum', 1),
+    (72, 'Guqin', 1),
+    (73, 'Veena', 1),
+    (74, 'Lyra', 1),
+    (75, 'Dobro', 1),
+    (135, 'Sarangi', 1),
+    (136, 'Morin Khuur', 1),
+    (137, 'Hardanger Fiddle', 1),
+    (145, 'Baglama', 1),
+    (146, 'Sarod', 1),
+    (147, 'Kravik Lyre', 1),
+    (148, 'Domra', 1),
+    (149, 'Laúd Árabe', 1),
+    (150, 'Cítara', 1),
+
+    -- 🎺 SOPRO
+    (1, 'Saxofone', 2),
+    (4, 'Flauta', 2),
+    (23, 'Clarinete', 2),
+    (24, 'Oboé', 2),
+    (25, 'Fagote', 2),
+    (26, 'Trompete', 2),
+    (27, 'Trombone', 2),
+    (28, 'Trompa', 2),
+    (29, 'Tuba', 2),
+    (30, 'Gaita', 2),
+    (31, 'Flauta Doce', 2),
+    (59, 'Ocarina', 2),
+    (76, 'Corneta', 2),
+    (77, 'Cornetim', 2),
+    (78, 'Piccolo', 2),
+    (79, 'Sax Tenor', 2),
+    (80, 'Sax Alto', 2),
+    (81, 'Sax Barítono', 2),
+    (82, 'Didgeridoo', 2),
+    (83, 'Chinelo (instrumento indígena)', 2),
+    (84, 'Shofar', 2),
+    (85, 'Cornamusa', 2),
+    (86, 'Bombardino', 2),
+    (87, 'Sanfona de Boca', 2),
+    (88, 'Whistle Irlandês', 2),
+    (89, 'Kena', 2),
+    (90, 'Flauta Transversal Contralto', 2),
+    (139, 'Erke', 2),
+    (140, 'Zampogna', 2),
+    (141, 'Duduk', 2),
+    (142, 'Hulusi', 2),
+    (143, 'Bansuri', 2),
+    (144, 'Flauta de Pan', 2),
+
+    -- 🥁 PERCUSSÃO
+    (32, 'Bateria', 3),
+    (33, 'Caixa', 3),
+    (34, 'Bumbo', 3),
+    (35, 'Pratos', 3),
+    (36, 'Triângulo', 3),
+    (37, 'Pandeiro', 3),
+    (38, 'Tímpanos', 3),
+    (39, 'Xilofone', 3),
+    (40, 'Marimba', 3),
+    (41, 'Djembê', 3),
+    (42, 'Cajón', 3),
+    (43, 'Cuíca', 3),
+    (44, 'Agogô', 3),
+    (45, 'Reco-reco', 3),
+    (46, 'Tamborim', 3),
+    (91, 'Repinique', 3),
+    (92, 'Surdo', 3),
+    (93, 'Atabaque', 3),
+    (94, 'Gong', 3),
+    (95, 'Castanholas', 3),
+    (96, 'Bongô', 3),
+    (97, 'Congas', 3),
+    (98, 'Tambor Taiko', 3),
+    (99, 'Vibraslap', 3),
+    (100, 'Flexatone', 3),
+    (101, 'Guiro', 3),
+    (102, 'Shekere', 3),
+    (103, 'Kalimba', 3),
+    (104, 'Metalofone', 3),
+    (105, 'Udu', 3),
+    (106, 'Tubular Bells', 3),
+    (107, 'Claves', 3),
+    (108, 'Chocalho', 3),
+    (131, 'Kalangu', 3),
+    (132, 'Mbira', 3),
+    (133, 'Kanjira', 3),
+    (134, 'Tabla', 3),
+    (138, 'Gamelão', 3),
+
+    -- 🎹 TECLAS
+    (9, 'Teclado', 4),
+    (10, 'Acordeão', 4),
+    (11, 'Piano', 4),
+    (12, 'Órgão', 4),
+    (13, 'Cravo', 4),
+    (109, 'Melódica', 4),
+    (110, 'Clavinet', 4),
+    (111, 'Harmônio', 4),
+
+    -- 🎤 VOZ
+    (8, 'Canto', 5),
+    (47, 'Coral Infantil', 5),
+    (48, 'Coral Adulto', 5),
+    (49, 'Técnica Vocal Avançada', 5),
+    (112, 'Canto Lírico', 5),
+    (113, 'Canto Popular', 5),
+    (114, 'Canto Coral', 5),
+    (115, 'Aulas de Dicção Vocal', 5),
+
+    -- 🎧 ELETRÔNICOS
+    (14, 'Sintetizador', 6),
+    (50, 'Drum Machine', 6),
+    (51, 'Controlador MIDI', 6),
+    (52, 'Sampler', 6),
+    (116, 'Theremin', 6),
+    (117, 'Piano Digital', 6),
+    (118, 'Beatpad', 6),
+    (119, 'Looper', 6),
+    (120, 'Workstation Musical', 6),
+
+    -- 🗂️ ACESSÓRIOS
+    (5, 'Partitura', 7),
+    (53, 'Estante de Partitura', 7),
+    (54, 'Afinador Digital', 7),
+    (55, 'Baqueta', 7),
+    (56, 'Palheta de Guitarra', 7),
+    (121, 'Capotraste', 7),
+    (122, 'Vassourinhas', 7),
+    (123, 'Surdina de Trompete', 7),
+    (124, 'Surdina de Trombone', 7),
+    (125, 'Almofada de Violino', 7),
+    (126, 'Pedal Sustain', 7),
+    (127, 'Encordoamento de Violão', 7),
+    (128, 'Bocal de Trompete', 7),
+    (129, 'Bocal de Saxofone', 7),
+    (130, 'Espaleira de Violino', 7);
 
 CREATE TABLE tb_professor_instrumento (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -151,4 +320,23 @@ CREATE TABLE tb_feedback (
     assunto VARCHAR(255) NOT NULL,
     mensagem TEXT NOT NULL,
     criado_em DATETIME NOT NULL
+);
+
+CREATE TABLE tb_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL UNIQUE,
+    slug VARCHAR(255) NULL,
+    tipo ENUM('INSTRUMENTO','LIVRE') NOT NULL DEFAULT 'LIVRE',
+    instrumento_id INT NULL,
+    CONSTRAINT fk_tag_instrumento FOREIGN KEY (instrumento_id) REFERENCES tb_instrumento(id)
+);
+
+
+CREATE TABLE tb_professor_tag (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    professor_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    UNIQUE KEY uk_professor_tag (professor_id, tag_id),
+    FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 );

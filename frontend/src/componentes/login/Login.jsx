@@ -15,6 +15,25 @@ function Login() {
   const [lembrar, setLembrar] = useState(false)
   const [showRoleModal, setShowRoleModal] = useState(false);
 
+  const verificarInstrumentosProfessor = async (professorId) => {
+    try {
+      const endpoints = [
+        `${API_BASE_URL}/instrumentos/professor/${professorId}`,
+        `${API_BASE_URL}/instruments/professor/${professorId}`,
+      ];
+      for (const url of endpoints) {
+        const resp = await fetch(url, { credentials: "include" });
+        if (!resp.ok) continue;
+        const data = await resp.json();
+        if (Array.isArray(data) && data.length > 0) return true;
+        if (Array.isArray(data?.instrumentos) && data.instrumentos.length > 0) return true;
+      }
+    } catch (error) {
+      console.warn("Falha ao verificar instrumentos do professor", error);
+    }
+    return false;
+  };
+
 
 
   async function handleLogin(e) {
@@ -51,7 +70,13 @@ function Login() {
         if (usuario.tipo_usuario === "ALUNO") {
           navigate("/home", { replace: true });
         } else if (usuario.tipo_usuario === "PROFESSOR") {
-          navigate("/instrumentos", { replace: true });
+          verificarInstrumentosProfessor(usuario.id).then((possuiInstrumentos) => {
+            if (possuiInstrumentos) {
+              navigate(`/professor/${usuario.global_uuid || usuario.id}`, { replace: true });
+            } else {
+              navigate("/instrumentos", { replace: true });
+            }
+          });
         }
       });
 
