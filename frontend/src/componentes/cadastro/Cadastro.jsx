@@ -1,23 +1,25 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useEffect } from "react"
+import { useNavigate, useLocation } from 'react-router-dom'
 import instrumentos from '../../assets/Images-Characters/saxofonista.png'
-import Swal from 'sweetalert2' //npm install sweetalert2
+import Swal from 'sweetalert2'
 import './Cadastro.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 function Cadastro() {
-  const [mostrar, setMostrar] = useState(false)
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const queryParams = new URLSearchParams(location.search);
+  const tipoEscolhido = queryParams.get("role"); // "professor" ou "aluno"
   const [nome, setNome] = useState('')
   const [cpf, setCpf] = useState('')
   const [dataNascimento, setDataNascimento] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
-  const [tipo, setTipo] = useState('')
   const [carregando, setCarregando] = useState(false)
-  const navigate = useNavigate()
-
 
   const formatarCPF = (valor) => {
     return valor
@@ -34,9 +36,8 @@ function Cadastro() {
 
   async function cadastrarUsuario(e) {
     e.preventDefault()
-    setMostrar(false)
 
-    if (!nome || !cpf.replace(/\D/g, '').length === 11 || !dataNascimento || !email || !senha || !confirmarSenha || !tipo) {
+    if (!nome || cpf.replace(/\D/g, '').length !== 11 || !dataNascimento || !email || !senha || !confirmarSenha) {
       Swal.fire({
         icon: 'warning',
         title: 'Campos obrigatórios',
@@ -44,7 +45,6 @@ function Cadastro() {
         background: '#1a1738',
         color: '#fff',
         confirmButtonColor: '#00d2ff',
-        backdrop: 'rgba(0, 210, 255, 0.15)'
       })
       return
     }
@@ -67,7 +67,7 @@ function Cadastro() {
       data_nascimento: dataNascimento,
       email,
       senha,
-      tipo: tipo.toUpperCase()
+      tipo: tipoEscolhido
     }
 
     setCarregando(true)
@@ -88,16 +88,22 @@ function Cadastro() {
       Swal.fire({
         icon: 'success',
         title: 'Cadastrado com sucesso!',
-        text: 'Agora você já pode fazer login.',
+        text: tipoEscolhido === "professor"
+          ? 'Agora escolha os instrumentos que você ensina.'
+          : 'Bem-vindo! Vamos para a plataforma.',
         background: '#1a1738',
         color: '#fff',
         confirmButtonColor: '#00d2ff',
-        timer: 3000,
-        timerProgressBar: true
+        timer: 2000
       })
 
-      setMostrar(true)
-      setNome(''); setCpf(''); setDataNascimento(''); setEmail(''); setSenha(''); setConfirmarSenha(''); setTipo('')
+      // redirecionamento pelo tipo
+      if (tipoEscolhido === "professor") {
+        navigate("/instrumentos");
+      } else {
+        navigate("/home");
+      }
+
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -112,6 +118,14 @@ function Cadastro() {
     }
   }
 
+  useEffect(() => {
+    const valido = tipoEscolhido === "aluno" || tipoEscolhido === "professor";
+
+    if (!valido) {
+      navigate("/", { replace: true });
+    }
+  }, [tipoEscolhido, navigate]);
+
   return (
     <div className="cadastro-page">
       <div className="Conteiner-cadastro">
@@ -120,43 +134,66 @@ function Cadastro() {
 
           <div className="input-group">
             <label>Nome Completo</label>
-            <input type="text" placeholder="Digite seu nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+            <input
+              type="text"
+              placeholder="Digite seu nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>CPF</label>
-              <input type="text" placeholder="000.000.000-00" value={cpf} onChange={handleCpfChange} maxLength="14" />
+              <input
+                type="text"
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={handleCpfChange}
+                maxLength="14"
+              />
             </div>
+
             <div className="input-group">
               <label>Data de Nascimento</label>
-              <input type="date" value={dataNascimento} onChange={(e) => setDataNascimento(e.target.value)} />
+              <input
+                type="date"
+                value={dataNascimento}
+                onChange={(e) => setDataNascimento(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="input-group">
             <label>E-mail</label>
-            <input type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
           <div className="linha-dupla">
             <div className="input-group">
               <label>Senha</label>
-              <input type="password" placeholder="Crie uma senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
+              <input
+                type="password"
+                placeholder="Crie uma senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+              />
             </div>
+
             <div className="input-group">
               <label>Confirmar Senha</label>
-              <input type="password" placeholder="Repita a senha" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} />
+              <input
+                type="password"
+                placeholder="Repita a senha"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+              />
             </div>
-          </div>
-
-          <div className="input-group">
-            <label>Tipo de Usuário</label>
-            <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-              <option value="">Selecione...</option>
-              <option value="Professor">Professor</option>
-              <option value="Aluno">Aluno</option>
-            </select>
           </div>
 
           <button type="submit" disabled={carregando}>

@@ -1,271 +1,564 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
 
-.entrada-page {
-  margin: 0;
-  background-color: #0a0820; 
-  font-family: 'Nunito', sans-serif;
-}
+    .entrada-page {
+      margin: 0;
+      background-color: #0a0820;
+      font-family: 'Nunito', sans-serif;
+    }
 
-.melofy-container {
-  width: 100%;
-  height: 100vh;              
-  display: flex;
-  flex-direction: row;
-}
+    .melofy-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: row;
+    }
 
-.melofy-descricao{
-  width: 50%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  transform: scale(1, 1);
-  text-align: center;
-}
+    .melofy-descricao {
+      width: 50%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transform: scale(1, 1);
+      text-align: center;
+    }
 
-.melody-logo img {
-  width: 150px;
-  height: 150px;
-  margin-bottom: 1rem;
-}
+    .melody-logo img {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 1rem;
+    }
 
-@keyframes backgroundShift {
-  0% {
-    transform: scale(1);
-  }
-  100% {
-    transform: scale(1.1);
-  }
-}
+    @keyframes backgroundShift {
+      0% {
+        transform: scale(1);
+      }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+      100% {
+        transform: scale(1.1);
+      }
+    }
 
-.melofy-logo h1 {
-  font-family: 'Nunito', sans-serif;
-  font-size: 6rem;
-  font-weight: 1200;
-  margin-bottom: 2rem;
-  background: linear-gradient(45deg, #6D83F2, #6d8cf2, #F2C94C);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientShift 3s ease infinite;
-  letter-spacing: 3px;
-  margin-left: 0;
-  padding-left: 0;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-.melofy-slogan {
-  margin-bottom: 3rem;
-  line-height: 1.4;
-  font-size: 1.3rem;
-  width: 80%;
-  max-width: 600px;
-  color: #e2e8f0;
-  font-weight: 600;
-}
+    .melofy-logo h1 {
+      font-family: 'Nunito', sans-serif;
+      font-size: 6rem;
+      font-weight: 1200;
+      margin-bottom: 2rem;
+      background: linear-gradient(45deg, #00d2ff, #0091ff, #004cff);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 3s ease infinite;
+      letter-spacing: 3px;
+      margin-left: 0;
+      padding-left: 0;
+      text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
 
-.melofy-slogan p {
-  margin: 0;
-  padding: 0;
-}
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
 
-.melofy-imagem {
-  background: linear-gradient(45deg, #6D83F2, #6d8cf2, #F2C94C);
-  color: white;
-  width: 50%;
-  height: 100%;
-  display: flex;
-  border-radius: 10px 0px 0px 530px;
-  justify-content: center;
-  gap: 1rem;
-  align-items: center; 
-  
-}
+      50% {
+        background-position: 100% 50%;
+      }
 
-.melofy-buttons {
-  color: white;
-  height: 100%;
-  display: flex;
-  border-radius: 150px 0px 0px 150px;
-  justify-content: center;
-  gap: 1rem;
-  align-items: center; 
-}
+      100% {
+        background-position: 0% 50%;
+      }
+    }
 
-.melofy-imagem img {
-    width: 630px;
-    height: 630px;  
-}
+    .melofy-slogan {
+      margin-bottom: 3rem;
+      line-height: 1.4;
+      font-size: 1.3rem;
+      width: 80%;
+      max-width: 600px;
+      color: #e2e8f0;
+      font-weight: 600;
+    }
 
-.melofy-btn {
-  padding: 10px 15px;
-  border: none;
-  border-radius: 15px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  width: 180px;
-}
+    .melofy-slogan p {
+      margin: 0;
+      padding: 0;
+    }
 
-.cadastrar-btn {
-  background: linear-gradient(45deg, #4a90e2, #0c2f6e);
-  color: white;
-  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-}
+    /* .melofy-imagem {
+      background: linear-gradient(65deg, #00d2ff, #0091ff, #004cff);
+      animation: fluidGradientBlue 12s ease-in-out infinite;
+      color: white;
+      width: 50%;
+      height: 100%;
+      display: flex;
+      border-radius: 10px 0px 0px 530px;
+      justify-content: center;
+      gap: 1rem;
+      align-items: center;
 
-.cadastrar-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
-  background: linear-gradient(45deg, #4166e1, #4a90e2);
-}
+    } */
 
-.logar-btn {
-  background: transparent;
-  color: #e2e8f0;
-  border: 2px solid #4a90e2;
-  position: relative;
-  overflow: hidden;
-}
-
-.logar-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.logar-btn:hover {
-  background: rgba(74, 144, 226, 0.1);
-  border-color: #c641e1;
-  transform: translateY(-3px);
-}
-
-.logar-btn:hover::before {
-  left: 100%;
-}
-
-.melody-note {
-  position: absolute;
-  font-size: 1.8rem;
-  opacity: 0.1;
-  animation: float 6s ease-in-out infinite;
-}
-
-.melody-note:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; }
-.melody-note:nth-child(2) { top: 60%; left: 85%; animation-delay: 1s; }
-.melody-note:nth-child(3) { top: 80%; left: 15%; animation-delay: 2s; }
-.melody-note:nth-child(4) { top: 30%; left: 90%; animation-delay: 3s; }
-.melody-note:nth-child(5) { top: 70%; left: 5%; animation-delay: 4s; }
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-  }
-}
-
-@media (max-width: 768px) {
-  .melofy-logo h1 {
-    font-size: 3.5rem;
-  }
-  
-  .melofy-slogan {
-    font-size: 1.1rem;
-  }
-  
-  .melofy-slogan p:first-child {
-    font-size: 1.2rem;
-  }
-  
-  .melofy-btn {
-    padding: 12px 25px;
-    font-size: 1rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .melofy-logo h1 {
-    font-size: 2.8rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  .melofy-slogan {
-    margin-bottom: 2rem;
-    font-size: 1rem;
-  }
-  
-  .melofy-slogan p {
-    font-size: 1rem;
-  }
-  
-  .melody-note {
-    font-size: 1.4rem;
-  }
-}
+    .melofy-imagem {
+      background: linear-gradient(135deg, #3b82f6, #6d28d9, #9333ea);
+      animation: fluidGradientBlue 12s ease-in-out infinite;
+      color: white;
+      width: 50%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px 0 0 530px;
+    }
 
 
-@keyframes fluidGradient {
-  0% {
-    background: linear-gradient(45deg, #1E3A8A, #6D83F2, #6d8cf2, #F2C94C);
-    background-size: 300% 300%;
-    background-position: 0% 50%;
-  }
-  25% {
-    background: linear-gradient(90deg, #6D83F2, #1E3A8A, #F2C94C, #6d8cf2);
-    background-size: 300% 300%;
-    background-position: 25% 50%;
-  }
-  50% {
-    background: linear-gradient(135deg, #F2C94C, #6d8cf2, #1E3A8A, #6D83F2);
-    background-size: 300% 300%;
-    background-position: 50% 50%;
-  }
-  75% {
-    background: linear-gradient(180deg, #6d8cf2, #F2C94C, #6D83F2, #1E3A8A);
-    background-size: 300% 300%;
-    background-position: 75% 50%;
-  }
-  100% {
-    background: linear-gradient(225deg, #1E3A8A, #6D83F2, #6d8cf2, #F2C94C);
-    background-size: 300% 300%;
-    background-position: 100% 50%;
-  }
-}
+    .melofy-buttons {
+      color: white;
+      height: 100%;
+      display: flex;
+      border-radius: 150px 0px 0px 150px;
+      justify-content: center;
+      gap: 1rem;
+      align-items: center;
+    }
 
-.melofy-imagem {
-  animation: fluidGradient 12s ease-in-out infinite;
-}
+    .melofy-imagem img {
+      width: 630px;
+      height: 630px;
+    }
+
+    .melofy-btn {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 15px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      width: 180px;
+    }
+
+    .cadastrar-btn {
+      background: linear-gradient(45deg, #4a90e2, #0c2f6e);
+      color: white;
+      box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    }
+
+    .cadastrar-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
+      background: linear-gradient(45deg, #4166e1, #4a90e2);
+    }
+
+    .logar-btn {
+      background: transparent;
+      color: #e2e8f0;
+      border: 2px solid #4a90e2;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logar-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(74, 144, 226, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .logar-btn:hover {
+      background: rgba(74, 144, 226, 0.1);
+      border-color:  #3CE8CE;
+      transform: translateY(-3px);
+    }
+
+    .logar-btn:hover::before {
+      left: 100%;
+    }
+
+    .melody-note {
+      position: absolute;
+      font-size: 1.8rem;
+      opacity: 0.1;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .melody-note:nth-child(1) {
+      top: 20%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .melody-note:nth-child(2) {
+      top: 60%;
+      left: 85%;
+      animation-delay: 1s;
+    }
+
+    .melody-note:nth-child(3) {
+      top: 80%;
+      left: 15%;
+      animation-delay: 2s;
+    }
+
+    .melody-note:nth-child(4) {
+      top: 30%;
+      left: 90%;
+      animation-delay: 3s;
+    }
+
+    .melody-note:nth-child(5) {
+      top: 70%;
+      left: 5%;
+      animation-delay: 4s;
+    }
+
+    /* --- OVERLAY DO MODAL --- */
+    .role-choice-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(3px);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* --- CONTAINER DO MODAL --- */
+    .role-choice-modal {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 32px 28px;
+      width: 420px;
+      max-width: 90%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      animation: slideDown 0.25s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* --- TÍTULO --- */
+    .role-choice-modal h2 {
+      font-family: "Inter", sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    /* --- BOTÕES DO MODAL --- */
+    .role-choice-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* CONFIGURAÇÃO BASE */
+    .role-choice-btn {
+      width: 100%;
+      padding: 15px 0;
+      border-radius: 14px;
+      font-family: "Inter", sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      letter-spacing: .5px;
+      background-size: 200% 200%;
+    }
+
+    /* BOTÃO DE ALUNO */
+    .student-btn {
+      background: linear-gradient(45deg, #00d2ff, #0099ff, #0066cc);
+      box-shadow: 0 4px 20px rgba(0, 162, 255, 0.4);
+    }
+
+    .student-btn:hover {
+      background-position: right center;
+      box-shadow: 0 8px 26px rgba(0, 162, 255, 0.6);
+      transform: translateY(-3px);
+    }
+
+    /* BOTÃO DE PROFESSOR */
+    .teacher-btn {
+      background: linear-gradient(45deg, #00d2ff, #00b0ff, #008cff);
+    }
+
+    .teacher-btn:hover {
+      background-position: 100% 0%;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 26px rgba(199, 72, 255, .55);
+    }
+
+
+    .role-choice-btn:hover {
+      background-size: 300% 300%;
+    }
+
+    /* Diferenciação */
+    .role-choice-btn.teacher-btn:hover {
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.30);
+    }
+
+    .role-choice-btn.student-btn:hover {
+      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.30);
+    }
+
+    /* --- BOTÃO FECHAR --- */
+    .role-choice-close {
+      margin-top: 12px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: underline;
+      display: block;
+      margin-left: auto;
+      transition: color 0.3s ease;
+    }
+
+    .role-choice-close:hover {
+      color: #ffffff;
+    }
+
+    /* NOVO LAYOUT DO MODAL EM DUAS COLUNAS */
+    .new-role-modal {
+      width: 800px;
+      max-width: 90%;
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* --- LADO ESQUERDO --- */
+    .role-left {
+      width: 55%;
+      padding: 40px 35px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 22px;
+    }
+
+    .role-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: white;
+      line-height: 1.25;
+    }
+
+    .role-description {
+      color: #cbd5e1;
+      font-size: 15px;
+      line-height: 1.45;
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+
+    /* Botões reaproveitam o que você já tinha */
+    .role-choice-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Botão fechar no canto esquerdo */
+    .close-left {
+      margin-top: 12px;
+      margin-left: 0;
+    }
+
+    /* --- LADO DIREITO (IMAGEM) --- */
+    .role-right {
+      width: 45%;
+      background: linear-gradient(65deg, #00d2ff, #0091ff, #004cff);
+      border-left: 3px solid rgba(255, 255, 255, 0.2);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+
+    .role-right img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    /* --- RESPONSIVIDADE --- */
+    @media (max-width: 720px) {
+      .new-role-modal {
+        flex-direction: column;
+        width: 90%;
+      }
+
+      .role-left,
+      .role-right {
+        width: 100%;
+      }
+
+      .role-right img {
+        height: 260px;
+        object-fit: contain;
+      }
+    }
+
+
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translateY(0) rotate(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotate(180deg);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .melofy-logo h1 {
+        font-size: 3.5rem;
+      }
+
+      .melofy-slogan {
+        font-size: 1.1rem;
+      }
+
+      .melofy-slogan p:first-child {
+        font-size: 1.2rem;
+      }
+
+      .melofy-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .melofy-logo h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .melofy-slogan {
+        margin-bottom: 2rem;
+        font-size: 1rem;
+      }
+
+      .melofy-slogan p {
+        font-size: 1rem;
+      }
+
+      .melody-note {
+        font-size: 1.4rem;
+      }
+    }
+
+
+    @keyframes fluidGradient {
+      0% {
+        background: linear-gradient(45deg, #0A2A6E, #0091ff, #6FD4FF, #68F1FF);
+        background-size: 300% 300%;
+        background-position: 0% 50%;
+      }
+
+      25% {
+        background: linear-gradient(90deg, #0091ff, #68F1FF, #6FD4FF, #0A2A6E);
+        background-size: 300% 300%;
+        background-position: 25% 50%;
+      }
+
+      50% {
+        background: linear-gradient(135deg, #6FD4FF, #0091ff, #68F1FF, #9F8BFF);
+        background-size: 300% 300%;
+        background-position: 50% 50%;
+      }
+
+      75% {
+        background: linear-gradient(180deg, #68F1FF, #6FD4FF, #0091ff, #0A2A6E);
+        background-size: 300% 300%;
+        background-position: 75% 50%;
+      }
+
+      100% {
+        background: linear-gradient(225deg, #0091ff, #0A2A6E, #6FD4FF, #3CE8CE);
+        background-size: 300% 300%;
+        background-position: 100% 50%;
+      }
+    }
+
+    .melofy-imagem {
+      animation: fluidGradient 12s ease-in-out infinite;
+      backdrop-filter: blur(3px);
+
+    }
+
+
+    @keyframes fluidGradientBlue {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }

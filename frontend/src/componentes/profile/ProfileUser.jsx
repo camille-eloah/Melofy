@@ -7,13 +7,27 @@ import { useEffect, useRef, useState } from "react";
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
+  const defaultIntroText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+  const defaultDescText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ac dui quis libero suscipit volutpat in ut lacus. In blandit cursus nibh quis eleifend. Praesent a leo ut nibh mattis ultrices at at ex. Donec finibus felis neque, a suscipit mauris imperdiet nec. Sed ex ipsum, porttitor a sodales eget, tempor nec nisi. Morbi tortor diam, iaculis in volutpat a, pharetra eget erat. Nam elementum nisi ex, id facilisis enim facilisis eu. Praesent a ipsum lorem. Sed ac massa aliquam, rutrum ligula nec, sagittis tellus. Nam egestas urna lectus, ut ultricies sem hendrerit ut. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque mattis malesuada erat eget pellentesque. Nunc feugiat mauris condimentum mauris rutrum aliquet. Praesent dui diam, maximus vel ultrices sit amet, aliquam a quam.\nPhasellus malesuada est ut accumsan efficitur. Proin laoreet quis magna consectetur malesuada. Cras nec felis non eros pulvinar mollis. Aliquam egestas nunc at fringilla porttitor. Mauris facilisis arcu id nulla dapibus egestas quis ac eros. Nullam fermentum ultrices tellus, malesuada tempus est. Donec viverra, tortor non efficitur ultricies, diam tortor faucibus ante, id porta leo nisi nec purus.";
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSavingTexts, setIsSavingTexts] = useState(false);
   const [cacheBust, setCacheBust] = useState(Date.now());
+  const [instrumentosProfessor, setInstrumentosProfessor] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [tagsDraft, setTagsDraft] = useState([]);
+  const [tagInput, setTagInput] = useState("");
+  const [hasEditedTags, setHasEditedTags] = useState(false);
+  const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
+  const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
+  const [introDraft, setIntroDraft] = useState("");
+  const [descDraft, setDescDraft] = useState("");
+  const [hasEditedTexts, setHasEditedTexts] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,6 +133,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
+  const usuarioId = usuario?.id ?? null;
+  const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
     (absoluteProfilePicture
@@ -179,7 +195,132 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     };
   }, [previewUrl]);
 
+  useEffect(() => {
+    if (hasEditedTexts) return;
+    setIntroText(usuario?.texto_intro || defaultIntroText);
+    setDescText(usuario?.texto_desc || defaultDescText);
+  }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
+
+  useEffect(() => {
+    if (!isProfessor || !usuarioId) {
+      setInstrumentosProfessor([]);
+      return;
+    }
+
+    let isActive = true;
+    const endpoints = [
+      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
+      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
+    ];
+
+    const carregarInstrumentos = async () => {
+      for (const url of endpoints) {
+        try {
+          const resp = await fetch(url);
+          if (!resp.ok) continue;
+          const data = await resp.json();
+          if (!isActive) return;
+          const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
+          setInstrumentosProfessor(instrumentos || []);
+          return;
+        } catch (error) {
+          /* tenta prximo endpoint */
+        }
+      }
+      if (isActive) setInstrumentosProfessor([]);
+    };
+
+    carregarInstrumentos();
+
+    return () => {
+      isActive = false;
+    };
+  }, [isProfessor, usuarioId]);
+
+  useEffect(() => {
+    if (hasEditedTags) return;
+    const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
+    setTags(nomesInstrumentos);
+    setTagsDraft(nomesInstrumentos);
+  }, [instrumentosProfessor, hasEditedTags]);
+
   const closeModal = () => setIsModalOpen(false);
+  const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
+
+  const openEditTextsModal = () => {
+    setIntroDraft(introText);
+    setDescDraft(descText);
+    setTagsDraft(tags);
+    setTagInput("");
+    setIsEditTextsModalOpen(true);
+  };
+
+  const handleSaveTexts = async () => {
+    if (!usuario?.id || isSavingTexts || !isOwner) return;
+    setIsSavingTexts(true);
+    try {
+      const payload = { texto_intro: introDraft, texto_desc: descDraft };
+      const resp = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!resp.ok) {
+        throw new Error(`Falha ao salvar textos: ${resp.status}`);
+      }
+
+      const data = await resp.json();
+      setUsuario((prev) => ({ ...prev, ...data }));
+      setIntroText(data?.texto_intro ?? introDraft);
+      setDescText(data?.texto_desc ?? descDraft);
+      setHasEditedTexts(true);
+      setTags(tagsDraft);
+      setHasEditedTags(true);
+      setIsEditTextsModalOpen(false);
+    } catch (error) {
+      console.error("Erro ao salvar textos do perfil", error);
+    } finally {
+      setIsSavingTexts(false);
+    }
+  };
+
+  const displayTags = tags && tags.length > 0 ? tags : instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
+
+  const formatTag = (value) => {
+    const trimmed = (value || "").trim();
+    if (!trimmed) return "";
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  };
+
+  const handleAddTag = () => {
+    if (tagsDraft.length >= 12) return;
+    const formatted = formatTag(tagInput);
+    if (!formatted) return;
+    const exists = tagsDraft.some((tag) => tag.toLowerCase() === formatted.toLowerCase());
+    if (exists) {
+      setTagInput("");
+      return;
+    }
+    const next = [...tagsDraft, formatted];
+    setTagsDraft(next);
+    setHasEditedTags(true);
+    setTagInput("");
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    const next = tagsDraft.filter((tag) => tag.toLowerCase() !== String(tagToRemove || "").toLowerCase());
+    setTagsDraft(next);
+    setHasEditedTags(true);
+  };
+
+  const handleTagInputKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddTag();
+    }
+  };
 
   return (
     <div className="profile-page">
@@ -196,14 +337,19 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 {badgeInfo.label}
               </span>
             )}
-            <span className="categoria-item">Guitarra</span>
-            <span className="categoria-item">Violao</span>
-            <span className="categoria-item">Ukulele</span>
+            {displayTags.map((tag, index) => {
+              const key = `${tag}-${index}`;
+              return (
+                <span key={key} className="categoria-item">
+                  {tag}
+                </span>
+              );
+            })}
           </div>
 
           {/* Botao de edicao no final (direita)*/}
           {isOwner && (
-            <button className="btn-editar-texto" title="Editar textos">
+            <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
               <span aria-hidden="true">✎</span>
             </button>
           )}
@@ -213,12 +359,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         <div className="main-text">
           <div className="texto-intro">
             <p>
-              Aulas totalmente voltadas ao repertorio que o aluno quer aprender! Guitarra, Violao e Ukulele.
+              {introText}
             </p>
           </div>
 
           <div className="texto-desc">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+            <p>{descText}</p>
           </div>
         </div>
 
@@ -331,6 +477,91 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                   disabled={!selectedFile || isUploading}
                 >
                   {isUploading ? "Enviando..." : "Salvar foto"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isEditTextsModalOpen && (
+          <div className="modal-backdrop" onClick={closeEditTextsModal}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Editar textos do perfil"
+            >
+              <div className="modal-header">
+                <h5>Editar textos do perfil</h5>
+                <button className="modal-close" onClick={closeEditTextsModal} aria-label="Fechar modal">
+                  x
+                </button>
+              </div>
+              <div className="modal-body" style={{ flexDirection: "column", gap: "12px" }}>
+                <label className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Título</span>
+                  <textarea
+                    value={introDraft}
+                    onChange={(e) => setIntroDraft(e.target.value)}
+                    rows={3}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+                  />
+                </label>
+                <label className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Descrição</span>
+                  <textarea
+                    value={descDraft}
+                    onChange={(e) => setDescDraft(e.target.value)}
+                    rows={4}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "1px solid #cbd5e1" }}
+                  />
+                </label>
+                <div className="modal-input-group">
+                  <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
+                  <div className="tags-editor">
+                    <div className="tags-list">
+                      {tagsDraft.map((tag) => (
+                        <span key={tag} className="tag-badge">
+                          <span className="tag-label">{tag}</span>
+                          <button
+                            type="button"
+                            className="tag-remove"
+                            aria-label={`Remover tag ${tag}`}
+                            onClick={() => handleRemoveTag(tag)}
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      {tagsDraft.length < 12 && (
+                        <div className="tag-add">
+                          <input
+                            type="text"
+                            value={tagInput}
+                            onChange={(e) => setTagInput(e.target.value)}
+                            onKeyDown={handleTagInputKeyDown}
+                            maxLength={30}
+                            placeholder="Nova tag"
+                          />
+                          <button type="button" onClick={handleAddTag} aria-label="Adicionar nova tag">
+                            +
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="tags-helper">
+                      {tagsDraft.length}/12 tags
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button className="btn-upload" type="button" onClick={handleSaveTexts} disabled={isSavingTexts}>
+                  {isSavingTexts ? "Salvando..." : "Salvar"}
+                </button>
+                <button className="btn-select-file" type="button" onClick={closeEditTextsModal}>
+                  Cancelar
                 </button>
               </div>
             </div>

@@ -44,6 +44,8 @@ class Professor(UserBase, table=True):
     global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.PROFESSOR, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
+    texto_intro: Optional[str] = Field(default=None, nullable=True)
+    texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -64,6 +66,8 @@ class Aluno(UserBase, table=True):
     global_uuid: str = Field(default_factory=lambda: str(uuid.uuid4()), index=True, unique=True, nullable=False)
     tipo_usuario: TipoUsuario = Field(default=TipoUsuario.ALUNO, nullable=False)
     bio: Optional[str] = Field(default=None, nullable=True)
+    texto_intro: Optional[str] = Field(default=None, nullable=True)
+    texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     created_at: datetime = Field(default_factory=datetime.utcnow)

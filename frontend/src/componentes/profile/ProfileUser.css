@@ -112,6 +112,10 @@
   margin-bottom: 20px;
 }
 
+.texto-desc p {
+  white-space: pre-line; /* preserva quebras de linha digitadas pelo usuario */
+}
+
 /* ===== Card do perfil ===== */
 .card-perfil {
   flex: 1 1 32%;
@@ -328,11 +332,13 @@
 
 /* ===== Container top-items ===== */
 .top-items {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   width: 100%;
   max-width: 600px;
+  padding-right: 52px; /* espaço para o botão fixo à direita */
   margin-bottom: 20px;
 }
 
@@ -385,6 +391,9 @@
 
 /* ===== Botão de edição do texto principal ===== */
 .btn-editar-texto {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 40px;
   height: 40px;
   border: none;
@@ -508,6 +517,25 @@
   border-radius: 12px;
 }
 
+.modal-input-group {
+  margin-right: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal-input-group textarea {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
 .modal-placeholder {
   width: 140px;
   height: 140px;
@@ -564,4 +592,86 @@
 .btn-upload:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+}
+
+.tags-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tags-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e2e8f0;
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 6px 10px 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tag-remove {
+  background: transparent;
+  border: none;
+  color: #475569;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+.tag-remove:hover {
+  color: #0f172a;
+}
+
+.tag-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 999px;
+  padding: 6px 8px 6px 10px;
+}
+
+.tag-add input {
+  border: none;
+  outline: none;
+  background: #ffffff;
+  min-width: 90px;
+  font-size: 12px;
+  color: #0f172a;
+  padding: 4px 0;
+}
+
+.tag-add button {
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.tag-add button:hover {
+  background: #0369a1;
+}
+
+.tags-helper {
+  font-size: 11px;
+  color: #475569;
 }
