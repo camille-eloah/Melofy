@@ -43,7 +43,7 @@ function Instrumentos() {
   useEffect(() => {
     const userStr = localStorage.getItem("usuario");
     if (!userStr) {
-      navigate("/login", { replace: true });
+      navigate("/notfound", { replace: true });
       return;
     }
 
@@ -52,7 +52,7 @@ function Instrumentos() {
     if (user.tipo_usuario !== "PROFESSOR") {
       navigate("/home");
     }
-  }, []);
+  }, [navigate]);
 
   function toggleInstrument(id) {
     setSelectedIds((prev) =>
