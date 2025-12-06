@@ -42,6 +42,15 @@ CREATE TABLE tb_instrumento (
     tipo VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE tb_tags (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL UNIQUE,
+    slug VARCHAR(255) NULL,
+    tipo ENUM('INSTRUMENTO','LIVRE') NOT NULL DEFAULT 'LIVRE',
+    instrumento_id INT NULL,
+    CONSTRAINT fk_tag_instrumento FOREIGN KEY (instrumento_id) REFERENCES tb_instrumento(id)
+);
+
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (1, 'Saxofone', 'Sopro'),
     (2, 'Guitarra', 'Cordas'),
@@ -60,6 +69,15 @@ CREATE TABLE tb_professor_instrumento (
     id_instrumento INT NOT NULL,
     FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
     FOREIGN KEY (id_instrumento) REFERENCES tb_instrumento(id)
+);
+
+CREATE TABLE tb_professor_tag (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    professor_id INT NOT NULL,
+    tag_id INT NOT NULL,
+    UNIQUE KEY uk_professor_tag (professor_id, tag_id),
+    FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 );
 
 CREATE TABLE tb_aula (

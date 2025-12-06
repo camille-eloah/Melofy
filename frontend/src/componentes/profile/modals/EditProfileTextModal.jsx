@@ -83,19 +83,24 @@ function EditProfileTextModal({
             <span style={{ fontWeight: 600, fontSize: "13px", color: "#0f172a" }}>Tags</span>
             <div className="tags-editor">
               <div className="tags-list">
-                {tags.map((tag) => (
-                  <span key={tag} className="tag-badge">
-                    <span className="tag-label">{tag}</span>
-                    <button
-                      type="button"
-                      className="tag-remove"
-                      aria-label={`Remover tag ${tag}`}
-                      onClick={() => removeTag(tag)}
-                    >
-                      x
-                    </button>
-                  </span>
-                ))}
+                {tags.map((tag) => {
+                  const name = tag?.name || tag?.nome || String(tag);
+                  const isInstrument = Boolean(tag?.isInstrument || tag?.instrumento_id);
+                  const badgeClass = `tag-badge${isInstrument ? " tag-badge-instrument" : ""}`;
+                  return (
+                    <span key={name} className={badgeClass}>
+                      <span className="tag-label">{name}</span>
+                      <button
+                        type="button"
+                        className="tag-remove"
+                        aria-label={`Remover tag ${name}`}
+                        onClick={() => removeTag(tag)}
+                      >
+                        x
+                      </button>
+                    </span>
+                  );
+                })}
 
                 {canAddTag && (
                   <div className="tag-add">

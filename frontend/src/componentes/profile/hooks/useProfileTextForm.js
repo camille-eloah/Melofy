@@ -19,16 +19,17 @@ export function useProfileTextForm({ initialIntro = "", initialDesc = "", initia
       if (prevTags.length >= MAX_TAGS) return prevTags;
       const formatted = formatTag(tagInput);
       if (!formatted) return prevTags;
-      const exists = prevTags.some((tag) => tag.toLowerCase() === formatted.toLowerCase());
+      const exists = prevTags.some((tag) => (tag?.name || tag)?.toLowerCase() === formatted.toLowerCase());
       if (exists) return prevTags;
-      return [...prevTags, formatted];
+      return [...prevTags, { name: formatted, isInstrument: false }];
     });
     setTagInput("");
   }, [tagInput, formatTag]);
 
   const removeTag = useCallback((tagToRemove) => {
+    const target = (tagToRemove?.name || tagToRemove || "").toLowerCase();
     setTags((prevTags) =>
-      prevTags.filter((tag) => tag.toLowerCase() !== String(tagToRemove || "").toLowerCase()),
+      prevTags.filter((tag) => (tag?.name || tag || "").toLowerCase() !== target),
     );
   }, []);
 

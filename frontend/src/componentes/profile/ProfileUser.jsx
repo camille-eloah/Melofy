@@ -10,6 +10,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: currentUserProp = null }) {
   const defaultIntroText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
   const defaultDescText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ac dui quis libero suscipit volutpat in ut lacus. In blandit cursus nibh quis eleifend. Praesent a leo ut nibh mattis ultrices at at ex. Donec finibus felis neque, a suscipit mauris imperdiet nec. Sed ex ipsum, porttitor a sodales eget, tempor nec nisi. Morbi tortor diam, iaculis in volutpat a, pharetra eget erat. Nam elementum nisi ex, id facilisis enim facilisis eu. Praesent a ipsum lorem. Sed ac massa aliquam, rutrum ligula nec, sagittis tellus. Nam egestas urna lectus, ut ultricies sem hendrerit ut. Interdum et malesuada fames ac ante ipsum primis in faucibus. Pellentesque mattis malesuada erat eget pellentesque. Nunc feugiat mauris condimentum mauris rutrum aliquet. Praesent dui diam, maximus vel ultrices sit amet, aliquam a quam.\nPhasellus malesuada est ut accumsan efficitur. Proin laoreet quis magna consectetur malesuada. Cras nec felis non eros pulvinar mollis. Aliquam egestas nunc at fringilla porttitor. Mauris facilisis arcu id nulla dapibus egestas quis ac eros. Nullam fermentum ultrices tellus, malesuada tempus est. Donec viverra, tortor non efficitur ultricies, diam tortor faucibus ante, id porta leo nisi nec purus.";
+  const normalizeTagResponse = (tag) => {
+    const name = tag?.nome || tag?.name || tag;
+    if (!name) return null;
+    return {
+      name,
+      isInstrument: Boolean(tag?.is_instrument || tag?.instrumento_id || (tag?.tipo || "").toUpperCase() === "INSTRUMENTO"),
+    };
+  };
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -313,9 +321,41 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [isProfessor, usuarioId]);
 
   useEffect(() => {
+    if (!isProfessor || !usuarioId) {
+      if (!hasEditedTags) setTags([]);
+      return;
+    }
+
+    let active = true;
+    fetch(`${API_BASE_URL}/user/${usuarioId}/tags`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) throw new Error("tags_fetch_failed");
+        return res.json();
+      })
+      .then((data) => {
+        if (!active) return;
+        const mapped = (data || []).map(normalizeTagResponse).filter(Boolean);
+        if (mapped.length > 0) {
+          setTags(mapped);
+          setHasEditedTags(true);
+        } else if (!hasEditedTags) {
+          setTags([]);
+        }
+      })
+      .catch(() => {
+        /* ignora erros silenciosamente */
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [isProfessor, usuarioId, hasEditedTags]);
+
+  useEffect(() => {
     if (hasEditedTags) return;
     const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
-    setTags(nomesInstrumentos);
+    const mapped = nomesInstrumentos.map((nome) => ({ name: nome, isInstrument: true }));
+    setTags(mapped);
   }, [instrumentosProfessor, hasEditedTags]);
 
   const closeModal = () => setIsModalOpen(false);
@@ -331,25 +371,52 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     const introPayload = values?.intro ?? introText;
     const descPayload = values?.desc ?? descText;
     const tagsPayload = Array.isArray(values?.tags) ? values.tags : tags;
+    const tagNames = (tagsPayload || [])
+      .map((tag) => {
+        if (typeof tag === "string") return tag;
+        return tag?.name || tag?.nome || "";
+      })
+      .map((name) => (name || "").trim())
+      .filter(Boolean);
     try {
       const payload = { texto_intro: introPayload, texto_desc: descPayload };
-      const resp = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+      const textoPromise = fetch(`${API_BASE_URL}/user/${usuario.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         credentials: "include",
       });
 
-      if (!resp.ok) {
-        throw new Error(`Falha ao salvar textos: ${resp.status}`);
-      }
+      const tagsPromise = isProfessor
+        ? fetch(`${API_BASE_URL}/user/${usuario.id}/tags`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: tagNames }),
+          credentials: "include",
+        })
+        : null;
 
-      const data = await resp.json();
+      const [textoResp, tagsResp] = await Promise.all([textoPromise, tagsPromise]);
+
+      if (!textoResp.ok) {
+        throw new Error(`Falha ao salvar textos: ${textoResp.status}`);
+      }
+      const data = await textoResp.json();
       setUsuario((prev) => ({ ...prev, ...data }));
       setIntroText(data?.texto_intro ?? introPayload);
       setDescText(data?.texto_desc ?? descPayload);
       setHasEditedTexts(true);
-      setTags(tagsPayload);
+
+      if (tagsResp) {
+        if (!tagsResp.ok) {
+          throw new Error(`Falha ao salvar tags: ${tagsResp.status}`);
+        }
+        const tagsData = await tagsResp.json();
+        const normalized = (tagsData || []).map(normalizeTagResponse).filter(Boolean);
+        setTags(normalized);
+      } else {
+        setTags(tagsPayload);
+      }
       setHasEditedTags(true);
       setIsEditTextsModalOpen(false);
     } catch (error) {
@@ -359,7 +426,16 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
 
-  const displayTags = tags && tags.length > 0 ? tags : instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
+  const displayTags =
+    tags && tags.length > 0
+      ? tags
+      : instrumentosProfessor
+        .map((instrumento) => {
+          const name = instrumento?.nome || instrumento?.tipo;
+          if (!name) return null;
+          return { name, isInstrument: true };
+        })
+        .filter(Boolean);
 
   return (
     <div className="profile-page">
@@ -377,10 +453,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 </span>
               )}
               {displayTags.map((tag, index) => {
-                const key = `${tag}-${index}`;
+                const name = tag?.name || tag?.nome || String(tag);
+                const key = `${name}-${index}`;
+                const isInstrument = Boolean(tag?.isInstrument || tag?.instrumento_id);
                 return (
-                  <span key={key} className="categoria-item">
-                    {tag}
+                  <span key={key} className={`categoria-item${isInstrument ? " categoria-item-instrument" : ""}`}>
+                    {name}
                   </span>
                 );
               })}
