@@ -629,6 +629,32 @@ def atualizar_tags_professor(
         db.add(rel)
         tags_resultado.append(tag)
 
+    # Sincroniza tabela de instrumentos do professor com as tags de instrumento
+    instrument_ids = {tag.instrumento_id for tag in tags_resultado if tag.instrumento_id}
+    if instrument_ids:
+        existentes = db.exec(
+            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+        ).all()
+        existentes_ids = {rel.instrumento_id for rel in existentes}
+
+        # Remover instrumentos que saíram
+        for rel in existentes:
+            if rel.instrumento_id not in instrument_ids:
+                db.delete(rel)
+
+        # Adicionar instrumentos novos
+        for instr_id in instrument_ids:
+            if instr_id not in existentes_ids:
+                db.add(ProfessorInstrumento(professor_id=user_id, instrumento_id=instr_id))
+
+    else:
+        # Nenhuma tag de instrumento: limpa relacionamentos existentes
+        antigos_instr = db.exec(
+            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+        ).all()
+        for rel in antigos_instr:
+            db.delete(rel)
+
     db.commit()
     return [_tag_to_response(tag) for tag in tags_resultado]
 
