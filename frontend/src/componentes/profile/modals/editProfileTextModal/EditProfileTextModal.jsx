@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useProfileTextForm } from "../hooks/useProfileTextForm";
+import { useProfileTextForm } from "../../hooks/useProfileTextForm";
 import "./EditProfileTextModal.css";
 
 function EditProfileTextModal({
