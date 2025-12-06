@@ -18,6 +18,17 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       isInstrument: Boolean(tag?.is_instrument || tag?.instrumento_id || (tag?.tipo || "").toUpperCase() === "INSTRUMENTO"),
     };
   };
+  const mergeTagsUnique = (base = [], extra = []) => {
+    const seen = new Set((base || []).map((t) => (t?.name || t?.nome || t || "").toLowerCase()));
+    const merged = [...(base || [])];
+    (extra || []).forEach((t) => {
+      const key = (t?.name || t?.nome || t || "").toLowerCase();
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      merged.push(t);
+    });
+    return merged;
+  };
   const [usuario, setUsuario] = useState(usuarioProp || {});
   const [currentUser, setCurrentUser] = useState(currentUserProp || null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,7 +55,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
   const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
   const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
-
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [pacote, setPacote] = useState({
     quantidade: "",
@@ -191,7 +201,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
-  const usuarioId = usuario?.id ?? null;
+  const usuarioId = usuario?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null);
   const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
@@ -285,15 +295,21 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
 
   useEffect(() => {
-    if (!isProfessor || !usuarioId) {
+    if (!isProfessor) {
       setInstrumentosProfessor([]);
+      setTags([]);
+      console.log("[ProfileUser] instrumentos: reset (nao professor)", { isProfessor, usuarioId });
+      return;
+    }
+    if (!usuarioId) {
+      console.log("[ProfileUser] instrumentos: aguardando usuarioId", { usuarioId, userIdentifier });
       return;
     }
 
     let isActive = true;
     const endpoints = [
-      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
-      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
+      `${API_BASE_URL}/instrumentos/professor/${usuarioId}` ,
+      `${API_BASE_URL}/instruments/professor/${usuarioId}` ,
     ];
 
     const carregarInstrumentos = async () => {
@@ -305,12 +321,40 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           if (!isActive) return;
           const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
           setInstrumentosProfessor(instrumentos || []);
+          console.log("[ProfileUser] instrumentos carregados", { url, instrumentos });
+          const mapped = instrumentos
+            .map((instrumento) => {
+              const name = instrumento?.nome || instrumento?.tipo;
+              if (!name) return null;
+              return { name, isInstrument: true };
+            })
+            .filter(Boolean);
+          if (!hasEditedTags && mapped.length > 0) {
+            setTags(mapped);
+            console.log("[ProfileUser] tags definidas a partir de instrumentos (sem edicao)", { mapped });
+          } else if (mapped.length > 0) {
+            setTags((prev) => {
+              const existing = new Set(
+                (prev || []).map((tag) => (tag?.name || tag?.nome || tag || "").toLowerCase()),
+              );
+              const merged = [
+                ...prev,
+                ...mapped.filter((tag) => !existing.has((tag?.name || "").toLowerCase())),
+              ];
+              console.log("[ProfileUser] tags mescladas com instrumentos", { prev, mapped, merged });
+              return merged;
+            });
+          }
           return;
         } catch (error) {
-          /* tenta prximo endpoint */
+          /* tenta proximo endpoint */
         }
       }
-      if (isActive) setInstrumentosProfessor([]);
+      if (isActive) {
+        setInstrumentosProfessor([]);
+        if (!hasEditedTags) setTags([]);
+        console.log("[ProfileUser] instrumentos: fallback vazio");
+      }
     };
 
     carregarInstrumentos();
@@ -318,11 +362,16 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     return () => {
       isActive = false;
     };
-  }, [isProfessor, usuarioId]);
+  }, [isProfessor, usuarioId, hasEditedTags]);
 
   useEffect(() => {
-    if (!isProfessor || !usuarioId) {
-      if (!hasEditedTags) setTags([]);
+    if (!isProfessor) {
+      setTags([]);
+      console.log("[ProfileUser] tags reset (nao professor)");
+      return;
+    }
+    if (!usuarioId) {
+      console.log("[ProfileUser] tags: aguardando usuarioId", { usuarioId, userIdentifier });
       return;
     }
 
@@ -335,28 +384,47 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       .then((data) => {
         if (!active) return;
         const mapped = (data || []).map(normalizeTagResponse).filter(Boolean);
+        const instrumentTags = instrumentosProfessor
+          .map((instrumento) => {
+            const name = instrumento?.nome || instrumento?.tipo;
+            if (!name) return null;
+            return { name, isInstrument: true };
+          })
+          .filter(Boolean);
         if (mapped.length > 0) {
-          setTags(mapped);
+          const merged = mergeTagsUnique(mapped, instrumentTags);
+          setTags(merged);
           setHasEditedTags(true);
-        } else if (!hasEditedTags) {
-          setTags([]);
+          console.log("[ProfileUser] tags carregadas do backend + instrumentos", { mapped, instrumentTags, merged });
+        } else {
+          const fallback = instrumentTags;
+          setTags(fallback);
+          console.log("[ProfileUser] tags fallback instrumentos (backend vazio)", { fallback });
         }
       })
       .catch(() => {
         /* ignora erros silenciosamente */
+        console.log("[ProfileUser] erro ao buscar tags; mantendo estado atual");
       });
 
     return () => {
       active = false;
     };
-  }, [isProfessor, usuarioId, hasEditedTags]);
+  }, [isProfessor, usuarioId, hasEditedTags, instrumentosProfessor]);
 
   useEffect(() => {
     if (hasEditedTags) return;
+    if (!usuarioId) {
+      console.log("[ProfileUser] tags derivadas: aguardando usuarioId", { usuarioId });
+      return;
+    }
     const nomesInstrumentos = instrumentosProfessor.map((instrumento) => instrumento?.nome || instrumento?.tipo).filter(Boolean);
     const mapped = nomesInstrumentos.map((nome) => ({ name: nome, isInstrument: true }));
-    setTags(mapped);
-  }, [instrumentosProfessor, hasEditedTags]);
+    if (mapped.length > 0) {
+      setTags(mapped);
+      console.log("[ProfileUser] tags derivadas de instrumentos (hasEditedTags=false)", { mapped });
+    }
+  }, [instrumentosProfessor, hasEditedTags, usuarioId]);
 
   const closeModal = () => setIsModalOpen(false);
   const closeEditTextsModal = () => setIsEditTextsModalOpen(false);
@@ -619,7 +687,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           onSave={handleSaveTexts}
           initialIntro={introText}
           initialDesc={descText}
-          initialTags={tags}
+          initialTags={displayTags}
           isSaving={isSavingTexts}
         />
 
