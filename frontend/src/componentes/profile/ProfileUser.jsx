@@ -1,3 +1,4 @@
+import Swal from "sweetalert2";
 import "./ProfileUser.css";
 import Header from "../layout/Header";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -7,6 +8,7 @@ import EditProfileTextModal from "./modals/EditProfileTextModal";
 import EditProfileInfoModal from "./modals/EditProfileInfoModal";
 import ProfilePictureModal from "./modals/ProfilePictureModal";
 import CreatePackageModal from "./modals/CreatePackageModal";
+import ScheduleClassModal from "./modals/ScheduleClassModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -107,8 +109,16 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     */
 
     // Código temporário só pra mostrar feedback
-    alert("Agendamento enviado! (quando o back estiver pronto irá salvar)");
-    closeScheduleModal();
+    Swal.fire({
+      title: "Agendamento enviado!",
+      text: "Quando o back estiver pronto irá salvar.",
+      icon: "success",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "Ok"
+    }).then(() => {
+      closeScheduleModal();
+    });
+
   };
 
 
@@ -225,9 +235,31 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
   async function handleSubmitPacote() {
-    if (!pacote.quantidade || !pacote.valor) {
-      alert("Preencha os campos corretamente");
-      return;
+    if (!pacote.nome || !pacote.nome.trim()) {
+      Swal.fire({
+        title: "Campo obrigatório!",
+        text: "Informe o nome do pacote",
+        icon: "warning",
+      });
+      return false;
+    }
+
+    if (!pacote.quantidade || pacote.quantidade < 1) {
+      Swal.fire({
+        title: "Quantidade inválida!",
+        text: "Informe pelo menos 1 aula",
+        icon: "warning",
+      });
+      return false;
+    }
+
+    if (!pacote.valor || pacote.valor <= 0) {
+      Swal.fire({
+        title: "Valor inválido!",
+        text: "Informe um valor maior que 0",
+        icon: "warning",
+      });
+      return false;
     }
 
     try {
@@ -238,15 +270,28 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         body: JSON.stringify({
           qtd_aulas: pacote.quantidade,
           preco: pacote.valor,
+          nome: pacote.nome,
         }),
       });
 
-      alert("Pacote cadastrado com sucesso!");
-      setIsPackageModalOpen(false);
-      setPacote({ quantidade: "", valor: "" });
+      Swal.fire({
+        title: "Sucesso!",
+        text: "Pacote cadastrado com sucesso!",
+        icon: "success",
+      });
+
+      setPacote({ quantidade: "", valor: "", nome: "" });
+
+      return true;
 
     } catch (error) {
-      alert("Erro ao cadastrar pacote");
+      Swal.fire({
+        title: "Erro!",
+        text: "Erro ao cadastrar pacote",
+        icon: "error",
+      });
+
+      return false;
     }
   }
 
@@ -312,8 +357,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
     let isActive = true;
     const endpoints = [
-      `${API_BASE_URL}/instrumentos/professor/${usuarioId}` ,
-      `${API_BASE_URL}/instruments/professor/${usuarioId}` ,
+      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
+      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
     ];
 
     const carregarInstrumentos = async () => {
@@ -690,123 +735,23 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           </div>
         </div>
       </div>
-      {isScheduleModalOpen && (
-        <div className="profile-modal-backdrop" onClick={closeScheduleModal}>
-          <div
-            className="profile-modal-container"
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-          >
-            <div className="profile-modal-header">
-              <h5>Agendar Aula</h5>
-              <button className="profile-modal-close" onClick={closeScheduleModal}>x</button>
-            </div>
 
-            <div className="profile-modal-body">
-              <label>
-                Data:
-                <input
-                  type="date"
-                  name="data"
-                  value={agendamento.data}
-                  onChange={handleChangeAgendamento}
-                />
-              </label>
+      <ScheduleClassModal
+        isOpen={isScheduleModalOpen}
+        onClose={closeScheduleModal}
+        agendamento={agendamento}
+        handleChangeAgendamento={handleChangeAgendamento}
+        handleConfirmarAgendamento={handleConfirmarAgendamento}
+      />
 
-              <label>
-                Horário:
-                <input
-                  type="time"
-                  name="horario"
-                  value={agendamento.horario}
-                  onChange={handleChangeAgendamento}
-                />
-              </label>
+      <CreatePackageModal
+        open={isPackageModalOpen}
+        onClose={() => setIsPackageModalOpen(false)}
+        pacote={pacote}
+        onChange={setPacote}
+        onSubmit={handleSubmitPacote}
+      />
 
-              <label>
-                Atividade:
-                <input
-                  type="text"
-                  name="atividade"
-                  placeholder="Ex: Aula de Canto"
-                  value={agendamento.atividade}
-                  onChange={handleChangeAgendamento}
-                />
-              </label>
-            </div>
-
-            <button onClick={handleConfirmarAgendamento}>
-              Confirmar
-            </button>
-
-          </div>
-        </div>
-      )}
-
-      {isPackageModalOpen && (
-        <div className="pacote-modal-overlay">
-          <div className="pacote-modal-container">
-
-            <h3>Cadastrar Pacote de Aula</h3>
-
-            {/* Nome/Descrição do Pacote */}
-            <div className="pacote-input-group">
-              <label>Nome ou Descrição do Pacote</label>
-              <input
-                type="text"
-                placeholder="Ex.: Pacote Mensal Premium"
-                value={pacote.nome}
-                onChange={(e) =>
-                  setPacote({ ...pacote, nome: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Quantidade de aulas */}
-            <div className="pacote-input-group">
-              <label>Quantidade de Aulas</label>
-              <input
-                type="number"
-                min={1}
-                placeholder="Ex.: 4"
-                value={pacote.quantidade}
-                onChange={(e) =>
-                  setPacote({ ...pacote, quantidade: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Valor total */}
-            <div className="pacote-input-group">
-              <label>Valor Total (R$)</label>
-              <input
-                type="number"
-                placeholder="Ex.: 280"
-                value={pacote.valorTotal}
-                onChange={(e) =>
-                  setPacote({ ...pacote, valorTotal: e.target.value })
-                }
-              />
-            </div>
-
-            {/* Ações */}
-            <button
-              className="pacote-btn-confirmar"
-              onClick={handleSubmitPacote}
-            >
-              Salvar Pacote
-            </button>
-
-            <button
-              className="pacote-btn-cancelar"
-              onClick={() => setIsPackageModalOpen(false)}
-            >
-              Cancelar
-            </button>
-
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>
