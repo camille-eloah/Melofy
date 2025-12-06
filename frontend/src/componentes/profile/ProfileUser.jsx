@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import EditProfileTextModal from "./modals/EditProfileTextModal";
 import EditProfileInfoModal from "./modals/EditProfileInfoModal";
 import ProfilePictureModal from "./modals/ProfilePictureModal";
+import CreatePackageModal from "./modals/CreatePackageModal";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -813,4 +814,3 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 }
 
 export default ProfileUser;
-
