@@ -3,7 +3,7 @@ USE db_melofy;
 
 CREATE TABLE tb_professor (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    global_uuid CHAR(36) NOT NULL UNIQUE,
+    global_uuid CHAR(36) NOT NULL UNIQUE DEFAULT (UUID()),
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
@@ -21,7 +21,7 @@ CREATE TABLE tb_professor (
 
 CREATE TABLE tb_aluno (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    global_uuid CHAR(36) NOT NULL UNIQUE,
+    global_uuid CHAR(36) NOT NULL UNIQUE DEFAULT (UUID()),
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     cpf VARCHAR(14) NOT NULL UNIQUE,
@@ -65,10 +65,10 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
 
 CREATE TABLE tb_professor_instrumento (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    professor_id INT NOT NULL,
-    instrumento_id INT NOT NULL,
-    FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
-    FOREIGN KEY (instrumento_id) REFERENCES tb_instrumento(id)
+    id_professor INT NOT NULL,
+    id_instrumento INT NOT NULL,
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
+    FOREIGN KEY (id_instrumento) REFERENCES tb_instrumento(id)
 );
 
 CREATE TABLE tb_professor_tag (

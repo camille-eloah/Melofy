@@ -6,7 +6,6 @@ from enum import Enum
 from pydantic_settings import BaseSettings
 from typing import List
 from sqlalchemy import Column, Integer, ForeignKey
-from pydantic import BaseModel
 
 
 # ----------------------------
@@ -84,6 +83,7 @@ class Aluno(UserBase, table=True):
 # ----------------------------
 # Instrumentos
 # ----------------------------
+
 class Instrumento(SQLModel, table=True):
     __tablename__ = "tb_instrumento"
 
@@ -126,23 +126,20 @@ class ProfessorInstrumento(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     professor_id: int = Field(
-        sa_column=Column("professor_id", Integer, ForeignKey("tb_professor.id"), nullable=False)
+        sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
     instrumento_id: int = Field(
-        sa_column=Column("instrumento_id", Integer, ForeignKey("tb_instrumento.id"), nullable=False)
+        sa_column=Column("id_instrumento", Integer, ForeignKey("tb_instrumento.id"), nullable=False)
     )
 
     professor: Professor = Relationship(back_populates="instrumentos_rel")
     instrumento: Instrumento = Relationship(back_populates="professores_rel")
 
-# ----------------------------
-# Busca
-# ----------------------------
 
-class SearchResult(BaseModel):
-    tipo: str  # "professor" ou "instrumento"
-    nome: str
-    instrumento: Optional[str] = None
+class ProfessorInstrumentosEscolha(SQLModel):
+    # schema usado só no body da requisição (não é tabela!)
+    professor_id: int
+    instrumentos_ids: List[int]
 
 
 class ProfessorTag(SQLModel, table=True):
