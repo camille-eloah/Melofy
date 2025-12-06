@@ -29,7 +29,7 @@ const INSTRUMENTOS = [
   { id: 7, nome: "Violino", img: violino },
   { id: 8, nome: "Canto", img: canto },
   { id: 9, nome: "Teclado", img: teclado },
-  { id: 10, nome: "Acordeon", img: sanfona },
+  { id: 10, nome: "Acordeão", img: sanfona },
 ];
 
 function Instrumentos() {
@@ -68,7 +68,7 @@ function Instrumentos() {
       const user = JSON.parse(localStorage.getItem("usuario"));
       if (!user) throw new Error("Usuário não encontrado");
 
-      const resp = await fetch(`${API_BASE_URL}/instrumentos/escolher`, {
+      const resp = await fetch(`${API_BASE_URL}/instruments/escolher`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

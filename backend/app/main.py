@@ -202,6 +202,14 @@ def _email_em_uso_por_outro(db: Session, email: str, user_id: int) -> bool:
   return False
 
 
+def _instrumento_to_read(instrumento: Instrumento) -> InstrumentoRead:
+    return InstrumentoRead(
+        id=instrumento.id,
+        nome=instrumento.nome,
+        tipo=str(instrumento.tipo),
+    )
+
+
 # ----------------------------
 # 0. Usuário
 # ----------------------------
@@ -485,7 +493,7 @@ def obter_instrumento(
     instrumento = db.get(Instrumento, instrumento_id)
     if not instrumento:
         raise HTTPException(status_code=404, detail="Instrumento não encontrado")
-    return instrumento
+    return _instrumento_to_read(instrumento)
 
 @router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
 def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
@@ -493,7 +501,19 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
         ProfessorInstrumento.professor_id == professor_id
     )
     instrumentos = db.exec(stmt).all()
-    return instrumentos
+    return [_instrumento_to_read(instr) for instr in instrumentos]
+
+
+@router_instruments.get("/professor/uuid/{user_uuid}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(
+        ProfessorInstrumento.professor_id == professor.id
+    )
+    instrumentos = db.exec(stmt).all()
+    return [_instrumento_to_read(instr) for instr in instrumentos]
 
 
 @router_instruments.put("/{instrumento_id}", response_model=InstrumentoRead)
@@ -529,8 +549,6 @@ def deletar_instrumento(
     db.commit()
     return
 
-router_instruments = APIRouter(prefix="/instrumentos")
-
 @router_instruments.post("/escolher")
 def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
@@ -562,13 +580,7 @@ def escolher_instrumentos_professor(
     stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
     instrumentos_professor = db.exec(stmt).all()
 
-    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
-
-@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
-def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == professor_id)
-    instrumentos = db.exec(stmt).all()
-    return instrumentos
+    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": [_instrumento_to_read(instr) for instr in instrumentos_professor]}
 
 # ----------------------------
 # 5.1 Tags
@@ -894,7 +906,7 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
 app.include_router(router_user)
 app.include_router(router_auth)
 app.include_router(router_lessons)
-app.include_router(router_instruments)
+app.include_router(router_instruments)  # prefixo /instruments
 app.include_router(router_schedule)
 app.include_router(router_finance)
 app.include_router(router_ratings)
