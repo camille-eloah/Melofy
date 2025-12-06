@@ -72,7 +72,7 @@ function Login() {
         } else if (usuario.tipo_usuario === "PROFESSOR") {
           verificarInstrumentosProfessor(usuario.id).then((possuiInstrumentos) => {
             if (possuiInstrumentos) {
-              navigate(`/professor/${usuario.id}`, { replace: true });
+              navigate(`/professor/${usuario.global_uuid || usuario.id}`, { replace: true });
             } else {
               navigate("/instrumentos", { replace: true });
             }
