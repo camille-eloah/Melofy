@@ -704,7 +704,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             </div>
 
             <h3>{nomeUsuario}</h3>
-            <p className="avaliacao">&lt;Avaliacao&gt;</p>
+            <div className="avaliacao-badge">
+              <span className="teacher-rating">⭐ 4.8</span>
+              <span className="teacher-reviews">(123 reviews)</span>
+            </div>
 
             <div className="info">
               <p>
