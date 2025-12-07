@@ -164,6 +164,7 @@ const Avaliacoes = ({
       setAvaliacoes((prev) => [...prev, novo]);
       setNovoTexto("");
       setNovaEstrela(0);
+      setJaAvaliou(true);
     } catch (err) {
       console.error("Erro ao enviar avaliacao", err);
     } finally {
