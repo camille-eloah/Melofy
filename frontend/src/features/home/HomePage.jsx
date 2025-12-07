@@ -4,6 +4,7 @@ import Header from '../../componentes/layout/Header'
 import MainSection from './MainSection'
 import Footer from '../../componentes/layout/Footer'
 import TeacherList from './TeacherList'
+import ButtonChat from '../../componentes/layout/ButtonChat'
 
 
 
@@ -13,6 +14,7 @@ function HomePage() {
       <Header />
       <MainSection />
       <TeacherList/>
+      <ButtonChat />
       <Footer />
     </div>
   )

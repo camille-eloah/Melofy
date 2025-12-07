@@ -18,7 +18,6 @@ export default function AppRoutes() {
       <Route path="/" element={<Entrada />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/login" element={<Login />} />
-
       <Route path="/home" element={<Home />} />
       <Route path="/profile" element={<ProfileUser />} />
       <Route path="/profile/:tipo/:uuid" element={<ProfileUser />} />
