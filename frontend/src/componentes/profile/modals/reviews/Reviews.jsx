@@ -20,8 +20,10 @@ const Avaliacoes = ({
   const [novoTexto, setNovoTexto] = useState("");
   const [usuarioLogado, setUsuarioLogado] = useState({ nome: "", foto: "" });
   const [tipoLogado, setTipoLogado] = useState("");
+  const [idLogado, setIdLogado] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const [jaAvaliou, setJaAvaliou] = useState(false);
 
   useEffect(() => {
     // Prioriza o usuario autenticado (prop currentUser); fallback para localStorage
@@ -39,6 +41,7 @@ const Avaliacoes = ({
         foto: rawFoto ? resolveFoto(rawFoto) : "",
       });
       setTipoLogado((currentUser?.tipo_usuario || currentUser?.tipo || "").toString().toUpperCase());
+      setIdLogado(currentUser?.id ?? null);
       return;
     }
 
@@ -62,6 +65,7 @@ const Avaliacoes = ({
         foto: resolvedFoto || ""
       });
       setTipoLogado((user?.tipo_usuario || user?.tipo || "").toString().toUpperCase());
+      setIdLogado(user?.id ?? null);
     } catch (err) {
       console.error("Erro ao ler usuario logado", err);
     }
@@ -95,6 +99,7 @@ const Avaliacoes = ({
         const data = await resp.json();
         const convertidos = Array.isArray(data)
           ? data.map((r) => ({
+              autorId: r.autor_id,
               nome: r.autor_nome,
               foto: resolveFoto(r.autor_foto) || "",
               estrelas: r.nota,
@@ -108,6 +113,7 @@ const Avaliacoes = ({
           autores: convertidos.map((c) => c.nome),
         });
         setAvaliacoes(convertidos);
+        setJaAvaliou(Boolean(idLogado && convertidos.some((c) => String(c.autorId) === String(idLogado))));
       } catch (err) {
         console.error("Erro ao carregar avaliacoes", err);
         setAvaliacoes([]);
@@ -169,7 +175,7 @@ const Avaliacoes = ({
   const inicialExibicao = (nomeExibicao || "?").trim().charAt(0).toUpperCase() || "?";
   const fotoExibicao = usuarioLogado.foto || "";
   const tipoAvaliado = (perfilAvaliado?.tipo || "").toString().toUpperCase();
-  const podeAvaliar = !tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado;
+  const podeAvaliar = (!tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado) && !jaAvaliou;
 
   const handleCardFotoError = (index) => {
     setAvaliacoes((prev) =>
@@ -179,6 +185,16 @@ const Avaliacoes = ({
 
   return (
     <div className="avaliacoes-container">
+
+      {jaAvaliou && (
+        <div className="avaliacao-nova">
+          <h3 className="titulo-bloco">Você já avaliou este perfil</h3>
+          <p className="texto">Edite sua avaliação existente para atualizar nota ou comentário.</p>
+          <button className="botao-enviar" disabled>
+            Editar (em breve)
+          </button>
+        </div>
+      )}
 
       {podeAvaliar && (
         <div className="avaliacao-nova">

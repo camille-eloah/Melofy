@@ -270,6 +270,7 @@ CREATE TABLE tb_avaliacoes_aluno (
     ava_prof_avaliador INT NOT NULL,
     ava_alu_avaliado INT NOT NULL,
     data_criacao DATETIME NOT NULL,
+    CONSTRAINT uk_avaliacao_aluno UNIQUE (ava_prof_avaliador, ava_alu_avaliado),
 
     CONSTRAINT fk_ava_prof FOREIGN KEY (ava_prof_avaliador) REFERENCES tb_professor(id),
     CONSTRAINT fk_ava_alu FOREIGN KEY (ava_alu_avaliado) REFERENCES tb_aluno(id)
@@ -282,6 +283,7 @@ CREATE TABLE tb_avaliacoes_professor (
     ava_alu_avaliador INT NOT NULL,
     ava_prof_avaliado INT NOT NULL,
     data_criacao DATETIME NOT NULL,
+    CONSTRAINT uk_avaliacao_prof UNIQUE (ava_alu_avaliador, ava_prof_avaliado),
 
     CONSTRAINT fk_avaalu FOREIGN KEY (ava_alu_avaliador) REFERENCES tb_aluno(id),
     CONSTRAINT fk_avaprof FOREIGN KEY (ava_prof_avaliado) REFERENCES tb_professor(id)

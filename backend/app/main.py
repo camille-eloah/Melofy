@@ -891,6 +891,14 @@ def criar_avaliacao(
         professor = db.get(Professor, rating.avaliado_id)
         if not professor:
             raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        existente = db.exec(
+            select(AvaliacoesDoProfessor).where(
+                AvaliacoesDoProfessor.ava_alu_avaliador == autor.id,
+                AvaliacoesDoProfessor.ava_prof_avaliado == rating.avaliado_id,
+            )
+        ).first()
+        if existente:
+            raise HTTPException(status_code=409, detail="Voce ja avaliou este professor")
         nova = AvaliacoesDoProfessor(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
@@ -914,6 +922,14 @@ def criar_avaliacao(
         aluno = db.get(Aluno, rating.avaliado_id)
         if not aluno:
             raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        existente = db.exec(
+            select(AvaliacoesDoAluno).where(
+                AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
+                AvaliacoesDoAluno.ava_alu_avaliado == rating.avaliado_id,
+            )
+        ).first()
+        if existente:
+            raise HTTPException(status_code=409, detail="Voce ja avaliou este aluno")
         nova = AvaliacoesDoAluno(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
