@@ -18,3 +18,7 @@ class InstrumentoUpdate(SQLModel):
 class ProfessorInstrumentosCreate(SQLModel):
     professor_id: int
     instrumentos_ids: List[int]
+
+class ProfessorInstrumentoCreate(SQLModel):
+    professor_id: int
+    instrumento_id: int

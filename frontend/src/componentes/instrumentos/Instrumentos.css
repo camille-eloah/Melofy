@@ -175,6 +175,10 @@ h1 , h2 {
   font-weight: 700;
 }
 
+.instrumentos-extra-container {
+  flex-wrap: wrap;
+}
+
 /* Menino ao lado das fotos */
 .menino-instrumento{
     margin-top: -200px;
@@ -331,6 +335,35 @@ h1 , h2 {
 .instrumentos-modal-button:hover {
   transform: translateY(-1px);
   opacity: 0.95;
+}
+
+.instrumentos-circle.custom {
+  background: #ffffff;
+  border: 2px solid #0ea5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.instrumentos-circle.custom::before,
+.instrumentos-circle.custom::after {
+  display: none;
+}
+
+.instrumentos-circle.custom .instrumentos-circle-text {
+  opacity: 1;
+  color: #0b1632;
+  font-weight: 700;
+}
+
+.instrumentos-circle.custom.selecionado {
+  background: #0f254d;
+  border-color: #38bdf8;
+  box-shadow: 0 16px 40px rgba(14, 165, 233, 0.2);
+}
+
+.instrumentos-circle.custom.selecionado .instrumentos-circle-text {
+  color: #ffffff;
 }
 
 .instrumentos-combobox {

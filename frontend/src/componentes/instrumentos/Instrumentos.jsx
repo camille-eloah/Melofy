@@ -43,6 +43,13 @@ function Instrumentos() {
   const [modalSearch, setModalSearch] = useState("");
   const [modalSelected, setModalSelected] = useState("");
   const [modalOptions, setModalOptions] = useState([]);
+  const [professorInstruments, setProfessorInstruments] = useState([]);
+  const [addingInstrument, setAddingInstrument] = useState(false);
+
+  const baseInstrumentIds = INSTRUMENTOS.map((inst) => inst.id);
+  const extraInstruments = professorInstruments.filter(
+    (inst) => !baseInstrumentIds.includes(inst.id)
+  );
 
   // Bloqueio de acesso para alunos
   useEffect(() => {
@@ -57,6 +64,27 @@ function Instrumentos() {
     if (user.tipo_usuario !== "PROFESSOR") {
       navigate("/home");
     }
+
+    async function carregarInstrumentosProfessor() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/instruments/professor/${user.id}`);
+        if (!resp.ok) {
+          throw new Error("Erro ao buscar instrumentos do professor");
+        }
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          setProfessorInstruments(data);
+          setSelectedIds((prev) => {
+            const merged = new Set([...(prev || []), ...data.map((i) => i.id)]);
+            return Array.from(merged);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    carregarInstrumentosProfessor();
   }, [navigate]);
 
   function toggleInstrument(id) {
@@ -103,8 +131,65 @@ function Instrumentos() {
     setModalOptions([]);
   }
 
-  function handleAddInstrument() {
-    closeModal();
+  async function handleAddInstrument() {
+    if (!modalSelected) {
+      setMensagem("Selecione um instrumento para adicionar.");
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem("usuario") || "null");
+    if (!user?.id) {
+      setMensagem("Usuário não encontrado.");
+      return;
+    }
+
+    const instrumentoId = Number(modalSelected);
+    if (selectedIds.includes(instrumentoId)) {
+      closeModal();
+      return;
+    }
+
+    const selecionado = modalOptions.find(
+      (opt) => String(opt.id) === String(instrumentoId)
+    );
+
+    try {
+      setAddingInstrument(true);
+      setMensagem("");
+      const resp = await fetch(`${API_BASE_URL}/instruments/professor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor_id: user.id,
+          instrumento_id: instrumentoId,
+        }),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || "Erro ao adicionar instrumento");
+      }
+
+      const data = await resp.json();
+      const novoInstrumento = data?.id ? data : selecionado;
+
+      if (novoInstrumento) {
+        setProfessorInstruments((prev) => {
+          if (prev.some((p) => p.id === novoInstrumento.id)) return prev;
+          return [...prev, novoInstrumento];
+        });
+        setSelectedIds((prev) =>
+          prev.includes(novoInstrumento.id) ? prev : [...prev, novoInstrumento.id]
+        );
+      }
+
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      setMensagem("Erro ao adicionar instrumento.");
+    } finally {
+      setAddingInstrument(false);
+    }
   }
 
   useEffect(() => {
@@ -185,6 +270,23 @@ function Instrumentos() {
           <img className="menino-instrumento" src={menino} alt="Menino Apontando" />
         </div>
 
+        {extraInstruments.length > 0 && (
+          <div className="instrumentos-circles-container instrumentos-extra-container">
+            {extraInstruments.map((inst) => (
+              <div
+                key={inst.id}
+                className={
+                  "instrumentos-circle custom" +
+                  (selectedIds.includes(inst.id) ? " selecionado" : "")
+                }
+                onClick={() => toggleInstrument(inst.id)}
+              >
+                <span className="instrumentos-circle-text">{inst.nome}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div className="instrumentos-circles-container instrumentos-add-container">
           <div
             className="instrumentos-circle instrumentos-add-circle"
@@ -213,6 +315,7 @@ function Instrumentos() {
           onSelectChange={setModalSelected}
           options={modalOptions}
           onAdd={handleAddInstrument}
+          isSubmitting={addingInstrument}
         />
       </div>
       <Footer />

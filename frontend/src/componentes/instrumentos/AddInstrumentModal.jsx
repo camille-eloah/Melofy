@@ -9,6 +9,7 @@ function AddInstrumentModal({
   onSelectChange,
   options = [],
   onAdd,
+  isSubmitting = false,
 }) {
   if (!isOpen) return null;
 
@@ -96,8 +97,12 @@ function AddInstrumentModal({
           <button className="instrumentos-modal-button ghost" onClick={onClose}>
             Cancelar
           </button>
-          <button className="instrumentos-modal-button primary" onClick={handleAdd}>
-            Adicionar
+          <button
+            className="instrumentos-modal-button primary"
+            onClick={handleAdd}
+            disabled={!selectedValue || isSubmitting}
+          >
+            {isSubmitting ? "Adicionando..." : "Adicionar"}
           </button>
         </div>
       </div>
