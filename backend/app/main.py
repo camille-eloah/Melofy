@@ -43,7 +43,13 @@ from sqlmodel import Session, select
 from app.models import Professor, Instrumento, ProfessorInstrumento
 
 import logging
-from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
+from app.schemas.instrumentos import (
+    InstrumentoCreate,
+    InstrumentoRead,
+    InstrumentoUpdate,
+    ProfessorInstrumentosCreate,
+    ProfessorInstrumentoCreate,
+)
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
 
 
@@ -494,6 +500,45 @@ def obter_instrumento(
     if not instrumento:
         raise HTTPException(status_code=404, detail="Instrumento não encontrado")
     return _instrumento_to_read(instrumento)
+
+@router_instruments.post("/professor", response_model=InstrumentoRead, status_code=201)
+def adicionar_instrumento_professor(
+    dados: ProfessorInstrumentoCreate,
+    db: Session = Depends(get_session),
+):
+    professor = db.get(Professor, dados.professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    instrumento = db.get(Instrumento, dados.instrumento_id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+
+    existente = db.exec(
+        select(ProfessorInstrumento).where(
+            ProfessorInstrumento.professor_id == dados.professor_id,
+            ProfessorInstrumento.instrumento_id == dados.instrumento_id,
+        )
+    ).first()
+
+    if not existente:
+        rel = ProfessorInstrumento(
+            professor_id=dados.professor_id,
+            instrumento_id=dados.instrumento_id,
+        )
+        db.add(rel)
+        db.commit()
+        db.refresh(rel)
+
+    return _instrumento_to_read(instrumento)
+
+@router_instruments.get("/", response_model=List[InstrumentoRead])
+def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)):
+    stmt = select(Instrumento)
+    if q:
+        stmt = stmt.where(Instrumento.nome.ilike(f"%{q}%"))
+    instrumentos = db.exec(stmt).all()
+    return [_instrumento_to_read(instr) for instr in instrumentos]
 
 @router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
 def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
