@@ -241,9 +241,14 @@ CREATE TABLE tb_aula (
     aul_valor DECIMAL(10,2) NOT NULL,
     aul_data DATETIME NOT NULL,
     aul_inst_id INT NOT NULL,
-    aul_status ENUM('Disponível','Indisponível') NOT NULL DEFAULT 'Disponível',\n\n    CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
+    aul_status ENUM('Disponível','Indisponível') NOT NULL DEFAULT 'Disponível',
+
+    CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES tb_aluno(id),
-    CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)\n);\n\nCREATE TABLE tb_solicitacao_agendamento (
+    CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)
+);
+
+CREATE TABLE tb_solicitacao_agendamento (
     sol_id INT AUTO_INCREMENT PRIMARY KEY,
     sol_prof_id INT NOT NULL,
     sol_alu_id INT NOT NULL,
