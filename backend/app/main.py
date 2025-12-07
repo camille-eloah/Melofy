@@ -1,4 +1,4 @@
-﻿from datetime import timedelta
+from datetime import timedelta
 import logging
 import shutil
 from pathlib import Path
@@ -21,7 +21,20 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha, Tag, TagTipo, ProfessorTag
+from app.models import (
+    Professor,
+    Aluno,
+    Instrumento,
+    ProfessorInstrumento,
+    Feedback,
+    TipoUsuario,
+    ProfessorInstrumentosEscolha,
+    Tag,
+    TagTipo,
+    ProfessorTag,
+    AvaliacoesDoAluno,
+    AvaliacoesDoProfessor,
+)
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -51,12 +64,13 @@ from app.schemas.instrumentos import (
     ProfessorInstrumentoCreate,
 )
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
+from app.schemas.ratings import RatingCreate, RatingRead
 
 
 logger = logging.getLogger(__name__)
 
 def _configure_logging():
-    """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
+    """Usa os handlers do uvicorn para exibir logs das rotas e da seguran�a em DEBUG."""
     settings_local = get_settings()
     log_level = logging.DEBUG if settings_local.debug else logging.INFO
 
@@ -98,13 +112,13 @@ app.add_middleware(
 media_mount_path = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
 app.mount(media_mount_path, StaticFiles(directory=media_root_path), name="media")
 
-# Router user - rotas de usuário
+# Router user - rotas de usu�rio
 router_user = APIRouter(
     prefix="/user",
     tags=["usuario"]
 )
 
-# Router auth - rotas de autenticação
+# Router auth - rotas de autentica��o
 router_auth = APIRouter(
     prefix="/auth",
     tags=["autenticacao"]
@@ -199,6 +213,55 @@ def _get_or_create_tag_by_name(db: Session, nome: str) -> Tag:
     return novo
 
 
+def _get_current_user(request: Request, db: Session) -> tuple[TipoUsuario, Professor | Aluno]:
+    token = request.cookies.get("access_token") if request else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Nao autenticado")
+    try:
+        payload = _decode_token(token)
+        user_id = int(payload.get("sub"))
+        tipo = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token invalido")
+
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuario nao encontrado")
+
+    tipo_usuario = TipoUsuario(tipo)
+    return tipo_usuario, usuario
+
+
+def _autor_info(usuario: Professor | Aluno, tipo: TipoUsuario) -> dict:
+    # Campo de foto pode ser adicionado no futuro; mantem None por ora
+    foto = getattr(usuario, "profile_picture", None) if usuario else None
+    return {
+        "autor_id": usuario.id if usuario else None,
+        "autor_tipo": tipo,
+        "autor_nome": usuario.nome if usuario else "",
+        "autor_foto": foto,
+    }
+
+
+def _avaliacao_to_response(
+    avaliado_tipo: TipoUsuario,
+    avaliado_id: int,
+    autor_tipo: TipoUsuario,
+    autor: Professor | Aluno,
+    avaliacao_obj,
+) -> RatingRead:
+    autor_payload = _autor_info(autor, autor_tipo)
+    return RatingRead(
+        id=avaliacao_obj.ava_id,
+        avaliado_id=avaliado_id,
+        avaliado_tipo=avaliado_tipo,
+        nota=avaliacao_obj.ava_nota,
+        texto=avaliacao_obj.ava_comentario,
+        criado_em=avaliacao_obj.data_criacao,
+        **autor_payload,
+    )
+
+
 def _email_em_uso_por_outro(db: Session, email: str, user_id: int) -> bool:
   """Verifica se o email informado pertence a outro usuario (professor ou aluno)."""
   for model in (Professor, Aluno):
@@ -217,7 +280,7 @@ def _instrumento_to_read(instrumento: Instrumento) -> InstrumentoRead:
 
 
 # ----------------------------
-# 0. Usuário
+# 0. Usu�rio
 # ----------------------------
 
 @router_user.post("/", response_model=UserResponse, status_code=201)
@@ -226,7 +289,7 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
         verificar_email_cpf_disponiveis(db, user.email, user.cpf)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    logger.debug("Iniciando criação de usuário", extra={"email": user.email, "tipo": user.tipo.value})
+    logger.debug("Iniciando cria��o de usu�rio", extra={"email": user.email, "tipo": user.tipo.value})
 
     if user.tipo == TipoUsuario.PROFESSOR:
         novo_usuario = Professor(
@@ -256,10 +319,10 @@ def cadastrar_user(user: UserCreate, db: Session = Depends(get_session)):
     db.add(novo_usuario)
     db.commit()
     db.refresh(novo_usuario)
-    logger.debug("Usuário criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
+    logger.debug("Usu�rio criado id=%s tipo=%s", novo_usuario.id, novo_usuario.tipo_usuario.value)
     return montar_resposta_usuario(novo_usuario)
 
-# Listar todos os usuários
+# Listar todos os usu�rios
 @router_user.get("/", response_model=list[UserResponse])
 def listar_usuarios(db: Session = Depends(get_session)):
     professores = db.exec(select(Professor)).all()
@@ -282,14 +345,14 @@ def listar_alunos(db: Session = Depends(get_session)):
 def obter_professor(user_id: int, db: Session = Depends(get_session)):
     professor = db.get(Professor, user_id)
     if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+        raise HTTPException(status_code=404, detail="Professor n�o encontrado")
     return montar_resposta_usuario(professor)
 
 @router_user.get("/professor/uuid/{user_uuid}", response_model=UserResponse)
 def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
     professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
     if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+        raise HTTPException(status_code=404, detail="Professor n�o encontrado")
     return montar_resposta_usuario(professor)
 
 
@@ -297,14 +360,14 @@ def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session))
 def obter_aluno(user_id: int, db: Session = Depends(get_session)):
     aluno = db.get(Aluno, user_id)
     if not aluno:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+        raise HTTPException(status_code=404, detail="Aluno n�o encontrado")
     return montar_resposta_usuario(aluno)
 
 @router_user.get("/aluno/uuid/{user_uuid}", response_model=UserResponse)
 def obter_aluno_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
     aluno = db.exec(select(Aluno).where(Aluno.global_uuid == user_uuid)).first()
     if not aluno:
-        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+        raise HTTPException(status_code=404, detail="Aluno n�o encontrado")
     return montar_resposta_usuario(aluno)
 
 
@@ -312,11 +375,11 @@ def obter_aluno_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
 def obter_usuario(user_id: int, db: Session = Depends(get_session)):
     usuario = buscar_usuario_por_id(db, user_id)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
     return montar_resposta_usuario(usuario)
 
 # ----------------------------
-# 1. Autenticação
+# 1. Autentica��o
 # ----------------------------
 
 @router_auth.post("/login", response_model=UserResponse)
@@ -329,8 +392,8 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
         try:
             usuario = autenticar_usuario(db, credenciais.email, credenciais.senha)
         except ValueError:
-            logger.debug("Login falhou: credenciais inválidas", extra={"email": credenciais.email})
-            raise HTTPException(status_code=401, detail="Credenciais inválidas")
+            logger.debug("Login falhou: credenciais inv�lidas", extra={"email": credenciais.email})
+            raise HTTPException(status_code=401, detail="Credenciais inv�lidas")
 
     access_token, refresh_token = gerar_tokens(usuario)
     _set_auth_cookies(response, access_token, refresh_token)
@@ -343,22 +406,22 @@ def login(credenciais: LoginRequest, response: Response, db: Session = Depends(g
 def obter_usuario_atual(request: Request, db: Session = Depends(get_session)):
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=401, detail="Não autenticado")
+        raise HTTPException(status_code=401, detail="N�o autenticado")
 
     try:
         payload = _decode_token(token)
         if payload.get("dev_bypass"):
             if not settings.allow_dev_bypass:
-                raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+                raise HTTPException(status_code=401, detail="Token inv�lido ou expirado")
             return montar_resposta_usuario(obter_usuario_bypass())
         user_id = int(payload.get("sub"))
         tipo = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+        raise HTTPException(status_code=401, detail="Token inv�lido ou expirado")
 
     usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
     if not usuario:
-        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+        raise HTTPException(status_code=401, detail="Usu�rio n�o encontrado")
 
     return montar_resposta_usuario(usuario)
 
@@ -378,22 +441,22 @@ def logout(response: Response):
 def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session = Depends(get_session)):
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=401, detail="Não autenticado")
+        raise HTTPException(status_code=401, detail="N�o autenticado")
     try:
         payload = _decode_token(token)
         sub = int(payload.get("sub"))
         tipo_token = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Token inv�lido")
     if sub != user_id:
-        raise HTTPException(status_code=403, detail="Operação não permitida")
+        raise HTTPException(status_code=403, detail="Opera��o n�o permitida")
     usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
 
     if dados.email is not None:
         if _email_em_uso_por_outro(db, dados.email, user_id):
-            raise HTTPException(status_code=400, detail="E-mail jÇ  cadastrado")
+            raise HTTPException(status_code=400, detail="E-mail jǠ cadastrado")
         usuario.email = dados.email
 
     if dados.nome is not None:
@@ -416,7 +479,7 @@ def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session
 
 @router_user.delete("/{user_id}")
 def excluir_conta(user_id: int):
-    return {"msg": f"Conta do usuário {user_id} excluída"}
+    return {"msg": f"Conta do usu�rio {user_id} exclu�da"}
 
 # ----------------------------
 # 3. Aulas 
@@ -444,7 +507,7 @@ def definir_valor(aula_id: int):
 
 @router_lessons.delete("/aulas/{aula_id}")
 def excluir_aula(aula_id: int):
-    return {"msg": f"Aula {aula_id} excluída"}
+    return {"msg": f"Aula {aula_id} exclu�da"}
 
 # ----------------------------
 # 4. Pacotes 
@@ -472,7 +535,7 @@ def definir_valor(pacote_id: int):
 
 @router_lessons.delete("/pacotes/{pacote_id}")
 def excluir_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id} excluído"}
+    return {"msg": f"Pacote {pacote_id} exclu�do"}
 
 
 # ----------------------------
@@ -498,7 +561,7 @@ def obter_instrumento(
 ):
     instrumento = db.get(Instrumento, instrumento_id)
     if not instrumento:
-        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+        raise HTTPException(status_code=404, detail="Instrumento n�o encontrado")
     return _instrumento_to_read(instrumento)
 
 @router_instruments.post("/professor", response_model=InstrumentoRead, status_code=201)
@@ -508,11 +571,11 @@ def adicionar_instrumento_professor(
 ):
     professor = db.get(Professor, dados.professor_id)
     if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+        raise HTTPException(status_code=404, detail="Professor n�o encontrado")
 
     instrumento = db.get(Instrumento, dados.instrumento_id)
     if not instrumento:
-        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+        raise HTTPException(status_code=404, detail="Instrumento n�o encontrado")
 
     existente = db.exec(
         select(ProfessorInstrumento).where(
@@ -553,7 +616,7 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
 def listar_instrumentos_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
     professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
     if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+        raise HTTPException(status_code=404, detail="Professor n�o encontrado")
     stmt = select(Instrumento).join(ProfessorInstrumento).where(
         ProfessorInstrumento.professor_id == professor.id
     )
@@ -569,7 +632,7 @@ def atualizar_instrumento(
 ):
     instrumento = db.get(Instrumento, instrumento_id)
     if not instrumento:
-        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+        raise HTTPException(status_code=404, detail="Instrumento n�o encontrado")
 
     dados_dict = dados.dict(exclude_unset=True)
     for key, value in dados_dict.items():
@@ -588,7 +651,7 @@ def deletar_instrumento(
 ):
     instrumento = db.get(Instrumento, instrumento_id)
     if not instrumento:
-        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+        raise HTTPException(status_code=404, detail="Instrumento n�o encontrado")
 
     db.delete(instrumento)
     db.commit()
@@ -601,7 +664,7 @@ def escolher_instrumentos_professor(
 ):
     professor = db.get(Professor, dados.professor_id)
     if not professor:
-        raise HTTPException(status_code=404, detail="Professor não encontrado")
+        raise HTTPException(status_code=404, detail="Professor n�o encontrado")
 
     # Apaga escolhas antigas
     antigos = db.exec(
@@ -614,7 +677,7 @@ def escolher_instrumentos_professor(
     for instr_id in dados.instrumentos_ids:
         instrumento = db.get(Instrumento, instr_id)
         if not instrumento:
-            raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
+            raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} n�o existe")
 
         rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
         db.add(rel)
@@ -711,7 +774,7 @@ def atualizar_tags_professor(
         ).all()
         existentes_ids = {rel.instrumento_id for rel in existentes}
 
-        # Remover instrumentos que saíram
+        # Remover instrumentos que sa�ram
         for rel in existentes:
             if rel.instrumento_id not in instrument_ids:
                 db.delete(rel)
@@ -770,24 +833,24 @@ def cancelar_agendamento(agendamento_id: int):
     return {"msg": f"Agendamento {agendamento_id} cancelado"}
 
 # ----------------------------
-# 8. Dados Bancários
+# 8. Dados Banc�rios
 # ----------------------------
 
 @router_finance.post("/dados-bancarios")
 def criar_dados_bancarios():
-    return {"msg": "Dados bancários cadastrados com sucesso!"}
+    return {"msg": "Dados banc�rios cadastrados com sucesso!"}
 
 @router_finance.get("/dados-bancarios/{dad_id}")
 def obter_dados_bancarios(dad_id: int):
-    return {"msg": f"Retornando dados bancários com ID {dad_id}"}
+    return {"msg": f"Retornando dados banc�rios com ID {dad_id}"}
 
 @router_finance.put("/dados-bancarios/{dad_id}")
 def atualizar_dados_bancarios(dad_id: int):
-    return {"msg": f"Dados bancários com ID {dad_id} atualizados com sucesso!"}
+    return {"msg": f"Dados banc�rios com ID {dad_id} atualizados com sucesso!"}
 
 @router_finance.delete("/dados-bancarios/{dad_id}")
 def deletar_dados_bancarios(dad_id: int):
-    return {"msg": f"Dados bancários com ID {dad_id} removidos!"}
+    return {"msg": f"Dados banc�rios com ID {dad_id} removidos!"}
 
 # ----------------------------
 # 9. Pagamentos
@@ -810,53 +873,118 @@ def atualizar_status_pagamento(pag_id: int):
     return {"msg": f"Status do pagamento {pag_id} atualizado"}
 
 # ----------------------------
-# 10. Avaliações do Aluno
+# 10/11. Avaliacoes (unificado)
 # ----------------------------
 
-@router_ratings.post("/aluno")
-def criar_avaliacao_aluno():
-    return {"msg": "Avaliação do aluno criada com sucesso!"}
 
-@router_ratings.get("/aluno/{ava_id}")
-def obter_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Retornando avaliação do aluno com ID {ava_id}"}
+@router_ratings.post("/", response_model=RatingRead, status_code=201)
+def criar_avaliacao(
+    rating: RatingCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
 
-@router_ratings.get("/aluno/")
-def listar_avaliacoes_alunos():
-    return {"msg": "Lista de avaliações dos alunos"}
+    if rating.avaliado_tipo == TipoUsuario.PROFESSOR:
+        if autor_tipo != TipoUsuario.ALUNO:
+            raise HTTPException(status_code=403, detail="Apenas alunos podem avaliar professores")
+        professor = db.get(Professor, rating.avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        nova = AvaliacoesDoProfessor(
+            ava_comentario=rating.texto,
+            ava_nota=rating.nota,
+            ava_alu_avaliador=autor.id,
+            ava_prof_avaliado=rating.avaliado_id,
+        )
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.PROFESSOR,
+            avaliado_id=rating.avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=nova,
+        )
 
-@router_ratings.put("/aluno/{ava_id}")
-def atualizar_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Avaliação do aluno {ava_id} atualizada com sucesso!"}
+    if rating.avaliado_tipo == TipoUsuario.ALUNO:
+        if autor_tipo != TipoUsuario.PROFESSOR:
+            raise HTTPException(status_code=403, detail="Apenas professores podem avaliar alunos")
+        aluno = db.get(Aluno, rating.avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        nova = AvaliacoesDoAluno(
+            ava_comentario=rating.texto,
+            ava_nota=rating.nota,
+            ava_prof_avaliador=autor.id,
+            ava_alu_avaliado=rating.avaliado_id,
+        )
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.ALUNO,
+            avaliado_id=rating.avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=nova,
+        )
 
-@router_ratings.delete("/aluno/{ava_id}")
-def deletar_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Avaliação do aluno {ava_id} removida!"}
+    raise HTTPException(status_code=400, detail="Tipo de avaliado invalido")
 
-# ----------------------------
-# 11. Avaliações do Professor
-# ----------------------------
 
-@router_ratings.post("/professor")
-def criar_avaliacao_professor():
-    return {"msg": "Avaliação do professor criada com sucesso!"}
+@router_ratings.get("/{tipo}/{avaliado_id}", response_model=List[RatingRead])
+def listar_avaliacoes(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    db: Session = Depends(get_session),
+):
+    if tipo == TipoUsuario.PROFESSOR:
+        professor = db.get(Professor, avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        stmt = (
+            select(AvaliacoesDoProfessor, Aluno)
+            .join(Aluno, Aluno.id == AvaliacoesDoProfessor.ava_alu_avaliador)
+            .where(AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id)
+            .order_by(AvaliacoesDoProfessor.data_criacao.desc())
+        )
+        resultados = db.exec(stmt).all()
+        return [
+            _avaliacao_to_response(
+                avaliado_tipo=TipoUsuario.PROFESSOR,
+                avaliado_id=avaliado_id,
+                autor_tipo=TipoUsuario.ALUNO,
+                autor=autor,
+                avaliacao_obj=avaliacao,
+            )
+            for avaliacao, autor in resultados
+        ]
 
-@router_ratings.get("/professor/{ava_id}")
-def obter_avaliacao_professor(ava_id: int):
-    return {"msg": f"Retornando avaliação do professor com ID {ava_id}"}
+    if tipo == TipoUsuario.ALUNO:
+        aluno = db.get(Aluno, avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        stmt = (
+            select(AvaliacoesDoAluno, Professor)
+            .join(Professor, Professor.id == AvaliacoesDoAluno.ava_prof_avaliador)
+            .where(AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id)
+            .order_by(AvaliacoesDoAluno.data_criacao.desc())
+        )
+        resultados = db.exec(stmt).all()
+        return [
+            _avaliacao_to_response(
+                avaliado_tipo=TipoUsuario.ALUNO,
+                avaliado_id=avaliado_id,
+                autor_tipo=TipoUsuario.PROFESSOR,
+                autor=autor,
+                avaliacao_obj=avaliacao,
+            )
+            for avaliacao, autor in resultados
+        ]
 
-@router_ratings.get("/professor/")
-def listar_avaliacoes_professores():
-    return {"msg": "Lista de avaliações dos professores"}
-
-@router_ratings.put("/professor/{ava_id}")
-def atualizar_avaliacao_professor(ava_id: int):
-    return {"msg": f"Avaliação do professor {ava_id} atualizada com sucesso!"}
-
-@router_ratings.delete("/professor/{ava_id}")
-def deletar_avaliacao_professor(ava_id: int):
-    return {"msg": f"Avaliação do professor {ava_id} removida!"}
-
+    raise HTTPException(status_code=400, detail="Tipo invalido")
 
 
 @router_user.post("/{user_id}/profile-picture")
@@ -868,18 +996,18 @@ async def upload_profile_picture(
 ):
     token = request.cookies.get("access_token") if request else None
     if not token:
-        raise HTTPException(status_code=401, detail="Não autenticado")
+        raise HTTPException(status_code=401, detail="N�o autenticado")
     try:
         payload = _decode_token(token)
         sub = int(payload.get("sub"))
         tipo_token = payload.get("tipo")
     except (JWTError, TypeError, ValueError):
-        raise HTTPException(status_code=401, detail="Token inválido")
+        raise HTTPException(status_code=401, detail="Token inv�lido")
     if sub != user_id:
-        raise HTTPException(status_code=403, detail="Operação não permitida")
+        raise HTTPException(status_code=403, detail="Opera��o n�o permitida")
     usuario = obter_usuario_por_id_tipo(db, user_id, tipo_token)
     if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        raise HTTPException(status_code=404, detail="Usu�rio n�o encontrado")
 
     allowed_content_types = {"image/jpeg", "image/png", "image/webp"}
     if file.content_type not in allowed_content_types:
@@ -908,7 +1036,7 @@ async def upload_profile_picture(
     }
 
 
-# 12. Feedback dos usuários
+# 12. Feedback dos usu�rios
 
 
 DESTINATARIO_FEEDBACK = "lucenamaria767@gmail.com"
@@ -943,7 +1071,7 @@ def listar_feedbacks(db: Session = Depends(get_session)):
 def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
     feedback = db.get(Feedback, fb_id)
     if not feedback:
-        raise HTTPException(status_code=404, detail="Feedback não encontrado")
+        raise HTTPException(status_code=404, detail="Feedback n�o encontrado")
     return feedback
 
 
@@ -957,3 +1085,4 @@ app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
+
