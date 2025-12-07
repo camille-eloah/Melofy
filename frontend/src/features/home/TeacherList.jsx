@@ -64,7 +64,7 @@ function TeacherList() {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
-              city: "Caico - RN",
+              city: "Caicó - RN",
               instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
