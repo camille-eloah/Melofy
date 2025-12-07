@@ -10,6 +10,7 @@ function Header() {
   const [userUuid, setUserUuid] = useState(null)
   const [userTipo, setUserTipo] = useState(null)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
   const [activeLink, setActiveLink] = useState('')
   const navigate = useNavigate()
 
@@ -118,7 +119,8 @@ function Header() {
   }
 
   async function handleLogout(e) {
-    e.preventDefault()
+    if (e?.preventDefault) e.preventDefault()
+    setShowMenu(false)
 
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -338,6 +340,47 @@ function Header() {
                     Ver todas as notificações
                   </button>
                 </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="menu-container">
+          <button
+            className={`menu-button ${showMenu ? 'active' : ''}`}
+            onClick={() => setShowMenu(!showMenu)}
+          >
+            <div className="menu-icon-wrapper">
+              <svg
+                className="menu-icon"
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </div>
+          </button>
+
+          {showMenu && (
+            <>
+              <div
+                className="menu-overlay"
+                onClick={() => setShowMenu(false)}
+              />
+              <div className="menu-modal">
+                <ul className="menu-list">
+                  <li>
+                    <button onClick={handleLogout}>Sair</button>
+                  </li>
+                </ul>
               </div>
             </>
           )}
