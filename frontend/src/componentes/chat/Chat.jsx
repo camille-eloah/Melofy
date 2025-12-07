@@ -4,6 +4,7 @@ import Header from '../layout/Header';
 import Footer from '../layout/Footer';
 import { useLocation } from 'react-router-dom';
 
+const API_BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8000";
 
 function ChatMelofy() {
   const location = useLocation();
@@ -59,6 +60,7 @@ function ChatMelofy() {
   const [chatAtivo, setChatAtivo] = useState(null);
   const [novaMensagem, setNovaMensagem] = useState('');
   const [busca, setBusca] = useState('');
+  const [historicoPorChat, setHistoricoPorChat] = useState({});
 
   const abrirChat = (chatId) => {
     const chatSelecionado = mensagens.find(msg => msg.id === chatId);
@@ -69,10 +71,65 @@ function ChatMelofy() {
     ));
   };
 
-  const enviarMensagem = () => {
-    if (novaMensagem.trim() && chatAtivo) {
-      console.log('Mensagem enviada:', novaMensagem);
-      setNovaMensagem('');
+  const enviarMensagem = async () => {
+    if (!novaMensagem.trim() || !chatAtivo) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const agora = new Date();
+    const mensagemTexto = novaMensagem.trim();
+    const novaEntrada = {
+      id: tempId,
+      autor: 'me',
+      texto: mensagemTexto,
+      hora: formatarHora(agora),
+      status: 'sending',
+    };
+
+    setHistoricoPorChat((prev) => {
+      const atual = prev[chatAtivo.id] || criarHistoricoDummy(chatAtivo);
+      return { ...prev, [chatAtivo.id]: [...atual, novaEntrada] };
+    });
+    setNovaMensagem('');
+
+    try {
+      const resposta = await fetch(`${API_BASE_URL}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          destinatario_id: chatAtivo.id,
+          texto: mensagemTexto,
+        }),
+        credentials: 'include',
+      });
+
+      if (!resposta.ok) {
+        throw new Error(`Falha ao enviar mensagem: ${resposta.status}`);
+      }
+
+      const data = await resposta.json();
+      setHistoricoPorChat((prev) => {
+        const historico = prev[chatAtivo.id] || [];
+        const atualizado = historico.map((msg) =>
+          msg.id === tempId
+            ? {
+                ...msg,
+                id: data.id ?? msg.id,
+                status: 'sent',
+                hora: data.created_at ? formatarHora(new Date(data.created_at)) : msg.hora,
+              }
+            : msg
+        );
+        return { ...prev, [chatAtivo.id]: atualizado };
+      });
+    } catch (error) {
+      console.error(error);
+      setHistoricoPorChat((prev) => {
+        const historico = prev[chatAtivo.id] || [];
+        const atualizado = historico.map((msg) =>
+          msg.id === tempId ? { ...msg, status: 'error' } : msg
+        );
+        return { ...prev, [chatAtivo.id]: atualizado };
+      });
     }
   };
 
@@ -101,6 +158,14 @@ function ChatMelofy() {
     });
   }, [contato]);
 
+  useEffect(() => {
+    if (!chatAtivo) return;
+    setHistoricoPorChat((prev) => {
+      if (prev[chatAtivo.id]) return prev;
+      return { ...prev, [chatAtivo.id]: criarHistoricoDummy(chatAtivo) };
+    });
+  }, [chatAtivo]);
+
   const filtrarConversas = mensagens.filter(chat =>
     chat.nome.toLowerCase().includes(busca.toLowerCase()) ||
     chat.instrumento.toLowerCase().includes(busca.toLowerCase())
@@ -126,6 +191,39 @@ function ChatMelofy() {
     }
     return getIniciais(chat?.nome || '');
   };
+
+  const formatarHora = (date) => {
+    try {
+      const h = date.getHours().toString().padStart(2, '0');
+      const m = date.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
+    } catch {
+      return '';
+    }
+  };
+
+  const historicoMensagens = chatAtivo ? (historicoPorChat[chatAtivo.id] || []) : [];
+
+  const criarHistoricoDummy = (chat) => ([
+    {
+      id: `rcvd-${chat.id}-1`,
+      autor: 'other',
+      texto: 'OlÇ­! Como estÇ­ o estudo da Sonata? Praticou os movimentos que passei?',
+      hora: '20:42',
+    },
+    {
+      id: `sent-${chat.id}-1`,
+      autor: 'me',
+      texto: 'Estou praticando diariamente! Ainda tenho dificuldade com o ritmo do terceiro movimento.',
+      hora: '20:44',
+    },
+    {
+      id: `rcvd-${chat.id}-2`,
+      autor: 'other',
+      texto: 'Ç% normal no inÇðcio. AmanhÇœ focaremos nessa parte especÇðfica. Traga suas dÇ§vidas!',
+      hora: '20:46',
+    },
+  ]);
 
   return (
     <div className="app-container">   

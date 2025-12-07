@@ -344,3 +344,17 @@ CREATE TABLE tb_professor_tag (
     FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 );
+
+-- Mensagens privadas entre professores e alunos
+CREATE TABLE tb_mensagens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    remetente_id INT NOT NULL,
+    remetente_tipo ENUM('PROFESSOR','ALUNO') NOT NULL,
+    destinatario_id INT NOT NULL,
+    destinatario_tipo ENUM('PROFESSOR','ALUNO') NOT NULL,
+    texto TEXT NOT NULL,
+    lido BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_mensagens_remetente (remetente_tipo, remetente_id, created_at),
+    INDEX idx_mensagens_destinatario (destinatario_tipo, destinatario_id, created_at)
+);

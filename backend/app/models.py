@@ -317,4 +317,20 @@ class Feedback(SQLModel, table=True):
     assunto: str
     mensagem: str
     criado_em: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ----------------------------
+# Mensagens privadas
+# ----------------------------
+class Message(SQLModel, table=True):
+    __tablename__ = "tb_mensagens"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    remetente_id: int = Field(nullable=False, index=True)
+    remetente_tipo: TipoUsuario = Field(nullable=False)
+    destinatario_id: int = Field(nullable=False, index=True)
+    destinatario_tipo: TipoUsuario = Field(nullable=False)
+    texto: str = Field(nullable=False)
+    lido: bool = Field(default=False, nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     
