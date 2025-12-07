@@ -9,25 +9,13 @@ function resolveFoto(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
-  const [avaliacoes, setAvaliacoes] = useState([
-    {
-      nome: "Maria Santos",
-      foto: "",
-      estrelas: 5,
-      texto: "Excelente profissional! Explica com paciencia e clareza."
-    },
-    {
-      nome: "Joao Pereira",
-      foto: "",
-      estrelas: 4,
-      texto: "Otimo atendimento, recomendo! A aula foi muito produtiva."
-    }
-  ]);
-
+const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "", perfilAvaliado = {} }) => {
+  const [avaliacoes, setAvaliacoes] = useState([]);
   const [novaEstrela, setNovaEstrela] = useState(0);
   const [novoTexto, setNovoTexto] = useState("");
   const [usuarioLogado, setUsuarioLogado] = useState({ nome: "", foto: "" });
+  const [carregando, setCarregando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     // Prioriza os dados vindos via props (perfil carregado em ProfileUser)
@@ -71,17 +59,6 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
         "";
       const resolvedFoto = resolveFoto(rawFoto);
 
-      if (!rawFoto) {
-        console.log("[Reviews] usuario sem foto no localStorage; usando inicial", {
-          user,
-          rawFoto,
-          resolvedFoto,
-          inicial
-        });
-      } else {
-        console.log("[Reviews] usuario localStorage", { user, rawFoto, resolvedFoto });
-      }
-
       setUsuarioLogado({
         nome: user?.nome || "",
         foto: resolvedFoto || ""
@@ -91,20 +68,80 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
     }
   }, [usuarioProp, fotoAbsoluta]);
 
-  function enviarAvaliacao() {
-    if (novaEstrela === 0 || !novoTexto.trim()) return;
+  useEffect(() => {
+    const avaliadoId = perfilAvaliado?.id;
+    const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
+    if (!avaliadoId || !avaliadoTipo) return;
 
-    const nova = {
-      nome: usuarioLogado.nome || "Usuario",
-      foto: usuarioLogado.foto || "",
-      estrelas: novaEstrela,
-      texto: novoTexto
+    const carregar = async () => {
+      try {
+        setCarregando(true);
+        const resp = await fetch(`${API_BASE_URL}/ratings/${avaliadoTipo}/${avaliadoId}`, {
+          credentials: "include",
+        });
+        if (!resp.ok) {
+          console.error("Falha ao carregar avaliacoes", await resp.text());
+          return;
+        }
+        const data = await resp.json();
+        const convertidos = Array.isArray(data)
+          ? data.map((r) => ({
+              nome: r.autor_nome,
+              foto: resolveFoto(r.autor_foto) || "",
+              estrelas: r.nota,
+              texto: r.texto || "",
+            }))
+          : [];
+        setAvaliacoes(convertidos);
+      } catch (err) {
+        console.error("Erro ao carregar avaliacoes", err);
+      } finally {
+        setCarregando(false);
+      }
     };
 
-    setAvaliacoes((prev) => [...prev, nova]);
+    carregar();
+  }, [perfilAvaliado?.id, perfilAvaliado?.tipo]);
 
-    setNovoTexto("");
-    setNovaEstrela(0);
+  async function enviarAvaliacao() {
+    if (novaEstrela === 0 || !novoTexto.trim()) return;
+
+    const avaliadoId = perfilAvaliado?.id;
+    const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
+    if (!avaliadoId || !avaliadoTipo) return;
+
+    try {
+      setEnviando(true);
+      const payload = {
+        avaliado_id: avaliadoId,
+        avaliado_tipo: avaliadoTipo,
+        nota: novaEstrela,
+        texto: novoTexto,
+      };
+      const resp = await fetch(`${API_BASE_URL}/ratings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.detail || "Falha ao enviar avaliacao");
+      }
+      const novo = {
+        nome: data.autor_nome,
+        foto: resolveFoto(data.autor_foto) || "",
+        estrelas: data.nota,
+        texto: data.texto || "",
+      };
+      setAvaliacoes((prev) => [...prev, novo]);
+      setNovoTexto("");
+      setNovaEstrela(0);
+    } catch (err) {
+      console.error("Erro ao enviar avaliacao", err);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   const nomeExibicao = usuarioLogado.nome || "Usuario";
@@ -164,12 +201,13 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
           ))}
         </div>
 
-        <button className="botao-enviar" onClick={enviarAvaliacao}>
-          Enviar avaliacao
+        <button className="botao-enviar" onClick={enviarAvaliacao} disabled={enviando}>
+          {enviando ? "Enviando..." : "Enviar avaliacao"}
         </button>
       </div>
 
       <h3 className="titulo-lista">Avaliacoes de usuarios</h3>
+      {carregando && <p className="texto">Carregando avaliacoes...</p>}
 
       {avaliacoes.map((item, i) => (
         <div className="avaliacao-card" key={i}>
