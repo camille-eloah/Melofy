@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 function AddInstrumentModal({
   isOpen,
@@ -11,6 +11,32 @@ function AddInstrumentModal({
   onAdd,
 }) {
   if (!isOpen) return null;
+
+  const [isListOpen, setIsListOpen] = useState(false);
+  const blurTimeout = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeout.current) {
+        clearTimeout(blurTimeout.current);
+      }
+    };
+  }, []);
+
+  const handleFocus = () => {
+    if (blurTimeout.current) clearTimeout(blurTimeout.current);
+    setIsListOpen(true);
+  };
+
+  const handleBlur = () => {
+    blurTimeout.current = setTimeout(() => setIsListOpen(false), 120);
+  };
+
+  const handleOptionClick = (inst) => {
+    onSelectChange?.(inst.id);
+    onSearchChange?.(inst.nome);
+    setIsListOpen(false);
+  };
 
   const handleAdd = () => {
     if (onAdd) {
@@ -29,29 +55,42 @@ function AddInstrumentModal({
           Use a busca para filtrar e selecione o instrumento que deseja incluir.
         </p>
         <div className="instrumentos-modal-field">
-          <label htmlFor="instrument-search">Pesquisar</label>
-          <input
-            id="instrument-search"
-            type="text"
-            placeholder="Digite para filtrar"
-            value={searchValue}
-            onChange={(e) => onSearchChange?.(e.target.value)}
-          />
-        </div>
-        <div className="instrumentos-modal-field">
-          <label htmlFor="instrument-select">Selecione o instrumento</label>
-          <select
-            id="instrument-select"
-            value={selectedValue}
-            onChange={(e) => onSelectChange?.(e.target.value)}
-          >
-            <option value="">Escolha uma opcao</option>
-            {options.map((inst) => (
-              <option key={inst.id} value={inst.id}>
-                {inst.nome}
-              </option>
-            ))}
-          </select>
+          <label htmlFor="instrument-search">Instrumento</label>
+          <div className={`instrumentos-combobox ${isListOpen ? "open" : ""}`}>
+            <input
+              id="instrument-search"
+              type="text"
+              placeholder="Digite para filtrar"
+              value={searchValue}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              onChange={(e) => {
+                onSearchChange?.(e.target.value);
+                setIsListOpen(true);
+              }}
+            />
+            {isListOpen && (
+              <div className="instrumentos-combobox-list" onMouseDown={(e) => e.preventDefault()}>
+                {options.length === 0 && (
+                  <div className="instrumentos-combobox-empty">Nenhum instrumento encontrado</div>
+                )}
+                {options.map((inst) => (
+                  <button
+                    key={inst.id}
+                    type="button"
+                    className={
+                      "instrumentos-combobox-option" +
+                      (String(selectedValue) === String(inst.id) ? " selected" : "")
+                    }
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleOptionClick(inst)}
+                  >
+                    {inst.nome}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="instrumentos-modal-actions">
           <button className="instrumentos-modal-button ghost" onClick={onClose}>
