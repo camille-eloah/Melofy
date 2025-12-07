@@ -53,6 +53,7 @@ settings = get_settings()
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from sqlalchemy import func
 from app.models import Professor, Instrumento, ProfessorInstrumento
 
 import logging
@@ -1003,6 +1004,42 @@ def listar_avaliacoes(
     raise HTTPException(status_code=400, detail="Tipo invalido")
 
 
+@router_ratings.get("/{tipo}/{avaliado_id}/stats")
+def stats_avaliacoes(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    db: Session = Depends(get_session),
+):
+    if tipo == TipoUsuario.PROFESSOR:
+        professor = db.get(Professor, avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        result = db.exec(
+            select(
+                AvaliacoesDoProfessor.ava_prof_avaliado,
+                func.count(AvaliacoesDoProfessor.ava_id),
+                func.avg(AvaliacoesDoProfessor.ava_nota),
+            ).where(AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id)
+        ).first()
+    elif tipo == TipoUsuario.ALUNO:
+        aluno = db.get(Aluno, avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        result = db.exec(
+            select(
+                AvaliacoesDoAluno.ava_alu_avaliado,
+                func.count(AvaliacoesDoAluno.ava_id),
+                func.avg(AvaliacoesDoAluno.ava_nota),
+            ).where(AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id)
+        ).first()
+    else:
+        raise HTTPException(status_code=400, detail="Tipo invalido")
+
+    total = int(result[1]) if result and result[1] is not None else 0
+    media = float(result[2]) if result and result[2] is not None else 0.0
+    return {"total": total, "media": round(media, 1)}
+
+
 @router_ratings.patch("/{tipo}/{avaliado_id}", response_model=RatingRead)
 def editar_avaliacao(
     tipo: TipoUsuario,
@@ -1173,6 +1210,4 @@ app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
-
-
 
