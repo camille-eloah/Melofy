@@ -62,6 +62,25 @@ function ChatMelofy() {
   const [busca, setBusca] = useState('');
   const [historicoPorChat, setHistoricoPorChat] = useState({});
 
+  const [meuId, setMeuId] = useState(null);
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" });
+        if (!resp.ok) throw new Error("Erro ao obter usuário atual");
+        const data = await resp.json();
+        setMeuId(data.id);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    carregarUsuario();
+  }, []);
+
+
+
   const abrirChat = (chatId) => {
     const chatSelecionado = mensagens.find(msg => msg.id === chatId);
     setChatAtivo(chatSelecionado);
@@ -92,7 +111,7 @@ function ChatMelofy() {
     setNovaMensagem('');
 
     try {
-      const resposta = await fetch(`${API_BASE_URL}/messages/messages`, {
+      const resposta = await fetch(`${API_BASE_URL}/messages/conversation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -159,12 +178,40 @@ function ChatMelofy() {
   }, [contato]);
 
   useEffect(() => {
-    if (!chatAtivo) return;
-    setHistoricoPorChat((prev) => {
-      if (prev[chatAtivo.id]) return prev;
-      return { ...prev, [chatAtivo.id]: criarHistoricoDummy(chatAtivo) };
-    });
-  }, [chatAtivo]);
+    if (!chatAtivo || !meuId) return; // aguarda ID ser carregado
+
+    const carregarHistorico = async () => {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/messages/conversation/${chatAtivo.id}`, {
+          credentials: "include",
+        });
+
+        if (!resp.ok) throw new Error("Erro ao carregar histórico");
+
+        const data = await resp.json();
+
+        const mensagensFormatadas = data.map(msg => ({
+          id: msg.id,
+          texto: msg.texto,
+          hora: formatarHora(new Date(msg.created_at)),
+          autor: msg.remetente_id === meuId ? "me" : "other",
+          status: "sent"
+        }));
+
+        setHistoricoPorChat(prev => ({
+          ...prev,
+          [chatAtivo.id]: mensagensFormatadas
+        }));
+
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    carregarHistorico();
+  }, [chatAtivo, meuId]);
+
+
 
   const filtrarConversas = mensagens.filter(chat =>
     chat.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -208,7 +255,7 @@ function ChatMelofy() {
     {
       id: `rcvd-${chat.id}-1`,
       autor: 'other',
-      texto: 'OlÇ­! Como estÇ­ o estudo da Sonata? Praticou os movimentos que passei?',
+      texto: 'Ol­á! Como está o estudo da Sonata? Praticou os movimentos que passei?',
       hora: '20:42',
     },
     {
@@ -220,7 +267,7 @@ function ChatMelofy() {
     {
       id: `rcvd-${chat.id}-2`,
       autor: 'other',
-      texto: 'Ç% normal no inÇðcio. AmanhÇœ focaremos nessa parte especÇðfica. Traga suas dÇ§vidas!',
+      texto: 'É normal no início. Amanhã focaremos nessa parte específica. Traga suas dúvidas!',
       hora: '20:46',
     },
   ]);
@@ -317,50 +364,55 @@ function ChatMelofy() {
                 </div>
 
                 <div className="messages-container">
-                <div className="message-day">
-                    <span className="day-label">Hoje</span>
+    
+    <div className="message-day">
+        <span className="day-label">Hoje</span>
+    </div>
+
+    {historicoMensagens.map((msg) => (
+        <div 
+            key={msg.id}
+            className={`message-bubble ${msg.autor === "me" ? "sent" : "received"}`}
+        >
+            {msg.autor === "other" && (
+                <div className="message-avatar">
+                    {renderAvatar(chatAtivo)}
                 </div>
-                
-                <div className="message-bubble received">
-                    <div className="message-avatar">{renderAvatar(chatAtivo)}</div>
-                    <div className="message-content-wrapper">
-                    <div className="message-content">
-                        <p>Olá! Como está o estudo da Sonata? Praticou os movimentos que passei?</p>
-                    </div>
-                    <div className="message-footer">
-                        <span className="message-time">20:42</span>
-                    </div>
-                    </div>
+            )}
+
+            <div className="message-content-wrapper">
+                <div className="message-content">
+                    <p>{msg.texto}</p>
                 </div>
 
-                <div className="message-bubble sent">
-                    <div className="message-content-wrapper">
-                    <div className="message-content">
-                        <p>Estou praticando diariamente! Ainda tenho dificuldade com o ritmo do terceiro movimento.</p>
-                    </div>
-                    <div className="message-footer">
-                        <span className="message-time">20:44</span>
+                <div className="message-footer">
+                    <span className="message-time">{msg.hora}</span>
+
+                    {msg.autor === "me" && (
                         <span className="message-status">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-                            <path d="M20 6 9 17l-5-5"/>
-                        </svg>
-                        </span>
-                    </div>
-                    </div>
-                </div>
 
-                <div className="message-bubble received">
-                    <div className="message-avatar">{renderAvatar(chatAtivo)}</div>
-                    <div className="message-content-wrapper">
-                    <div className="message-content">
-                        <p>É normal no início. Amanhã focaremos nessa parte específica. Traga suas dúvidas!</p>
-                    </div>
-                    <div className="message-footer">
-                        <span className="message-time">20:46</span>
-                    </div>
-                    </div>
+                            {msg.status === "sending" && (
+                                <span className="status sending">...</span>
+                            )}
+
+                            {msg.status === "sent" && (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+                                    <path d="M20 6 9 17l-5-5"/>
+                                </svg>
+                            )}
+
+                            {msg.status === "error" && (
+                                <span className="status error">!</span>
+                            )}
+                        </span>
+                    )}
                 </div>
-                </div>
+            </div>
+        </div>
+    ))}
+
+</div>
+
 
                 <div className="message-input-container">
                 <div className="message-input-wrapper">

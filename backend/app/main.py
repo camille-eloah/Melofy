@@ -1227,7 +1227,7 @@ class MessageCreate(BaseModel):
     destinatario_id: int
     texto: str
 
-@router_messages.post("/messages", response_model=MessageOut)
+@router_messages.post("/conversation", response_model=MessageOut)
 def create_message(
     payload: MessageCreate,
     request: Request,
@@ -1248,6 +1248,27 @@ def create_message(
     db.commit()
     db.refresh(msg)
     return msg
+
+@router_messages.get("/conversation/{destinatario_id}", response_model=list[MessageOut])
+def listar_conversa(
+    destinatario_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    msgs = db.exec(
+        select(Message).where(
+            # mensagens enviadas por mim
+            ((Message.remetente_id == autor.id) & (Message.destinatario_id == destinatario_id))
+            |
+            # mensagens que recebi
+            ((Message.remetente_id == destinatario_id) & (Message.destinatario_id == autor.id))
+        ).order_by(Message.created_at)
+    ).all()
+
+    return msgs
+
 
 
 app.include_router(router_user)
