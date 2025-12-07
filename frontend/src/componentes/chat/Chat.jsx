@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './Chat.css';
 import Header from '../layout/Header';
 import Footer from '../layout/Footer';
+import { useLocation } from 'react-router-dom';
 
 
 function ChatMelofy() {
+  const location = useLocation();
+  const contato = location.state?.contato;
   const [mensagens, setMensagens] = useState([
     {
       id: 1,
@@ -73,6 +76,31 @@ function ChatMelofy() {
     }
   };
 
+  useEffect(() => {
+    if (!contato) return;
+    const baseChat = {
+      id: contato.id ?? `tmp-${Date.now()}`,
+      nome: contato.nome || 'Contato',
+      instrumento: contato.instrumento || 'Instrumento',
+      mensagem: contato.mensagem || 'Nova conversa iniciada',
+      hora: 'agora',
+      naoLida: false,
+      online: true,
+      foto: contato.foto || null,
+    };
+
+    setMensagens((prev) => {
+      const existente = prev.find((msg) => msg.id === baseChat.id);
+      if (existente) {
+        const merged = { ...existente, ...baseChat };
+        setChatAtivo(merged);
+        return prev.map((msg) => (msg.id === baseChat.id ? merged : msg));
+      }
+      setChatAtivo(baseChat);
+      return [baseChat, ...prev];
+    });
+  }, [contato]);
+
   const filtrarConversas = mensagens.filter(chat =>
     chat.nome.toLowerCase().includes(busca.toLowerCase()) ||
     chat.instrumento.toLowerCase().includes(busca.toLowerCase())
@@ -84,6 +112,19 @@ function ChatMelofy() {
       return (palavras[0][0] + palavras[1][0]).toUpperCase();
     }
     return nome.substring(0, 2).toUpperCase();
+  };
+
+  const renderAvatar = (chat) => {
+    if (chat?.foto) {
+      return (
+        <img
+          src={chat.foto}
+          alt={`Foto de ${chat.nome}`}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+        />
+      );
+    }
+    return getIniciais(chat?.nome || '');
   };
 
   return (
@@ -135,7 +176,7 @@ function ChatMelofy() {
                 >
                 <div className="avatar-container">
                     <div className={`avatar ${chat.online ? 'online' : ''}`}>
-                    {getIniciais(chat.nome)}
+                    {renderAvatar(chat)}
                     </div>
                 </div>
                 
@@ -164,7 +205,7 @@ function ChatMelofy() {
             <>
                 <div className="chat-header">
                 <div className="chat-user-info">
-                    <div className="user-avatar">{getIniciais(chatAtivo.nome)}</div>
+                    <div className="user-avatar">{renderAvatar(chatAtivo)}</div>
                     <div className="user-details">
                     <h3>{chatAtivo.nome}</h3>
                     <div className="user-status">
@@ -183,7 +224,7 @@ function ChatMelofy() {
                 </div>
                 
                 <div className="message-bubble received">
-                    <div className="message-avatar">{getIniciais(chatAtivo.nome)}</div>
+                    <div className="message-avatar">{renderAvatar(chatAtivo)}</div>
                     <div className="message-content-wrapper">
                     <div className="message-content">
                         <p>Olá! Como está o estudo da Sonata? Praticou os movimentos que passei?</p>
