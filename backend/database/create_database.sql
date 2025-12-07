@@ -1,4 +1,4 @@
-CREATE DATABASE db_melofy;
+﻿CREATE DATABASE db_melofy;
 USE db_melofy;
 
 CREATE TABLE tb_professor (
@@ -14,6 +14,7 @@ CREATE TABLE tb_professor (
     texto_desc TEXT NULL,
     telefone VARCHAR(20) NULL,
     hashed_password VARCHAR(255) NOT NULL,
+    profile_picture VARCHAR(255) NULL,
     created_at DATETIME NOT NULL,
     vacation_mode BOOLEAN NOT NULL DEFAULT FALSE,
     conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
@@ -32,6 +33,7 @@ CREATE TABLE tb_aluno (
     texto_desc TEXT NULL,
     telefone VARCHAR(20) NULL,
     hashed_password VARCHAR(255) NOT NULL,
+    profile_picture VARCHAR(255) NULL,
     created_at DATETIME NOT NULL,
     conta_status ENUM('ATIVO', 'DESATIVADO', 'EXCLUSAO') NOT NULL DEFAULT 'ATIVO'
 );
@@ -44,11 +46,11 @@ CREATE TABLE tb_categoria (
 INSERT INTO tb_categoria (nome) VALUES
     ('Cordas'),
     ('Sopro'),
-    ('Percussão'),
+    ('PercussÃ£o'),
     ('Teclas'),
     ('Voz'),
-    ('Eletrônico'),
-    ('Acessório'),
+    ('EletrÃ´nico'),
+    ('AcessÃ³rio'),
     ('Outros');
 
 CREATE TABLE tb_instrumento (
@@ -59,9 +61,9 @@ CREATE TABLE tb_instrumento (
 );
 
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
-    -- 🎸 CORDAS
+    -- ðŸŽ¸ CORDAS
     (2, 'Guitarra', 1),
-    (3, 'Violão', 1),
+    (3, 'ViolÃ£o', 1),
     (6, 'Baixo', 1),
     (7, 'Violino', 1),
     (15, 'Ukulele', 1),
@@ -69,7 +71,7 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (17, 'Bandolim', 1),
     (18, 'Cavaquinho', 1),
     (19, 'Cello', 1),
-    (20, 'Contrabaixo Acústico', 1),
+    (20, 'Contrabaixo AcÃºstico', 1),
     (21, 'Banjo', 1),
     (22, 'Rabeca', 1),
     (57, 'Sitar', 1),
@@ -97,14 +99,14 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (146, 'Sarod', 1),
     (147, 'Kravik Lyre', 1),
     (148, 'Domra', 1),
-    (149, 'Laúd Árabe', 1),
-    (150, 'Cítara', 1),
+    (149, 'LaÃºd Ãrabe', 1),
+    (150, 'CÃ­tara', 1),
 
-    -- 🎺 SOPRO
+    -- ðŸŽº SOPRO
     (1, 'Saxofone', 2),
     (4, 'Flauta', 2),
     (23, 'Clarinete', 2),
-    (24, 'Oboé', 2),
+    (24, 'OboÃ©', 2),
     (25, 'Fagote', 2),
     (26, 'Trompete', 2),
     (27, 'Trombone', 2),
@@ -118,14 +120,14 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (78, 'Piccolo', 2),
     (79, 'Sax Tenor', 2),
     (80, 'Sax Alto', 2),
-    (81, 'Sax Barítono', 2),
+    (81, 'Sax BarÃ­tono', 2),
     (82, 'Didgeridoo', 2),
-    (83, 'Chinelo (instrumento indígena)', 2),
+    (83, 'Chinelo (instrumento indÃ­gena)', 2),
     (84, 'Shofar', 2),
     (85, 'Cornamusa', 2),
     (86, 'Bombardino', 2),
     (87, 'Sanfona de Boca', 2),
-    (88, 'Whistle Irlandês', 2),
+    (88, 'Whistle IrlandÃªs', 2),
     (89, 'Kena', 2),
     (90, 'Flauta Transversal Contralto', 2),
     (139, 'Erke', 2),
@@ -135,20 +137,20 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (143, 'Bansuri', 2),
     (144, 'Flauta de Pan', 2),
 
-    -- 🥁 PERCUSSÃO
+    -- ðŸ¥ PERCUSSÃƒO
     (32, 'Bateria', 3),
     (33, 'Caixa', 3),
     (34, 'Bumbo', 3),
     (35, 'Pratos', 3),
-    (36, 'Triângulo', 3),
+    (36, 'TriÃ¢ngulo', 3),
     (37, 'Pandeiro', 3),
-    (38, 'Tímpanos', 3),
+    (38, 'TÃ­mpanos', 3),
     (39, 'Xilofone', 3),
     (40, 'Marimba', 3),
-    (41, 'Djembê', 3),
-    (42, 'Cajón', 3),
-    (43, 'Cuíca', 3),
-    (44, 'Agogô', 3),
+    (41, 'DjembÃª', 3),
+    (42, 'CajÃ³n', 3),
+    (43, 'CuÃ­ca', 3),
+    (44, 'AgogÃ´', 3),
     (45, 'Reco-reco', 3),
     (46, 'Tamborim', 3),
     (91, 'Repinique', 3),
@@ -156,7 +158,7 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (93, 'Atabaque', 3),
     (94, 'Gong', 3),
     (95, 'Castanholas', 3),
-    (96, 'Bongô', 3),
+    (96, 'BongÃ´', 3),
     (97, 'Congas', 3),
     (98, 'Tambor Taiko', 3),
     (99, 'Vibraslap', 3),
@@ -173,29 +175,29 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (132, 'Mbira', 3),
     (133, 'Kanjira', 3),
     (134, 'Tabla', 3),
-    (138, 'Gamelão', 3),
+    (138, 'GamelÃ£o', 3),
 
-    -- 🎹 TECLAS
+    -- ðŸŽ¹ TECLAS
     (9, 'Teclado', 4),
-    (10, 'Acordeão', 4),
+    (10, 'AcordeÃ£o', 4),
     (11, 'Piano', 4),
-    (12, 'Órgão', 4),
+    (12, 'Ã“rgÃ£o', 4),
     (13, 'Cravo', 4),
-    (109, 'Melódica', 4),
+    (109, 'MelÃ³dica', 4),
     (110, 'Clavinet', 4),
-    (111, 'Harmônio', 4),
+    (111, 'HarmÃ´nio', 4),
 
-    -- 🎤 VOZ
+    -- ðŸŽ¤ VOZ
     (8, 'Canto', 5),
     (47, 'Coral Infantil', 5),
     (48, 'Coral Adulto', 5),
-    (49, 'Técnica Vocal Avançada', 5),
-    (112, 'Canto Lírico', 5),
+    (49, 'TÃ©cnica Vocal AvanÃ§ada', 5),
+    (112, 'Canto LÃ­rico', 5),
     (113, 'Canto Popular', 5),
     (114, 'Canto Coral', 5),
-    (115, 'Aulas de Dicção Vocal', 5),
+    (115, 'Aulas de DicÃ§Ã£o Vocal', 5),
 
-    -- 🎧 ELETRÔNICOS
+    -- ðŸŽ§ ELETRÃ”NICOS
     (14, 'Sintetizador', 6),
     (50, 'Drum Machine', 6),
     (51, 'Controlador MIDI', 6),
@@ -206,7 +208,7 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (119, 'Looper', 6),
     (120, 'Workstation Musical', 6),
 
-    -- 🗂️ ACESSÓRIOS
+    -- ðŸ—‚ï¸ ACESSÃ“RIOS
     (5, 'Partitura', 7),
     (53, 'Estante de Partitura', 7),
     (54, 'Afinador Digital', 7),
@@ -218,7 +220,7 @@ INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     (124, 'Surdina de Trombone', 7),
     (125, 'Almofada de Violino', 7),
     (126, 'Pedal Sustain', 7),
-    (127, 'Encordoamento de Violão', 7),
+    (127, 'Encordoamento de ViolÃ£o', 7),
     (128, 'Bocal de Trompete', 7),
     (129, 'Bocal de Saxofone', 7),
     (130, 'Espaleira de Violino', 7);
@@ -239,7 +241,7 @@ CREATE TABLE tb_aula (
     aul_valor DECIMAL(10,2) NOT NULL,
     aul_data DATETIME NOT NULL,
     aul_inst_id INT NOT NULL,
-    aul_status ENUM('Disponível','Indisponível') NOT NULL DEFAULT 'Disponível',
+    aul_status ENUM('DisponÃ­vel','IndisponÃ­vel') NOT NULL DEFAULT 'DisponÃ­vel',
 
     CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES tb_aluno(id),

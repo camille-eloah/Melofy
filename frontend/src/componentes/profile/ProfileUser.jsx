@@ -776,7 +776,15 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         />
 
         {/* Avaliacoes abaixo */}
-        <Reviews />
+        <Reviews
+          usuario={usuario}
+          fotoAbsoluta={displayedPicture}
+          perfilAvaliado={{
+            id: usuario?.id,
+            tipo: usuario?.tipo_usuario || usuario?.tipo || null,
+          }}
+          currentUser={currentUser}
+        />
 
         {/* <div className="avaliacoes">
           <h4>&lt;Avaliacoes&gt;</h4>

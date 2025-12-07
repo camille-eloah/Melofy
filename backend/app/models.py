@@ -48,6 +48,7 @@ class Professor(UserBase, table=True):
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
+    profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     vacation_mode: bool = Field(default=False, nullable=False)
     conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)
@@ -71,6 +72,7 @@ class Aluno(UserBase, table=True):
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
+    profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     conta_status: StatusConta = Field(default=StatusConta.ATIVO, nullable=False)
 
