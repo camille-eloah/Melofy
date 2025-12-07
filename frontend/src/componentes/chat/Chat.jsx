@@ -9,53 +9,8 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8000";
 function ChatMelofy() {
   const location = useLocation();
   const contato = location.state?.contato;
-  const [mensagens, setMensagens] = useState([
-    {
-      id: 1,
-      nome: 'Prof. Carlos Silva - Violão',
-      instrumento: 'Violão Clássico',
-      mensagem: 'Lembre-se de praticar os acordes da semana passada',
-      hora: '20:46',
-      naoLida: true,
-      online: true
-    },
-    {
-      id: 2,
-      nome: 'Aula de Piano Avançado',
-      instrumento: 'Piano',
-      mensagem: 'Jucelino JK: Enviei o exercício no portal',
-      hora: '20:21',
-      naoLida: false,
-      online: true
-    },
-    {
-      id: 3,
-      nome: 'João Goulart',
-      instrumento: 'Canto Coral',
-      mensagem: 'Jango: sábado, 14h no auditório',
-      hora: '18:08',
-      naoLida: true,
-      online: false
-    },
-    {
-      id: 4,
-      nome: 'Mariana Costa',
-      instrumento: 'Teoria Musical',
-      mensagem: 'Tenho dúvidas sobre o exercício de escalas',
-      hora: '15:56',
-      naoLida: false,
-      online: true
-    },
-    {
-      id: 5,
-      nome: 'Orquestra Jovem Melofy',
-      instrumento: 'Múltiplos Instrumentos',
-      mensagem: 'Repertório atualizado disponível no drive',
-      hora: '14:30',
-      naoLida: true,
-      online: true
-    }
-  ]);
+  const [mensagens, setMensagens] = useState([]);
+
 
   const [chatAtivo, setChatAtivo] = useState(null);
   const [novaMensagem, setNovaMensagem] = useState('');
@@ -79,6 +34,35 @@ function ChatMelofy() {
     carregarUsuario();
   }, []);
 
+useEffect(() => {
+  const carregarConversas = async () => {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/messages/my-conversations`, {
+        credentials: "include"
+      });
+      if (!resp.ok) throw new Error("Erro ao carregar conversas");
+
+      const data = await resp.json();
+
+      const lista = data.map(c => ({
+        id: c.id,
+        nome: c.nome,
+        foto: c.foto,
+        instrumento: c.instrumento || "",
+        mensagem: c.mensagem,
+        hora: formatarHora(new Date(c.hora)),
+        naoLida: false,
+        online: false,
+      }));
+
+      setMensagens(lista);
+    } catch (err) {
+      console.error("Erro ao buscar conversas:", err);
+    }
+  };
+
+  carregarConversas();
+}, []);
 
 
   const abrirChat = (chatId) => {
@@ -173,7 +157,10 @@ function ChatMelofy() {
         return prev.map((msg) => (msg.id === baseChat.id ? merged : msg));
       }
       setChatAtivo(baseChat);
-      return [baseChat, ...prev];
+      return prev.some(m => m.id === baseChat.id)
+    ? prev
+    : [baseChat, ...prev];
+
     });
   }, [contato]);
 

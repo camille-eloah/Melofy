@@ -1281,6 +1281,39 @@ def listar_conversa(
 
     return msgs
 
+@router_messages.get("/my-conversations")
+def listar_minhas_conversas(
+    request: Request,
+    db: Session = Depends(get_session)
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    msgs = db.exec(
+        select(Message).where(
+            (Message.remetente_id == autor.id) |
+            (Message.destinatario_id == autor.id)
+        ).order_by(Message.created_at.desc())
+    ).all()
+
+    conversas = {}
+    for m in msgs:
+        pessoa_id = m.destinatario_id if m.remetente_id == autor.id else m.remetente_id
+        if pessoa_id not in conversas:
+            conversas[pessoa_id] = m
+
+    resultado = []
+    for pessoa_id, ultima_msg in conversas.items():
+        pessoa = buscar_usuario_por_id(db, pessoa_id)
+        if pessoa:
+            resultado.append({
+                "id": pessoa_id,
+                "nome": pessoa.nome,
+                "foto": pessoa.foto if hasattr(pessoa, "foto") else None,
+                "mensagem": ultima_msg.texto,
+                "hora": ultima_msg.created_at,
+            })
+
+    return resultado
 
 
 app.include_router(router_user)
