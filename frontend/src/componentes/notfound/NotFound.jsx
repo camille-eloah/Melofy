@@ -1,57 +1,47 @@
 import { useNavigate } from "react-router-dom";
+import "./NotFound.css";
 
 export default function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        background: "#fff",
-        color: "#000000",
-        textAlign: "center",
-        padding: "20px",
-      }}
-    >
-      <h1 style={{ color: "#000000", fontSize: "8rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
-        404
-      </h1>
+    <div className="not-found-container">
+      <div className="music-elements">
+        <div className="note note-1">♫</div>
+        <div className="note note-2">♪</div>
+        <div className="note note-3">♩</div>
+        <div className="note note-4">♬</div>
+      </div>
+      
+      <div className="content">
+        <div className="title-wrapper">
+          <h1 className="title">404</h1>
+          <div className="equalizer">
+            <div className="bar bar-1"></div>
+            <div className="bar bar-2"></div>
+            <div className="bar bar-3"></div>
+            <div className="bar bar-4"></div>
+            <div className="bar bar-5"></div>
+          </div>
+        </div>
 
-      <h2 style={{ color: "#000000", fontSize: "2rem", marginBottom: "1rem" }}>
-        Ops! Página não encontrada
-      </h2>
+        <h2 className="subtitle">Ops! Página não encontrada</h2>
 
-      <p style={{ color: "#000000", fontSize: "1.2rem", maxWidth: "500px", opacity: 0.8 }}>
-        O caminho digitado não existe, foi removido ou está temporariamente indisponível.
-      </p>
+        <p className="description">
+          Parece que essa música ainda não foi composta. A melodia que você busca está em outro lugar.
+        </p>
 
-      <button
-        onClick={() => navigate("/home")}
-        style={{
-          marginTop: "2rem",
-          padding: "12px 25px",
-          backgroundColor: "#000000",
-          border: "none",
-          borderRadius: "6px",
-          cursor: "pointer",
-          fontSize: "1rem",
-          fontWeight: "600",
-          color: "#fff",
-          transition: "0.3s",
-        }}
-        onMouseOver={(e) => (e.target.style.opacity = "0.85")}
-        onMouseOut={(e) => (e.target.style.opacity = "1")}
-      >
-        Voltar ao início
-      </button>
+        <button
+          onClick={() => navigate("/home")}
+          className="back-button"
+        >
+          Voltar ao início
+        </button>
 
-      <p style={{ marginTop: "2rem", fontSize: "0.9rem", opacity: 0.7 }}>
-        Código de erro: 404 · MeloFy
-      </p>
+        <p className="footer">
+          Código de erro: 404 · MeloFy
+        </p>
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Swal from "sweetalert2";
 import "./ProfileUser.css";
 import Header from "../layout/Header";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import ButtonChat from "../layout/ButtonChat";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
 import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextModal";
@@ -806,7 +807,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         onSubmit={handleSubmitPacote}
       />
 
-
+      <ButtonChat />
       <Footer />
     </div>
   );

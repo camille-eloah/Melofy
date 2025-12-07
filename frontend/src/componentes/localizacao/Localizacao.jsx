@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import Header from "../layout/Header";
+import ButtonChat from "../layout/ButtonChat";
+import Footer from "../layout/Footer";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./Localizacao.css";
@@ -10,6 +12,8 @@ function Localizacao() {
   const [map, setMap] = useState(null);
   const [markerOrigem, setMarkerOrigem] = useState(null);
   const [markerDestino, setMarkerDestino] = useState(null);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
+  const [userLocation, setUserLocation] = useState(null);
 
   const haversineKm = (a, b) => {
     const R = 6371;
@@ -22,6 +26,54 @@ function Localizacao() {
       Math.sin(dLat / 2) ** 2 +
       Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
     return 2 * R * Math.asin(Math.sqrt(h));
+  };
+
+  const requestUserLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setShowLocationPrompt(false);
+          
+          if (map && markerOrigem) {
+            markerOrigem.setLngLat([longitude, latitude]);
+            markerOrigem.getPopup().setText("Sua localização");
+            
+            if (markerDestino) {
+              updateDistance(
+                markerOrigem.getLngLat(),
+                markerDestino.getLngLat()
+              );
+              updateLine(
+                markerOrigem.getLngLat(),
+                markerDestino.getLngLat()
+              );
+            }
+            
+            map.flyTo({
+              center: [longitude, latitude],
+              zoom: 15
+            });
+          }
+        },
+        (error) => {
+          console.log("Usuário recusou a localização ou ocorreu um erro:", error);
+          setShowLocationPrompt(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      setShowLocationPrompt(false);
+    }
+  };
+
+  const denyLocation = () => {
+    setShowLocationPrompt(false);
   };
 
   const zoomIn = () => {
@@ -51,13 +103,20 @@ function Localizacao() {
   };
 
   useEffect(() => {
+    setTimeout(() => {
+      if (!userLocation) {
+        setShowLocationPrompt(true);
+      }
+    }, 1000);
+  }, []);
+
+  useEffect(() => {
     try {
       const origem = { lat: -23.561684, lng: -46.656139, label: "Origem" };
       const destino = { lat: -23.55052, lng: -46.633308, label: "Destino" };
       const mapElement = document.getElementById("mapa");
 
       if (!mapElement) {
-        console.error("Elemento #mapa nao encontrado.");
         setMapStatus("error");
         return;
       }
@@ -65,7 +124,6 @@ function Localizacao() {
       const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_API_KEY;
 
       if (!MAPTILER_KEY) {
-        console.error("Chave MapTiler ausente. Defina VITE_MAPTILER_API_KEY no .env.");
         setMapStatus("error");
         return;
       }
@@ -156,7 +214,6 @@ function Localizacao() {
         setMapStatus("loaded");
       });
     } catch (error) {
-      console.error("Erro ao inicializar MapLibre:", error);
       setMapStatus("error");
     }
   }, []);
@@ -303,7 +360,40 @@ function Localizacao() {
             </div>
           </div>
         </main>
+        <ButtonChat />
       </div>
+      <Footer />
+
+      {showLocationPrompt && (
+        <div className="location-permission-overlay">
+          <div className="location-permission-modal">
+            <div className="location-modal-header">
+              <div className="location-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M12 2c-4.418 0-8 3.582-8 8 0 6 8 12 8 12s8-6 8-12c0-4.418-3.582-8-8-8z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <h3>Permitir acesso à localização?</h3>
+              <p>Para uma experiência personalizada, permita o acesso à sua localização. Isso ajudará a mostrar rotas mais precisas e informações completas para você.</p>
+            </div>
+            <div className="location-modal-actions">
+              <button className="location-deny-btn" onClick={denyLocation}>
+                Não permitir
+              </button>
+              <button className="location-allow-btn" onClick={requestUserLocation}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                </svg>
+                Permitir acesso
+              </button>
+            </div>
+            <div className="location-modal-footer">
+              <small>Sua localização não será compartilhada com terceiros</small>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

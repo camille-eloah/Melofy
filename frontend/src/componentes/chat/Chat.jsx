@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './Chat.css';
 import Header from '../layout/Header';
+import Footer from '../layout/Footer';
 
 
 function ChatMelofy() {
@@ -261,6 +262,7 @@ function ChatMelofy() {
             )}
         </div>
         </div>
+        <Footer/>
     </div>
     );
 }

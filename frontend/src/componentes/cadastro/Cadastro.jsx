@@ -4,6 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import instrumentos from '../../assets/Images-Characters/saxofonista.png'
 import Swal from 'sweetalert2'
 import './Cadastro.css'
+import { FcGoogle } from 'react-icons/fc'
+import { FaFacebook, FaInstagram } from 'react-icons/fa'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
@@ -32,6 +34,17 @@ function Cadastro() {
 
   const handleCpfChange = (e) => {
     setCpf(formatarCPF(e.target.value))
+  }
+
+  const handleSocialLogin = (provider) => {
+    Swal.fire({
+      title: 'Em breve disponível',
+      text: `O cadastro com ${provider} estará disponível em breve!`,
+      icon: 'info',
+      background: '#1a1738',
+      color: '#fff',
+      confirmButtonColor: '#00d2ff',
+    })
   }
 
   async function cadastrarUsuario(e) {
@@ -97,7 +110,6 @@ function Cadastro() {
         timer: 2000
       })
 
-      // redirecionamento
       navigate("/login");
 
     } catch (error) {
@@ -198,6 +210,36 @@ function Cadastro() {
 
           <div className="cadastro-link">
             Já tem uma conta? <a href="/login">Faça Login</a>
+          </div>
+
+          <div className="social-section">
+            <p className="social-title">Ou cadastre-se com</p>
+            <div className="social-icons">
+              <button 
+                type="button" 
+                className="social-icon-btn google"
+                onClick={() => handleSocialLogin('Google')}
+                aria-label="Cadastrar com Google"
+              >
+                <FcGoogle className="icon" />
+              </button>
+              <button 
+                type="button" 
+                className="social-icon-btn facebook"
+                onClick={() => handleSocialLogin('Facebook')}
+                aria-label="Cadastrar com Facebook"
+              >
+                <FaFacebook className="icon" />
+              </button>
+              <button 
+                type="button" 
+                className="social-icon-btn instagram"
+                onClick={() => handleSocialLogin('Instagram')}
+                aria-label="Cadastrar com Instagram"
+              >
+                <FaInstagram className="icon" />
+              </button>
+            </div>
           </div>
         </form>
       </div>
