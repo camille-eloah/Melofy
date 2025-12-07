@@ -10,6 +10,14 @@ function resolveFoto(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
+function formatInstruments(list) {
+  const arr = (list || []).filter(Boolean);
+  if (arr.length === 0) return "Instrumentos não informados";
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return `${arr[0]} e ${arr[1]}`;
+  return `${arr.slice(0, -1).join(", ")} e ${arr[arr.length - 1]}`;
+}
+
 function TeacherList() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,6 +38,7 @@ function TeacherList() {
             );
             let media = 0;
             let total = 0;
+            let instrumentosNomes = [];
             try {
               const statsResp = await fetch(
                 `${API_BASE_URL}/ratings/PROFESSOR/${prof.id}/stats`
@@ -42,12 +51,21 @@ function TeacherList() {
             } catch (err) {
               /* ignora erro de stats */
             }
+            try {
+              const instResp = await fetch(`${API_BASE_URL}/instruments/professor/${prof.id}`);
+              if (instResp.ok) {
+                const inst = await instResp.json();
+                instrumentosNomes = Array.isArray(inst) ? inst.map((i) => i.nome).filter(Boolean) : [];
+              }
+            } catch (err) {
+              /* ignora erro de instrumentos */
+            }
             return {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
               city: "Caico - RN",
-              instrument: "Professor",
+              instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
               reviews: `${total} reviews`,

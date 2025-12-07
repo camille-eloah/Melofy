@@ -23,7 +23,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const INSTRUMENTOS = [
   { id: 1, nome: "Saxofone", img: saxofone },
   { id: 2, nome: "Guitarra", img: guitarra },
-  { id: 3, nome: "ViolÇœo", img: violao },
+  { id: 3, nome: "Violão", img: violao },
   { id: 4, nome: "Flauta", img: flauta },
   { id: 5, nome: "Partitura", img: partitura },
   { id: 6, nome: "Baixo", img: baixo },
