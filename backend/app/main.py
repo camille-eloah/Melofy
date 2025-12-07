@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError
 from sqlmodel import Session, select
+from pydantic import BaseModel
 
 from app.core.config import get_settings
 from app.core.security import (
@@ -35,6 +36,7 @@ from app.models import (
     AvaliacoesDoAluno,
     AvaliacoesDoProfessor,
     Categoria,
+    Message,
 )
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
@@ -44,6 +46,7 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
+from app.schemas.messages import MessageOut
 from app.services.dev_bypass import credenciais_bypass, obter_usuario_bypass
 from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id, buscar_usuario_por_uuid
@@ -167,6 +170,11 @@ router_feedback = APIRouter(
 router_tags = APIRouter(
     prefix="/tags",
     tags=["tags"]
+)
+
+router_messages = APIRouter(
+    prefix="/messages",
+    tags=["messages"]
 )
 
 
@@ -1172,9 +1180,9 @@ async def upload_profile_picture(
         "profile_picture": photo_path
     }
 
-
-# 12. Feedback dos usuários
-
+# ---------------------------
+# 12. Feedback dos usuários 
+# ---------------------------
 
 DESTINATARIO_FEEDBACK = "lucenamaria767@gmail.com"
 
@@ -1211,6 +1219,35 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Feedback não encontrado")
     return feedback
 
+# -----------------
+# Mensagens
+# -----------------
+
+class MessageCreate(BaseModel):
+    destinatario_id: int
+    texto: str
+
+@router_messages.post("/messages", response_model=MessageOut)
+def create_message(
+    payload: MessageCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    msg = Message(
+        remetente_id=autor.id,
+        remetente_tipo=autor_tipo,
+        destinatario_id=payload.destinatario_id,
+        # você deve decidir o tipo do destinatário — exemplo:
+        destinatario_tipo=TipoUsuario.PROFESSOR,  # ou deduzir ao buscar o usuário
+        texto=payload.texto.strip(),
+    )
+
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return msg
 
 
 app.include_router(router_user)
@@ -1222,4 +1259,5 @@ app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
+app.include_router(router_messages)
 

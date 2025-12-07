@@ -92,7 +92,7 @@ function ChatMelofy() {
     setNovaMensagem('');
 
     try {
-      const resposta = await fetch(`${API_BASE_URL}/messages`, {
+      const resposta = await fetch(`${API_BASE_URL}/messages/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
