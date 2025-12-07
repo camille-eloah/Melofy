@@ -184,3 +184,39 @@
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+
+/* Usuario logado preview */
+.usuario-logado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 140, 200, 0.35);
+  border-radius: 12px;
+  background: rgba(245, 248, 255, 0.9);
+  margin-bottom: 14px;
+}
+
+.usuario-logado img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #e2e8f0;
+}
+
+.usuario-logado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usuario-logado-label {
+  font-size: 13px;
+  color: #4a6070;
+}
+
+.usuario-logado-nome {
+  font-weight: 700;
+  color: #1a1738;
+}

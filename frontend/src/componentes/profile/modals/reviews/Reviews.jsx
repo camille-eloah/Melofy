@@ -1,5 +1,5 @@
 import "./Reviews.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Avaliacoes = () => {
   const [avaliacoes, setAvaliacoes] = useState([
@@ -7,53 +7,76 @@ const Avaliacoes = () => {
       nome: "Maria Santos",
       foto: "https://via.placeholder.com/40",
       estrelas: 5,
-      texto: "Excelente profissional! Explica com paciência e clareza."
+      texto: "Excelente profissional! Explica com paciencia e clareza."
     },
     {
-      nome: "João Pereira",
+      nome: "Joao Pereira",
       foto: "https://via.placeholder.com/40",
       estrelas: 4,
-      texto: "Ótimo atendimento, recomendo! A aula foi muito produtiva."
+      texto: "Otimo atendimento, recomendo! A aula foi muito produtiva."
     }
   ]);
 
-  const [novaNome, setNovaNome] = useState("");
   const [novaEstrela, setNovaEstrela] = useState(0);
   const [novoTexto, setNovoTexto] = useState("");
+  const [usuarioLogado, setUsuarioLogado] = useState({ nome: "", foto: "" });
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("usuario");
+    if (!userStr) return;
+
+    try {
+      const user = JSON.parse(userStr);
+      setUsuarioLogado({
+        nome: user?.nome || "",
+        foto:
+          user?.foto ||
+          user?.foto_perfil ||
+          user?.profile_image ||
+          user?.profilePhoto ||
+          ""
+      });
+    } catch (err) {
+      console.error("Erro ao ler usuario logado", err);
+    }
+  }, []);
 
   function enviarAvaliacao() {
-    if (!novaNome.trim() || novaEstrela === 0 || !novoTexto.trim()) return;
+    if (novaEstrela === 0 || !novoTexto.trim()) return;
 
     const nova = {
-      nome: novaNome,
-      foto: "https://via.placeholder.com/40",
+      nome: usuarioLogado.nome || "Usuario",
+      foto: usuarioLogado.foto || "https://via.placeholder.com/40",
       estrelas: novaEstrela,
       texto: novoTexto
     };
 
     setAvaliacoes((prev) => [...prev, nova]);
 
-    setNovaNome("");
     setNovoTexto("");
     setNovaEstrela(0);
   }
+
+  const nomeExibicao = usuarioLogado.nome || "Usuario";
+  const fotoExibicao = usuarioLogado.foto || "https://via.placeholder.com/60";
 
   return (
     <div className="avaliacoes-container">
 
       <div className="avaliacao-nova">
-        <h3 className="titulo-bloco">Deixe sua avaliação</h3>
+        <h3 className="titulo-bloco">Deixe sua avaliacao</h3>
 
-        <input
-          className="novo-input"
-          placeholder="Seu nome"
-          value={novaNome}
-          onChange={(e) => setNovaNome(e.target.value)}
-        />
+        <div className="usuario-logado">
+          <img src={fotoExibicao} alt="foto do usuario logado" />
+          <div className="usuario-logado-info">
+            <span className="usuario-logado-label">Comentando como</span>
+            <span className="usuario-logado-nome">{nomeExibicao}</span>
+          </div>
+        </div>
 
         <textarea
           className="novo-input"
-          placeholder="Escreva um comentário"
+          placeholder="Escreva um comentario"
           rows={4}
           value={novoTexto}
           onChange={(e) => setNovoTexto(e.target.value)}
@@ -66,25 +89,25 @@ const Avaliacoes = () => {
               className={`nova-star ${novaEstrela >= n ? "ativa" : ""}`}
               onClick={() => setNovaEstrela(n)}
             >
-              ★
+              *
             </span>
           ))}
         </div>
 
         <button className="botao-enviar" onClick={enviarAvaliacao}>
-          Enviar avaliação
+          Enviar avaliacao
         </button>
       </div>
 
-      <h3 className="titulo-lista">Avaliações de usuários</h3>
+      <h3 className="titulo-lista">Avaliacoes de usuarios</h3>
 
       {avaliacoes.map((item, i) => (
         <div className="avaliacao-card" key={i}>
           <div className="top">
-            <img src={item.foto} alt="foto usuário" />
+            <img src={item.foto} alt="foto usuario" />
             <div className="nome-e-estrelas">
               <span className="nome">{item.nome}</span>
-              <span className="estrelas">{"★".repeat(item.estrelas)}</span>
+              <span className="estrelas">{"*".repeat(item.estrelas)}</span>
             </div>
           </div>
           <p className="texto">{item.texto}</p>
