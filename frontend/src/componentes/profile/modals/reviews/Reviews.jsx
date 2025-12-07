@@ -9,7 +9,12 @@ function resolveFoto(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }
 
-const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "", perfilAvaliado = {} }) => {
+const Avaliacoes = ({
+  usuario: usuarioProp = {},
+  fotoAbsoluta = "",
+  perfilAvaliado = {},
+  currentUser = null,
+}) => {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [novaEstrela, setNovaEstrela] = useState(0);
   const [novoTexto, setNovoTexto] = useState("");
@@ -18,27 +23,19 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "", perfilAvalia
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
-    // Prioriza os dados vindos via props (perfil carregado em ProfileUser)
-    const inicialProp = (usuarioProp?.nome || "?").trim().charAt(0).toUpperCase() || "?";
-    const rawFotoProp =
-      fotoAbsoluta ||
-      usuarioProp?.profile_picture ||
-      usuarioProp?.foto ||
-      usuarioProp?.foto_perfil ||
-      usuarioProp?.profile_image ||
-      usuarioProp?.profilePhoto ||
-      usuarioProp?.fotoPerfil ||
-      "";
-    if (usuarioProp?.nome || rawFotoProp) {
+    // Prioriza o usuario autenticado (prop currentUser); fallback para localStorage
+    if (currentUser?.nome) {
+      const rawFoto =
+        currentUser?.profile_picture ||
+        currentUser?.foto ||
+        currentUser?.foto_perfil ||
+        currentUser?.profile_image ||
+        currentUser?.profilePhoto ||
+        currentUser?.fotoPerfil ||
+        "";
       setUsuarioLogado({
-        nome: usuarioProp?.nome || "",
-        foto: rawFotoProp ? resolveFoto(rawFotoProp) : ""
-      });
-      console.log("[Reviews] usuario via props", {
-        usuarioProp,
-        rawFotoProp,
-        fotoAbsoluta,
-        inicial: inicialProp
+        nome: currentUser.nome,
+        foto: rawFoto ? resolveFoto(rawFoto) : "",
       });
       return;
     }
@@ -48,7 +45,6 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "", perfilAvalia
 
     try {
       const user = JSON.parse(userStr);
-      const inicial = (user?.nome || "?").trim().charAt(0).toUpperCase() || "?";
       const rawFoto =
         user?.foto ||
         user?.foto_perfil ||
@@ -66,7 +62,7 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "", perfilAvalia
     } catch (err) {
       console.error("Erro ao ler usuario logado", err);
     }
-  }, [usuarioProp, fotoAbsoluta]);
+  }, [currentUser]);
 
   useEffect(() => {
     const avaliadoId = perfilAvaliado?.id;

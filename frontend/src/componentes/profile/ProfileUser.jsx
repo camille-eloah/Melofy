@@ -783,6 +783,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             id: usuario?.id,
             tipo: usuario?.tipo_usuario || usuario?.tipo || null,
           }}
+          currentUser={currentUser}
         />
 
         {/* <div className="avaliacoes">
