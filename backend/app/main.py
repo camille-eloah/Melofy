@@ -64,7 +64,7 @@ from app.schemas.instrumentos import (
     ProfessorInstrumentoCreate,
 )
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
-from app.schemas.ratings import RatingCreate, RatingRead
+from app.schemas.ratings import RatingCreate, RatingRead, RatingUpdate
 
 
 logger = logging.getLogger(__name__)
@@ -898,7 +898,7 @@ def criar_avaliacao(
             )
         ).first()
         if existente:
-            raise HTTPException(status_code=409, detail="Voce ja avaliou este professor")
+            raise HTTPException(status_code=409, detail="Voce já avaliou este professor")
         nova = AvaliacoesDoProfessor(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
@@ -921,7 +921,7 @@ def criar_avaliacao(
             raise HTTPException(status_code=403, detail="Apenas professores podem avaliar alunos")
         aluno = db.get(Aluno, rating.avaliado_id)
         if not aluno:
-            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
         existente = db.exec(
             select(AvaliacoesDoAluno).where(
                 AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
@@ -929,7 +929,7 @@ def criar_avaliacao(
             )
         ).first()
         if existente:
-            raise HTTPException(status_code=409, detail="Voce ja avaliou este aluno")
+            raise HTTPException(status_code=409, detail="Voce já avaliou este aluno")
         nova = AvaliacoesDoAluno(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
@@ -999,6 +999,71 @@ def listar_avaliacoes(
             )
             for avaliacao, autor in resultados
         ]
+
+    raise HTTPException(status_code=400, detail="Tipo invalido")
+
+
+@router_ratings.patch("/{tipo}/{avaliado_id}", response_model=RatingRead)
+def editar_avaliacao(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    dados: RatingUpdate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    if tipo == TipoUsuario.PROFESSOR:
+        if autor_tipo != TipoUsuario.ALUNO:
+            raise HTTPException(status_code=403, detail="Apenas alunos podem editar avaliacao de professor")
+        avaliacao = db.exec(
+            select(AvaliacoesDoProfessor).where(
+                AvaliacoesDoProfessor.ava_alu_avaliador == autor.id,
+                AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id,
+            )
+        ).first()
+        if not avaliacao:
+            raise HTTPException(status_code=404, detail="Avaliacao nao encontrada para este professor")
+        if dados.nota is not None:
+            avaliacao.ava_nota = dados.nota
+        if dados.texto is not None:
+            avaliacao.ava_comentario = dados.texto
+        db.add(avaliacao)
+        db.commit()
+        db.refresh(avaliacao)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.PROFESSOR,
+            avaliado_id=avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=avaliacao,
+        )
+
+    if tipo == TipoUsuario.ALUNO:
+        if autor_tipo != TipoUsuario.PROFESSOR:
+            raise HTTPException(status_code=403, detail="Apenas professores podem editar avaliacao de aluno")
+        avaliacao = db.exec(
+            select(AvaliacoesDoAluno).where(
+                AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
+                AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id,
+            )
+        ).first()
+        if not avaliacao:
+            raise HTTPException(status_code=404, detail="Avaliacao nao encontrada para este aluno")
+        if dados.nota is not None:
+            avaliacao.ava_nota = dados.nota
+        if dados.texto is not None:
+            avaliacao.ava_comentario = dados.texto
+        db.add(avaliacao)
+        db.commit()
+        db.refresh(avaliacao)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.ALUNO,
+            avaliado_id=avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=avaliacao,
+        )
 
     raise HTTPException(status_code=400, detail="Tipo invalido")
 
