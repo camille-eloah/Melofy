@@ -1,17 +1,30 @@
 import "./Reviews.css";
 import { useEffect, useState } from "react";
 
-const Avaliacoes = () => {
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const INLINE_PLACEHOLDER_BASE = (letra = "?") =>
+  "data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><rect width='60' height='60' rx='12' fill='%23e2e8f0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2374889a' font-family='Arial, sans-serif' font-size='22'>${letra}</text></svg>`
+  );
+
+function resolveFoto(path) {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
+const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
   const [avaliacoes, setAvaliacoes] = useState([
     {
       nome: "Maria Santos",
-      foto: "https://via.placeholder.com/40",
+      foto: INLINE_PLACEHOLDER_BASE("M"),
       estrelas: 5,
       texto: "Excelente profissional! Explica com paciencia e clareza."
     },
     {
       nome: "Joao Pereira",
-      foto: "https://via.placeholder.com/40",
+      foto: INLINE_PLACEHOLDER_BASE("J"),
       estrelas: 4,
       texto: "Otimo atendimento, recomendo! A aula foi muito produtiva."
     }
@@ -22,31 +35,73 @@ const Avaliacoes = () => {
   const [usuarioLogado, setUsuarioLogado] = useState({ nome: "", foto: "" });
 
   useEffect(() => {
+    // Prioriza os dados vindos via props (perfil carregado em ProfileUser)
+    const inicialProp = (usuarioProp?.nome || "?").trim().charAt(0).toUpperCase() || "?";
+    const rawFotoProp =
+      fotoAbsoluta ||
+      usuarioProp?.profile_picture ||
+      usuarioProp?.foto ||
+      usuarioProp?.foto_perfil ||
+      usuarioProp?.profile_image ||
+      usuarioProp?.profilePhoto ||
+      usuarioProp?.fotoPerfil ||
+      "";
+    if (usuarioProp?.nome || rawFotoProp) {
+      setUsuarioLogado({
+        nome: usuarioProp?.nome || "",
+        foto: rawFotoProp || INLINE_PLACEHOLDER_BASE(inicialProp)
+      });
+      console.log("[Reviews] usuario via props", {
+        usuarioProp,
+        rawFotoProp,
+        fotoAbsoluta,
+        inicial: inicialProp
+      });
+      return;
+    }
+
     const userStr = localStorage.getItem("usuario");
     if (!userStr) return;
 
     try {
       const user = JSON.parse(userStr);
+      const inicial = (user?.nome || "?").trim().charAt(0).toUpperCase() || "?";
+      const rawFoto =
+        user?.foto ||
+        user?.foto_perfil ||
+        user?.profile_image ||
+        user?.profilePhoto ||
+        user?.profile_picture ||
+        user?.fotoPerfil ||
+        "";
+      const resolvedFoto = resolveFoto(rawFoto);
+
+      if (!rawFoto) {
+        console.log("[Reviews] usuario sem foto no localStorage; usando inicial", {
+          user,
+          rawFoto,
+          resolvedFoto,
+          inicial
+        });
+      } else {
+        console.log("[Reviews] usuario localStorage", { user, rawFoto, resolvedFoto });
+      }
+
       setUsuarioLogado({
         nome: user?.nome || "",
-        foto:
-          user?.foto ||
-          user?.foto_perfil ||
-          user?.profile_image ||
-          user?.profilePhoto ||
-          ""
+        foto: resolvedFoto || INLINE_PLACEHOLDER_BASE(inicial)
       });
     } catch (err) {
       console.error("Erro ao ler usuario logado", err);
     }
-  }, []);
+  }, [usuarioProp, fotoAbsoluta]);
 
   function enviarAvaliacao() {
     if (novaEstrela === 0 || !novoTexto.trim()) return;
 
     const nova = {
       nome: usuarioLogado.nome || "Usuario",
-      foto: usuarioLogado.foto || "https://via.placeholder.com/40",
+      foto: usuarioLogado.foto || INLINE_PLACEHOLDER_BASE("U"),
       estrelas: novaEstrela,
       texto: novoTexto
     };
@@ -58,7 +113,8 @@ const Avaliacoes = () => {
   }
 
   const nomeExibicao = usuarioLogado.nome || "Usuario";
-  const fotoExibicao = usuarioLogado.foto || "https://via.placeholder.com/60";
+  const fotoExibicao =
+    usuarioLogado.foto || INLINE_PLACEHOLDER_BASE((usuarioLogado.nome || "?").trim().charAt(0).toUpperCase() || "?");
 
   return (
     <div className="avaliacoes-container">
@@ -67,7 +123,15 @@ const Avaliacoes = () => {
         <h3 className="titulo-bloco">Deixe sua avaliacao</h3>
 
         <div className="usuario-logado">
-          <img src={fotoExibicao} alt="foto do usuario logado" />
+          <img
+            src={fotoExibicao}
+            alt="foto do usuario logado"
+            onError={(e) => {
+              console.warn("[Reviews] erro ao carregar foto", { fotoExibicao });
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = INLINE_PLACEHOLDER;
+            }}
+          />
           <div className="usuario-logado-info">
             <span className="usuario-logado-label">Comentando como</span>
             <span className="usuario-logado-nome">{nomeExibicao}</span>
