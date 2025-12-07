@@ -1,0 +1,236 @@
+/* ===== Container principal ===== */
+.avaliacoes-container {
+  width: 95%;
+  max-width: 1350px;
+  margin: 48px auto;
+  padding: 36px;
+  background: linear-gradient(to bottom right, #ffffff, #fbfdff);
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.07);
+  box-shadow: 0px 8px 32px rgba(0,0,0,0.09);
+  font-family: "Segoe UI", sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  animation: fadeContainer 0.4s ease;
+}
+
+/* ===== Títulos ===== */
+.titulo-bloco,
+.titulo-lista {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: #1a1738;
+  margin-bottom: 6px;
+  /* text-transform: uppercase; */
+  letter-spacing: 1px;
+}
+
+.titulo-bloco:after,
+.titulo-lista:after {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(120deg, #0099cc, #1a1738);
+  margin-top: 6px;
+}
+
+/* ===== Bloco de nova avaliação ===== */
+.avaliacao-nova {
+  background: rgba(244, 247, 255, 0.95);
+  padding: 26px 30px;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 140, 200, 0.35);
+  box-shadow: 0px 10px 28px rgba(0, 120, 200, 0.08);
+  backdrop-filter: blur(3px);
+  animation: slideSection 0.4s ease;
+}
+
+/* Inputs refinados */
+.novo-input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 140, 200, 0.35);
+  background: rgba(245, 248, 255, 0.9);
+  color: #003a4f;
+  font-size: 1rem;
+  outline: none;
+  transition: 0.25s ease;
+  resize: none;
+  margin-bottom: 14px;
+  box-shadow: inset 0px 1px 4px rgba(0,0,0,0.05);
+}
+
+.novo-input:focus {
+  border-color: #00a8e6;
+  background: #ffffff;
+  box-shadow: 0px 0px 12px rgba(0, 170, 255, 0.25);
+}
+
+/* Estrelas refinadas */
+.container-estrelas {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.nova-star {
+  font-size: 26px;
+  cursor: pointer;
+  color: #b4c4d8;
+  transition: 0.3s ease;
+}
+
+.nova-star:hover {
+  transform: scale(1.22);
+  color: #ffdd55;
+}
+
+.nova-star.ativa {
+  color: #ffc400;
+}
+
+/* Botão de envio */
+.botao-enviar {
+  background: linear-gradient(135deg, #0087cc, #1a1738);
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 800;
+  color: #ffffff;
+  cursor: pointer;
+  width: 230px;
+  font-size: 1rem;
+  box-shadow: 0px 8px 22px rgba(0, 90, 160, 0.35);
+  transition: 0.28s ease;
+}
+
+.botao-enviar:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 12px 28px rgba(0, 100, 190, 0.45);
+}
+
+/* ===== Cards existentes ===== */
+.avaliacao-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 20px 22px;
+  border-radius: 18px;
+  transition: 0.25s ease;
+  animation: fadeCard 0.35s ease;
+}
+
+.avaliacao-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0px 14px 34px rgba(20, 35, 60, 0.15);
+}
+
+/* Topo card */
+.avaliacao-card .top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avaliacao-card img {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  object-fit: cover;
+  background-color: #e2e8f0;
+}
+
+/* Nome e estrelas */
+.nome-e-estrelas {
+  display: flex;
+  flex-direction: column;
+}
+
+.nome {
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.estrelas {
+  color: #ffbe00;
+  margin-top: 4px;
+  font-size: 17px;
+}
+
+/* Texto avaliação */
+.texto {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #27323a;
+}
+
+
+/* ===== Animações ===== */
+@keyframes fadeContainer {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideSection {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeCard {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Usuario logado preview */
+.usuario-logado {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0, 140, 200, 0.35);
+  border-radius: 12px;
+  background: rgba(245, 248, 255, 0.9);
+  margin-bottom: 14px;
+}
+
+.usuario-logado img {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  background-color: #e2e8f0;
+}
+
+.usuario-logado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usuario-logado-label {
+  font-size: 13px;
+  color: #4a6070;
+}
+
+.usuario-logado-nome {
+  font-weight: 700;
+  color: #1a1738;
+}
+
+/* Placeholder de inicial isolado para o modal */
+.review-foto-placeholder {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

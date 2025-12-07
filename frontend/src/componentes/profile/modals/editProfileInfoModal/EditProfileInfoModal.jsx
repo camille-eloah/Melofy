@@ -1,11 +1,51 @@
+import { useEffect, useState } from "react";
 import "./EditProfileInfoModal.css";
 
-function EditProfileInfoModal({ open, onClose, displayedPicture, nomeUsuario = "", isOwner = false, onPhotoClick }) {
+function EditProfileInfoModal({
+  open,
+  onClose,
+  displayedPicture,
+  nomeUsuario = "",
+  isOwner = false,
+  onPhotoClick,
+  initialName = "",
+  initialEmail = "",
+  initialPhone = "",
+  initialBio = "",
+  onSave,
+  isSaving = false,
+}) {
+  const [nome, setNome] = useState(initialName || "");
+  const [email, setEmail] = useState(initialEmail || "");
+  const [telefone, setTelefone] = useState(initialPhone || "");
+  const [bio, setBio] = useState(initialBio || "");
+
+  useEffect(() => {
+    if (open) {
+      setNome(initialName || "");
+      setEmail(initialEmail || "");
+      setTelefone(initialPhone || "");
+      setBio(initialBio || "");
+    }
+  }, [open, initialName, initialEmail, initialPhone, initialBio]);
+
   const handlePhotoKeyDown = (event) => {
     if (!onPhotoClick) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onPhotoClick();
+    }
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (onSave) {
+      onSave({
+        nome: nome?.trim() || "",
+        email: email?.trim() || "",
+        telefone: telefone?.trim() || "",
+        bio: bio?.trim() || "",
+      });
     }
   };
 
@@ -27,7 +67,7 @@ function EditProfileInfoModal({ open, onClose, displayedPicture, nomeUsuario = "
           </button>
         </div>
 
-        <div className="edit-profile-info-body">
+        <form className="edit-profile-info-body" onSubmit={handleSubmit}>
           <div className="edit-profile-info-input-group">
             <span className="edit-profile-info-label">Foto</span>
             <div className="edit-profile-info-photo-row">
@@ -62,41 +102,61 @@ function EditProfileInfoModal({ open, onClose, displayedPicture, nomeUsuario = "
                   </div>
                 )}
               </div>
-              <button type="button" className="edit-profile-info-btn-select-file" onClick={onPhotoClick}>
-                Selecionar imagem
-              </button>
+
             </div>
           </div>
 
           <label className="edit-profile-info-input-group">
             <span className="edit-profile-info-label">Nome</span>
-            <input type="text" placeholder="Seu nome" />
+            <input
+              type="text"
+              placeholder="Seu nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              required
+            />
           </label>
 
           <label className="edit-profile-info-input-group">
             <span className="edit-profile-info-label">E-mail</span>
-            <input type="email" placeholder="email@exemplo.com" />
+            <input
+              type="email"
+              placeholder="email@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </label>
 
           <label className="edit-profile-info-input-group">
             <span className="edit-profile-info-label">Telefone</span>
-            <input type="tel" placeholder="(00) 00000-0000" />
+            <input
+              type="tel"
+              placeholder="(00) 00000-0000"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+            />
           </label>
 
           <label className="edit-profile-info-input-group">
             <span className="edit-profile-info-label">Bio</span>
-            <textarea rows={3} placeholder="Conte um pouco sobre vocǦ" />
+            <textarea
+              rows={3}
+              placeholder="Conte um pouco sobre você"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+            />
           </label>
-        </div>
 
-        <div className="edit-profile-info-footer">
-          <button className="btn-upload-edit-profile" type="button">
-            Salvar
-          </button>
-          <button className="btn-cancel-edit-profile" type="button" onClick={onClose}>
-            Cancelar
-          </button>
-        </div>
+          <div className="edit-profile-info-footer">
+            <button className="btn-upload-edit-profile" type="submit" disabled={isSaving}>
+              {isSaving ? "Salvando..." : "Salvar"}
+            </button>
+            <button className="btn-cancel-edit-profile" type="button" onClick={onClose} disabled={isSaving}>
+              Cancelar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

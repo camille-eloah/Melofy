@@ -21,7 +21,20 @@ from app.schemas.feedback import FeedbackCreate, FeedbackRead
 import smtplib
 from email.mime.text import MIMEText
 
-from app.models import Professor, Aluno, Instrumento, ProfessorInstrumento, Feedback, TipoUsuario, ProfessorInstrumentosEscolha, Tag, TagTipo, ProfessorTag
+from app.models import (
+    Professor,
+    Aluno,
+    Instrumento,
+    ProfessorInstrumento,
+    Feedback,
+    TipoUsuario,
+    ProfessorInstrumentosEscolha,
+    Tag,
+    TagTipo,
+    ProfessorTag,
+    AvaliacoesDoAluno,
+    AvaliacoesDoProfessor,
+)
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
 from app.services.auth import (
@@ -43,14 +56,21 @@ from sqlmodel import Session, select
 from app.models import Professor, Instrumento, ProfessorInstrumento
 
 import logging
-from app.schemas.instrumentos import InstrumentoCreate, InstrumentoRead, InstrumentoUpdate, ProfessorInstrumentosCreate
+from app.schemas.instrumentos import (
+    InstrumentoCreate,
+    InstrumentoRead,
+    InstrumentoUpdate,
+    ProfessorInstrumentosCreate,
+    ProfessorInstrumentoCreate,
+)
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
+from app.schemas.ratings import RatingCreate, RatingRead
 
 
 logger = logging.getLogger(__name__)
 
 def _configure_logging():
-    """Usa os handlers do uvicorn para exibir logs das rotas e da segurança em DEBUG."""
+    """Usa os handlers do uvicorn para exibir logs das rotas e da seguranca em DEBUG."""
     settings_local = get_settings()
     log_level = logging.DEBUG if settings_local.debug else logging.INFO
 
@@ -191,6 +211,72 @@ def _get_or_create_tag_by_name(db: Session, nome: str) -> Tag:
     db.commit()
     db.refresh(novo)
     return novo
+
+
+def _get_current_user(request: Request, db: Session) -> tuple[TipoUsuario, Professor | Aluno]:
+    token = request.cookies.get("access_token") if request else None
+    if not token:
+        raise HTTPException(status_code=401, detail="Nao autenticado")
+    try:
+        payload = _decode_token(token)
+        user_id = int(payload.get("sub"))
+        tipo = payload.get("tipo")
+    except (JWTError, TypeError, ValueError):
+        raise HTTPException(status_code=401, detail="Token invalido")
+
+    usuario = obter_usuario_por_id_tipo(db, user_id, tipo)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuario nao encontrado")
+
+    tipo_usuario = TipoUsuario(tipo)
+    return tipo_usuario, usuario
+
+
+def _autor_info(usuario: Professor | Aluno, tipo: TipoUsuario) -> dict:
+    # Campo de foto pode ser adicionado no futuro; mantem None por ora
+    foto = getattr(usuario, "profile_picture", None) if usuario else None
+    return {
+        "autor_id": usuario.id if usuario else None,
+        "autor_tipo": tipo,
+        "autor_nome": usuario.nome if usuario else "",
+        "autor_foto": foto,
+    }
+
+
+def _avaliacao_to_response(
+    avaliado_tipo: TipoUsuario,
+    avaliado_id: int,
+    autor_tipo: TipoUsuario,
+    autor: Professor | Aluno,
+    avaliacao_obj,
+) -> RatingRead:
+    autor_payload = _autor_info(autor, autor_tipo)
+    return RatingRead(
+        id=avaliacao_obj.ava_id,
+        avaliado_id=avaliado_id,
+        avaliado_tipo=avaliado_tipo,
+        nota=avaliacao_obj.ava_nota,
+        texto=avaliacao_obj.ava_comentario,
+        criado_em=avaliacao_obj.data_criacao,
+        **autor_payload,
+    )
+
+
+def _email_em_uso_por_outro(db: Session, email: str, user_id: int) -> bool:
+  """Verifica se o email informado pertence a outro usuario (professor ou aluno)."""
+  for model in (Professor, Aluno):
+      existente = db.exec(select(model).where(model.email == email)).first()
+      if existente and existente.id != user_id:
+          return True
+  return False
+
+
+def _instrumento_to_read(instrumento: Instrumento) -> InstrumentoRead:
+    return InstrumentoRead(
+        id=instrumento.id,
+        nome=instrumento.nome,
+        tipo=str(instrumento.tipo),
+    )
 
 
 # ----------------------------
@@ -368,6 +454,14 @@ def editar_perfil(user_id: int, dados: UserUpdate, request: Request, db: Session
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
+    if dados.email is not None:
+        if _email_em_uso_por_outro(db, dados.email, user_id):
+            raise HTTPException(status_code=400, detail="E-mail jÇ  cadastrado")
+        usuario.email = dados.email
+
+    if dados.nome is not None:
+        usuario.nome = dados.nome
+
     if dados.telefone is not None:
         usuario.telefone = dados.telefone
     if dados.bio is not None:
@@ -468,7 +562,46 @@ def obter_instrumento(
     instrumento = db.get(Instrumento, instrumento_id)
     if not instrumento:
         raise HTTPException(status_code=404, detail="Instrumento não encontrado")
-    return instrumento
+    return _instrumento_to_read(instrumento)
+
+@router_instruments.post("/professor", response_model=InstrumentoRead, status_code=201)
+def adicionar_instrumento_professor(
+    dados: ProfessorInstrumentoCreate,
+    db: Session = Depends(get_session),
+):
+    professor = db.get(Professor, dados.professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    instrumento = db.get(Instrumento, dados.instrumento_id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+
+    existente = db.exec(
+        select(ProfessorInstrumento).where(
+            ProfessorInstrumento.professor_id == dados.professor_id,
+            ProfessorInstrumento.instrumento_id == dados.instrumento_id,
+        )
+    ).first()
+
+    if not existente:
+        rel = ProfessorInstrumento(
+            professor_id=dados.professor_id,
+            instrumento_id=dados.instrumento_id,
+        )
+        db.add(rel)
+        db.commit()
+        db.refresh(rel)
+
+    return _instrumento_to_read(instrumento)
+
+@router_instruments.get("/", response_model=List[InstrumentoRead])
+def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)):
+    stmt = select(Instrumento)
+    if q:
+        stmt = stmt.where(Instrumento.nome.ilike(f"%{q}%"))
+    instrumentos = db.exec(stmt).all()
+    return [_instrumento_to_read(instr) for instr in instrumentos]
 
 @router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
 def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
@@ -476,7 +609,19 @@ def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_s
         ProfessorInstrumento.professor_id == professor_id
     )
     instrumentos = db.exec(stmt).all()
-    return instrumentos
+    return [_instrumento_to_read(instr) for instr in instrumentos]
+
+
+@router_instruments.get("/professor/uuid/{user_uuid}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(
+        ProfessorInstrumento.professor_id == professor.id
+    )
+    instrumentos = db.exec(stmt).all()
+    return [_instrumento_to_read(instr) for instr in instrumentos]
 
 
 @router_instruments.put("/{instrumento_id}", response_model=InstrumentoRead)
@@ -512,8 +657,6 @@ def deletar_instrumento(
     db.commit()
     return
 
-router_instruments = APIRouter(prefix="/instrumentos")
-
 @router_instruments.post("/escolher")
 def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
@@ -545,13 +688,7 @@ def escolher_instrumentos_professor(
     stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
     instrumentos_professor = db.exec(stmt).all()
 
-    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": instrumentos_professor}
-
-@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
-def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == professor_id)
-    instrumentos = db.exec(stmt).all()
-    return instrumentos
+    return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": [_instrumento_to_read(instr) for instr in instrumentos_professor]}
 
 # ----------------------------
 # 5.1 Tags
@@ -736,53 +873,134 @@ def atualizar_status_pagamento(pag_id: int):
     return {"msg": f"Status do pagamento {pag_id} atualizado"}
 
 # ----------------------------
-# 10. Avaliações do Aluno
+# 10/11. Avaliacoes (unificado)
 # ----------------------------
 
-@router_ratings.post("/aluno")
-def criar_avaliacao_aluno():
-    return {"msg": "Avaliação do aluno criada com sucesso!"}
 
-@router_ratings.get("/aluno/{ava_id}")
-def obter_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Retornando avaliação do aluno com ID {ava_id}"}
+@router_ratings.post("/", response_model=RatingRead, status_code=201)
+def criar_avaliacao(
+    rating: RatingCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
 
-@router_ratings.get("/aluno/")
-def listar_avaliacoes_alunos():
-    return {"msg": "Lista de avaliações dos alunos"}
+    if rating.avaliado_tipo == TipoUsuario.PROFESSOR:
+        if autor_tipo != TipoUsuario.ALUNO:
+            raise HTTPException(status_code=403, detail="Apenas alunos podem avaliar professores")
+        professor = db.get(Professor, rating.avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        existente = db.exec(
+            select(AvaliacoesDoProfessor).where(
+                AvaliacoesDoProfessor.ava_alu_avaliador == autor.id,
+                AvaliacoesDoProfessor.ava_prof_avaliado == rating.avaliado_id,
+            )
+        ).first()
+        if existente:
+            raise HTTPException(status_code=409, detail="Voce ja avaliou este professor")
+        nova = AvaliacoesDoProfessor(
+            ava_comentario=rating.texto,
+            ava_nota=rating.nota,
+            ava_alu_avaliador=autor.id,
+            ava_prof_avaliado=rating.avaliado_id,
+        )
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.PROFESSOR,
+            avaliado_id=rating.avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=nova,
+        )
 
-@router_ratings.put("/aluno/{ava_id}")
-def atualizar_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Avaliação do aluno {ava_id} atualizada com sucesso!"}
+    if rating.avaliado_tipo == TipoUsuario.ALUNO:
+        if autor_tipo != TipoUsuario.PROFESSOR:
+            raise HTTPException(status_code=403, detail="Apenas professores podem avaliar alunos")
+        aluno = db.get(Aluno, rating.avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        existente = db.exec(
+            select(AvaliacoesDoAluno).where(
+                AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
+                AvaliacoesDoAluno.ava_alu_avaliado == rating.avaliado_id,
+            )
+        ).first()
+        if existente:
+            raise HTTPException(status_code=409, detail="Voce ja avaliou este aluno")
+        nova = AvaliacoesDoAluno(
+            ava_comentario=rating.texto,
+            ava_nota=rating.nota,
+            ava_prof_avaliador=autor.id,
+            ava_alu_avaliado=rating.avaliado_id,
+        )
+        db.add(nova)
+        db.commit()
+        db.refresh(nova)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.ALUNO,
+            avaliado_id=rating.avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=nova,
+        )
 
-@router_ratings.delete("/aluno/{ava_id}")
-def deletar_avaliacao_aluno(ava_id: int):
-    return {"msg": f"Avaliação do aluno {ava_id} removida!"}
+    raise HTTPException(status_code=400, detail="Tipo de avaliado invalido")
 
-# ----------------------------
-# 11. Avaliações do Professor
-# ----------------------------
 
-@router_ratings.post("/professor")
-def criar_avaliacao_professor():
-    return {"msg": "Avaliação do professor criada com sucesso!"}
+@router_ratings.get("/{tipo}/{avaliado_id}", response_model=List[RatingRead])
+def listar_avaliacoes(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    db: Session = Depends(get_session),
+):
+    if tipo == TipoUsuario.PROFESSOR:
+        professor = db.get(Professor, avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        stmt = (
+            select(AvaliacoesDoProfessor, Aluno)
+            .join(Aluno, Aluno.id == AvaliacoesDoProfessor.ava_alu_avaliador)
+            .where(AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id)
+            .order_by(AvaliacoesDoProfessor.data_criacao.desc())
+        )
+        resultados = db.exec(stmt).all()
+        return [
+            _avaliacao_to_response(
+                avaliado_tipo=TipoUsuario.PROFESSOR,
+                avaliado_id=avaliado_id,
+                autor_tipo=TipoUsuario.ALUNO,
+                autor=autor,
+                avaliacao_obj=avaliacao,
+            )
+            for avaliacao, autor in resultados
+        ]
 
-@router_ratings.get("/professor/{ava_id}")
-def obter_avaliacao_professor(ava_id: int):
-    return {"msg": f"Retornando avaliação do professor com ID {ava_id}"}
+    if tipo == TipoUsuario.ALUNO:
+        aluno = db.get(Aluno, avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        stmt = (
+            select(AvaliacoesDoAluno, Professor)
+            .join(Professor, Professor.id == AvaliacoesDoAluno.ava_prof_avaliador)
+            .where(AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id)
+            .order_by(AvaliacoesDoAluno.data_criacao.desc())
+        )
+        resultados = db.exec(stmt).all()
+        return [
+            _avaliacao_to_response(
+                avaliado_tipo=TipoUsuario.ALUNO,
+                avaliado_id=avaliado_id,
+                autor_tipo=TipoUsuario.PROFESSOR,
+                autor=autor,
+                avaliacao_obj=avaliacao,
+            )
+            for avaliacao, autor in resultados
+        ]
 
-@router_ratings.get("/professor/")
-def listar_avaliacoes_professores():
-    return {"msg": "Lista de avaliações dos professores"}
-
-@router_ratings.put("/professor/{ava_id}")
-def atualizar_avaliacao_professor(ava_id: int):
-    return {"msg": f"Avaliação do professor {ava_id} atualizada com sucesso!"}
-
-@router_ratings.delete("/professor/{ava_id}")
-def deletar_avaliacao_professor(ava_id: int):
-    return {"msg": f"Avaliação do professor {ava_id} removida!"}
-
+    raise HTTPException(status_code=400, detail="Tipo invalido")
 
 
 @router_user.post("/{user_id}/profile-picture")
@@ -829,8 +1047,15 @@ async def upload_profile_picture(
         shutil.copyfileobj(file.file, buffer)
 
     mount_prefix = media_mount_path.rstrip("/")
+    photo_path = f"{mount_prefix}/{settings.profile_pic_dir}/{usuario.tipo_usuario.value.lower()}/{dest_path.name}"
+    if hasattr(usuario, "profile_picture"):
+        usuario.profile_picture = photo_path
+        db.add(usuario)
+        db.commit()
+        db.refresh(usuario)
+
     return {
-        "profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{usuario.tipo_usuario.value.lower()}/{dest_path.name}"
+        "profile_picture": photo_path
     }
 
 
@@ -877,9 +1102,12 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
 app.include_router(router_user)
 app.include_router(router_auth)
 app.include_router(router_lessons)
-app.include_router(router_instruments)
+app.include_router(router_instruments)  # prefixo /instruments
 app.include_router(router_schedule)
 app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
+
+
+

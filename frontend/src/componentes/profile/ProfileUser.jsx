@@ -2,13 +2,15 @@ import Swal from "sweetalert2";
 import "./ProfileUser.css";
 import Header from "../layout/Header";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import ButtonChat from "../layout/ButtonChat";
 import Footer from "../layout/Footer";
 import { useEffect, useRef, useState } from "react";
-import EditProfileTextModal from "./modals/EditProfileTextModal";
-import EditProfileInfoModal from "./modals/EditProfileInfoModal";
-import ProfilePictureModal from "./modals/ProfilePictureModal";
-import CreatePackageModal from "./modals/CreatePackageModal";
-import ScheduleClassModal from "./modals/ScheduleClassModal";
+import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextModal";
+import EditProfileInfoModal from "./modals/editProfileInfoModal/EditProfileInfoModal";
+import ProfilePictureModal from "./modals/profilePictureModal/ProfilePictureModal";
+import CreatePackageModal from "./modals/createPackageModal/CreatePackageModal";
+import ScheduleClassModal from "./modals/scheduleClassModal/ScheduleClassModal";
+import Reviews from "./modals/reviews/Reviews";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -39,6 +41,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditTextsModalOpen, setIsEditTextsModalOpen] = useState(false);
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [isSavingProfileInfo, setIsSavingProfileInfo] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -50,16 +53,17 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [introText, setIntroText] = useState(() => usuarioProp?.texto_intro || defaultIntroText);
   const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
   const [hasEditedTexts, setHasEditedTexts] = useState(false);
+  const [usuarioIdState, setUsuarioIdState] = useState(() => usuarioProp?.id || null);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { id: userIdParam, uuid: userUuidParam, tipo: tipoParam } = useParams();
+  const { uuid: userUuidParam, tipo: tipoParam } = useParams();
   const pathSegments = (location.pathname || "").split("/").filter(Boolean);
   const tipoFromPath = (pathSegments[0] || "").toLowerCase();
   const identifierFromPath = pathSegments[1] || null;
   const tipoSlug = (tipoParam || tipoFromPath || "").toLowerCase();
   const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
-  const userIdentifier = userUuidParam || identifierFromPath || userIdParam || null;
+  const userIdentifier = userUuidParam || identifierFromPath || null;
   const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [pacote, setPacote] = useState({
@@ -71,6 +75,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     // SIMULA usuário logado professor para eu poder entrar sem acesso ao back
     setCurrentUser({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
     setUsuario({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
+    setUsuarioIdState(1);
   }, []);
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -123,7 +128,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 
 
   console.log("[ProfileUser] params", {
-    userIdParam,
     userUuidParam,
     identifierFromPath,
     tipoParam,
@@ -157,6 +161,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           return;
         }
         setUsuario(data);
+        if (data?.id) setUsuarioIdState(data.id);
         if (data?.profile_picture) setCacheBust(Date.now());
       })
       .catch((err) => {
@@ -165,6 +170,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         }
       });
   }, [userIdentifier, navigate, tipoPath, isUuid]);
+
+  useEffect(() => {
+    if (usuario?.id && usuarioIdState !== usuario.id) {
+      setUsuarioIdState(usuario.id);
+    }
+  }, [usuario?.id, usuarioIdState]);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
@@ -177,22 +188,21 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         console.log("[ProfileUser] auth/me", data);
         setCurrentUser(data || null);
         const tipoAtual = (data?.tipo_usuario || data?.tipo || "").toString().toLowerCase();
-        const isMesmoId = String(userIdParam || "") === String(data?.id || "");
         const isMesmoUuid = userUuidParam && data?.global_uuid && String(userUuidParam) === String(data.global_uuid);
-        const isMesmoPathId = identifierFromPath && !isUuid && String(identifierFromPath) === String(data?.id || "");
         const isMesmoPathUuid = identifierFromPath && isUuid && data?.global_uuid && String(identifierFromPath) === String(data.global_uuid);
         const tipoConfere = !tipoPath || tipoPath === tipoAtual;
-        const isMesmoUsuario = (isMesmoId || isMesmoUuid || isMesmoPathId || isMesmoPathUuid) && tipoConfere;
+        const isMesmoUsuario = (isMesmoUuid || isMesmoPathUuid) && tipoConfere;
         // só preenche com o próprio usuário se for o mesmo id/uuid (rota) e o tipo da rota (se houver) combinar
         if ((!userIdentifier && !(usuario && usuario.id)) || (isMesmoUsuario && !(usuario && usuario.id))) {
           setUsuario(data || {});
+          if (data?.id) setUsuarioIdState(data.id);
           if (data?.profile_picture) setCacheBust(Date.now());
         }
       })
       .catch(() => {
         /* ignora falhas de rede sem redirecionar */
       });
-  }, [navigate, userIdParam, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
+  }, [navigate, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
 
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
@@ -215,7 +225,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
-  const usuarioId = usuario?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null);
+  const usuarioId = usuarioIdState ?? (usuario?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null));
   const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
@@ -356,53 +366,48 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
 
     let isActive = true;
-    const endpoints = [
-      `${API_BASE_URL}/instrumentos/professor/${usuarioId}`,
-      `${API_BASE_URL}/instruments/professor/${usuarioId}`,
-    ];
+    const endpoint = isUuid
+      ? `${API_BASE_URL}/instruments/professor/uuid/${userIdentifier}`
+      : `${API_BASE_URL}/instruments/professor/${usuarioId}`;
 
     const carregarInstrumentos = async () => {
-      for (const url of endpoints) {
-        try {
-          const resp = await fetch(url);
-          if (!resp.ok) continue;
-          const data = await resp.json();
-          if (!isActive) return;
-          const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
-          setInstrumentosProfessor(instrumentos || []);
-          console.log("[ProfileUser] instrumentos carregados", { url, instrumentos });
-          const mapped = instrumentos
-            .map((instrumento) => {
-              const name = instrumento?.nome || instrumento?.tipo;
-              if (!name) return null;
-              return { name, isInstrument: true };
-            })
-            .filter(Boolean);
-          if (!hasEditedTags && mapped.length > 0) {
-            setTags(mapped);
-            console.log("[ProfileUser] tags definidas a partir de instrumentos (sem edicao)", { mapped });
-          } else if (mapped.length > 0) {
-            setTags((prev) => {
-              const existing = new Set(
-                (prev || []).map((tag) => (tag?.name || tag?.nome || tag || "").toLowerCase()),
-              );
-              const merged = [
-                ...prev,
-                ...mapped.filter((tag) => !existing.has((tag?.name || "").toLowerCase())),
-              ];
-              console.log("[ProfileUser] tags mescladas com instrumentos", { prev, mapped, merged });
-              return merged;
-            });
-          }
-          return;
-        } catch (error) {
-          /* tenta proximo endpoint */
+      try {
+        const resp = await fetch(endpoint, { credentials: "include" });
+        if (!resp.ok) throw new Error(`instrumentos_fetch_failed_${resp.status}`);
+        const data = await resp.json();
+        if (!isActive) return;
+        const instrumentos = Array.isArray(data) ? data : data.instrumentos || [];
+        setInstrumentosProfessor(instrumentos || []);
+        console.log("[ProfileUser] instrumentos carregados", { endpoint, instrumentos });
+        const mapped = instrumentos
+          .map((instrumento) => {
+            const name = instrumento?.nome || instrumento?.tipo;
+            if (!name) return null;
+            return { name, isInstrument: true };
+          })
+          .filter(Boolean);
+        if (!hasEditedTags && mapped.length > 0) {
+          setTags(mapped);
+          console.log("[ProfileUser] tags definidas a partir de instrumentos (sem edicao)", { mapped });
+        } else if (mapped.length > 0) {
+          setTags((prev) => {
+            const existing = new Set(
+              (prev || []).map((tag) => (tag?.name || tag?.nome || tag || "").toLowerCase()),
+            );
+            const merged = [
+              ...prev,
+              ...mapped.filter((tag) => !existing.has((tag?.name || "").toLowerCase())),
+            ];
+            console.log("[ProfileUser] tags mescladas com instrumentos", { prev, mapped, merged });
+            return merged;
+          });
         }
-      }
-      if (isActive) {
-        setInstrumentosProfessor([]);
-        if (!hasEditedTags) setTags([]);
-        console.log("[ProfileUser] instrumentos: fallback vazio");
+      } catch (error) {
+        if (isActive) {
+          setInstrumentosProfessor([]);
+          if (!hasEditedTags) setTags([]);
+          console.log("[ProfileUser] instrumentos: fallback vazio (erro)", { error: String(error) });
+        }
       }
     };
 
@@ -548,6 +553,39 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   };
 
+  const handleSaveProfileInfo = async (values) => {
+    if (!usuario?.id || isSavingProfileInfo || !isOwner) return;
+
+    const payload = {
+      nome: values?.nome ?? usuario.nome ?? "",
+      email: values?.email ?? usuario.email ?? "",
+      telefone: values?.telefone ?? "",
+      bio: values?.bio ?? "",
+    };
+
+    setIsSavingProfileInfo(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/${usuario.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Falha ao salvar info: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setUsuario((prev) => ({ ...prev, ...data }));
+      closeEditProfileModal();
+    } catch (error) {
+      console.error("Erro ao salvar informaÇðes do perfil", error);
+    } finally {
+      setIsSavingProfileInfo(false);
+    }
+  };
+
   const sortTagsWithInstrumentsFirst = (list = []) => {
     return [...list].sort((a, b) => {
       const aIsInst = Boolean(a?.isInstrument || a?.instrumento_id);
@@ -683,9 +721,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             {isOwner && (
               <div className="botoes">
                 <button className="btn-editar" onClick={openEditProfileModal}>Editar Perfil</button>
-                <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
-                  Cadastrar Pacote
-                </button>
+                {isProfessor && (
+                  <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
+                    Cadastrar Pacote
+                  </button>
+                )}
               </div>
             )}
 
@@ -728,10 +768,26 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           nomeUsuario={nomeUsuario}
           isOwner={isOwner}
           onPhotoClick={handleFotoClick}
+          initialName={usuario?.nome || ""}
+          initialEmail={usuario?.email || ""}
+          initialPhone={usuario?.telefone || ""}
+          initialBio={usuario?.bio || ""}
+          onSave={handleSaveProfileInfo}
+          isSaving={isSavingProfileInfo}
         />
 
         {/* Avaliacoes abaixo */}
-        <div className="avaliacoes">
+        <Reviews
+          usuario={usuario}
+          fotoAbsoluta={displayedPicture}
+          perfilAvaliado={{
+            id: usuario?.id,
+            tipo: usuario?.tipo_usuario || usuario?.tipo || null,
+          }}
+          currentUser={currentUser}
+        />
+
+        {/* <div className="avaliacoes">
           <h4>&lt;Avaliacoes&gt;</h4>
           <div className="box-avaliacao avaliacao-card">
             <span className="star">★</span>
@@ -740,7 +796,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
               maximus, purus ligula viverra eros, eu pellentesque.
             </span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       <ScheduleClassModal
@@ -759,7 +815,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         onSubmit={handleSubmitPacote}
       />
 
-
+      <ButtonChat />
       <Footer />
     </div>
   );

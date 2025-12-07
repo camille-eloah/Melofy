@@ -1,7 +1,8 @@
-import "./Instrumentos.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Footer from '../layout/Footer'
+import AddInstrumentModal from "./AddInstrumentModal";
+import "./Instrumentos.css";
+import Footer from "../layout/Footer";
 
 import Swal from "sweetalert2";
 
@@ -22,14 +23,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 const INSTRUMENTOS = [
   { id: 1, nome: "Saxofone", img: saxofone },
   { id: 2, nome: "Guitarra", img: guitarra },
-  { id: 3, nome: "Violão", img: violao },
+  { id: 3, nome: "ViolÇœo", img: violao },
   { id: 4, nome: "Flauta", img: flauta },
   { id: 5, nome: "Partitura", img: partitura },
   { id: 6, nome: "Baixo", img: baixo },
   { id: 7, nome: "Violino", img: violino },
   { id: 8, nome: "Canto", img: canto },
   { id: 9, nome: "Teclado", img: teclado },
-  { id: 10, nome: "Acordeon", img: sanfona },
+  { id: 10, nome: "Acordeão", img: sanfona },
 ];
 
 function Instrumentos() {
@@ -38,21 +39,55 @@ function Instrumentos() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mensagem, setMensagem] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalSearch, setModalSearch] = useState("");
+  const [modalSelected, setModalSelected] = useState("");
+  const [modalOptions, setModalOptions] = useState([]);
+  const [professorInstruments, setProfessorInstruments] = useState([]);
+  const [addingInstrument, setAddingInstrument] = useState(false);
+  const [firstName, setFirstName] = useState("");
+
+  const baseInstrumentIds = INSTRUMENTOS.map((inst) => inst.id);
+  const extraInstruments = professorInstruments.filter(
+    (inst) => !baseInstrumentIds.includes(inst.id)
+  );
 
   // Bloqueio de acesso para alunos
   useEffect(() => {
     const userStr = localStorage.getItem("usuario");
     if (!userStr) {
-      navigate("/login", { replace: true });
+      navigate("/notfound", { replace: true });
       return;
     }
 
     const user = JSON.parse(userStr);
+    setFirstName((user.nome || "").split(" ")[0] || "");
 
     if (user.tipo_usuario !== "PROFESSOR") {
       navigate("/home");
     }
-  }, []);
+
+    async function carregarInstrumentosProfessor() {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/instruments/professor/${user.id}`);
+        if (!resp.ok) {
+          throw new Error("Erro ao buscar instrumentos do professor");
+        }
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          setProfessorInstruments(data);
+          setSelectedIds((prev) => {
+            const merged = new Set([...(prev || []), ...data.map((i) => i.id)]);
+            return Array.from(merged);
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    carregarInstrumentosProfessor();
+  }, [navigate]);
 
   function toggleInstrument(id) {
     setSelectedIds((prev) =>
@@ -66,9 +101,9 @@ function Instrumentos() {
       setMensagem("");
 
       const user = JSON.parse(localStorage.getItem("usuario"));
-      if (!user) throw new Error("Usuário não encontrado");
+      if (!user) throw new Error("UsuÇ­rio nÇœo encontrado");
 
-      const resp = await fetch(`${API_BASE_URL}/instrumentos/escolher`, {
+      const resp = await fetch(`${API_BASE_URL}/instruments/escolher`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -91,6 +126,102 @@ function Instrumentos() {
     }
   }
 
+  function closeModal() {
+    setIsModalOpen(false);
+    setModalSearch("");
+    setModalSelected("");
+    setModalOptions([]);
+  }
+
+  async function handleAddInstrument() {
+    if (!modalSelected) {
+      setMensagem("Selecione um instrumento para adicionar.");
+      return;
+    }
+
+    const user = JSON.parse(localStorage.getItem("usuario") || "null");
+    if (!user?.id) {
+      setMensagem("Usuário não encontrado.");
+      return;
+    }
+
+    const instrumentoId = Number(modalSelected);
+    if (selectedIds.includes(instrumentoId)) {
+      closeModal();
+      return;
+    }
+
+    const selecionado = modalOptions.find(
+      (opt) => String(opt.id) === String(instrumentoId)
+    );
+
+    try {
+      setAddingInstrument(true);
+      setMensagem("");
+      const resp = await fetch(`${API_BASE_URL}/instruments/professor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          professor_id: user.id,
+          instrumento_id: instrumentoId,
+        }),
+      });
+
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        throw new Error(data.detail || "Erro ao adicionar instrumento");
+      }
+
+      const data = await resp.json();
+      const novoInstrumento = data?.id ? data : selecionado;
+
+      if (novoInstrumento) {
+        setProfessorInstruments((prev) => {
+          if (prev.some((p) => p.id === novoInstrumento.id)) return prev;
+          return [...prev, novoInstrumento];
+        });
+        setSelectedIds((prev) =>
+          prev.includes(novoInstrumento.id) ? prev : [...prev, novoInstrumento.id]
+        );
+      }
+
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      setMensagem("Erro ao adicionar instrumento.");
+    } finally {
+      setAddingInstrument(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!isModalOpen) return undefined;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const params = modalSearch ? `?q=${encodeURIComponent(modalSearch)}` : "";
+        const resp = await fetch(`${API_BASE_URL}/instruments${params}`, {
+          signal: controller.signal,
+        });
+        if (!resp.ok) {
+          throw new Error("Erro ao buscar instrumentos");
+        }
+        const data = await resp.json();
+        setModalOptions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        console.error(err);
+        setModalOptions([]);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [isModalOpen, modalSearch]);
+
   return (
     <div className="instrumentos-page">
       <header className="instrumentos-header">
@@ -104,7 +235,7 @@ function Instrumentos() {
       </header>
 
       <div className="instrumentos-content">
-        <h1>Prof.(a), escolha os instrumentos que deseja ensinar!</h1>
+        <h1>{firstName ? `${firstName}, escolha os instrumentos que deseja ensinar!` : "Prof.(a), escolha os instrumentos que deseja ensinar!"}</h1>
         <h2>Estamos quase finalizando seu cadastro...</h2>
 
         <div className="instrumentos-circles-container">
@@ -141,6 +272,32 @@ function Instrumentos() {
           <img className="menino-instrumento" src={menino} alt="Menino Apontando" />
         </div>
 
+        {extraInstruments.length > 0 && (
+          <div className="instrumentos-circles-container instrumentos-extra-container">
+            {extraInstruments.map((inst) => (
+              <div
+                key={inst.id}
+                className={
+                  "instrumentos-circle custom" +
+                  (selectedIds.includes(inst.id) ? " selecionado" : "")
+                }
+                onClick={() => toggleInstrument(inst.id)}
+              >
+                <span className="instrumentos-circle-text">{inst.nome}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="instrumentos-circles-container instrumentos-add-container">
+          <div
+            className="instrumentos-circle instrumentos-add-circle"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <span className="instrumentos-add-icon">+</span>
+          </div>
+        </div>
+
         <button
           className="botao-salvar-instrumentos"
           onClick={salvarInstrumentos}
@@ -150,6 +307,18 @@ function Instrumentos() {
         </button>
 
         {mensagem && <p className="mensagem-instrumentos">{mensagem}</p>}
+
+        <AddInstrumentModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          searchValue={modalSearch}
+          onSearchChange={setModalSearch}
+          selectedValue={modalSelected}
+          onSelectChange={setModalSelected}
+          options={modalOptions}
+          onAdd={handleAddInstrument}
+          isSubmitting={addingInstrument}
+        />
       </div>
       <Footer />
     </div>
