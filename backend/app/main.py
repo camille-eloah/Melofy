@@ -1235,12 +1235,23 @@ def create_message(
 ):
     autor_tipo, autor = _get_current_user(request, db)
 
+    # 🔥 1 — Buscar o usuário destinatário (professor ou aluno)
+    destinatario = buscar_usuario_por_id(db, payload.destinatario_id)
+    if not destinatario:
+        raise HTTPException(status_code=404, detail="Destinatário não encontrado")
+
+    # 🔥 2 — Descobrir o tipo automaticamente
+    if hasattr(destinatario, "alu_id"):     # ou a propriedade certa do modelo
+        destinatario_tipo = TipoUsuario.ALUNO
+    else:
+        destinatario_tipo = TipoUsuario.PROFESSOR
+
+    # 🔥 3 — Criar a mensagem corretamente
     msg = Message(
         remetente_id=autor.id,
         remetente_tipo=autor_tipo,
         destinatario_id=payload.destinatario_id,
-        # você deve decidir o tipo do destinatário — exemplo:
-        destinatario_tipo=TipoUsuario.PROFESSOR,  # ou deduzir ao buscar o usuário
+        destinatario_tipo=destinatario_tipo,
         texto=payload.texto.strip(),
     )
 
@@ -1248,6 +1259,7 @@ def create_message(
     db.commit()
     db.refresh(msg)
     return msg
+
 
 @router_messages.get("/conversation/{destinatario_id}", response_model=list[MessageOut])
 def listar_conversa(
