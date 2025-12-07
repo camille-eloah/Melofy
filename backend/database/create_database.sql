@@ -60,13 +60,6 @@ CREATE TABLE tb_instrumento (
     FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
 );
 
-CREATE TABLE tb_instrumento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    tipo INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
-);
-
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     -- 🎸 CORDAS
     (2, 'Guitarra', 1),
