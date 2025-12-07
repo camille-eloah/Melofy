@@ -196,8 +196,8 @@ const Avaliacoes = ({
 
       {podeEditar && (
         <div className="avaliacao-nova">
-          <h3 className="titulo-bloco">VocÃª jÃ¡ avaliou este perfil</h3>
-          <p className="texto">Edite sua avaliaÃ§Ã£o existente para atualizar nota ou comentÃ¡rio.</p>
+          <h3 className="titulo-bloco">Você já avaliou este perfil</h3>
+          <p className="texto">Edite sua avaliação existente para atualizar nota ou comentário.</p>
           <button className="botao-enviar" disabled>
             Editar (em breve)
           </button>
