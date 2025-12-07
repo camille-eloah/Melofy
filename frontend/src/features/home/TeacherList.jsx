@@ -1,93 +1,126 @@
-import "./TeacherList.css";
+﻿import "./TeacherList.css";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import guitarraImg from "../../assets/Images-MainSection/guitarra.png";
-import violaoImg from "../../assets/Images-MainSection/violao.png";
-import saxImg from "../../assets/Images-MainSection/saxofone.png";
-import cantoImg from "../../assets/Images-MainSection/canto.png";
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
-function TeacherList() {
-  const teachers = [
-    {
-      id: 1,
-      name: "Aline Castro",
-      city: "Natal - RN",
-      instrument: "Violão",
-      image: violaoImg,
-      rating: 4.9,
-      reviews: "1.245 avaliações",
-      bio: "Metodologia prática e personalizada. Mais de 8 anos de experiência ensinando iniciantes.",
-      price: "R$ 60/h",
-    },
-    {
-      id: 2,
-      name: "Thiago Moura",
-      city: "São Paulo - SP",
-      instrument: "Guitarra",
-      image: guitarraImg,
-      rating: 5.0,
-      reviews: "2.870 avaliações",
-      bio: "Aulas dinâmicas, com foco em repertório. Ensina rock, blues e fingerstyle.",
-      price: "R$ 75/h",
-    },
-    {
-      id: 3,
-      name: "Camila Duarte",
-      city: "Curitiba - PR",
-      instrument: "Canto",
-      image: cantoImg,
-      rating: 4.7,
-      reviews: "980 avaliações",
-      bio: "Técnica vocal moderna. Auxilia no controle da respiração e postura.",
-      price: "R$ 90/h",
-    },
-    {
-      id: 4,
-      name: "Rafael Nunes",
-      city: "Recife - PE",
-      instrument: "Saxofone",
-      image: saxImg,
-      rating: 4.8,
-      reviews: "1.560 avaliações",
-      bio: "Método estruturado para quem quer dominar teoria e improvisação.",
-      price: "R$ 120/h",
-    },
-    {
-      id: 5,
-      name: "Fernanda Lopes",
-      city: "Belo Horizonte - MG",
-      instrument: "Canto",
-      image: cantoImg,
-      rating: 5.0,
-      reviews: "3.102 avaliações",
-      bio: "Aulas acolhedoras e divertidas, indicadas para iniciantes e níveis avançados.",
-      price: "R$ 85/h",
-    },
-    {
-      id: 6,
-      name: "Lucas Andrade",
-      city: "Rio de Janeiro - RJ",
-      instrument: "Violão",
-      image: violaoImg,
-      rating: 4.6,
-      reviews: "743 avaliações",
-      bio: "Metodologia moderna voltada ao MPB, sertanejo e repertório popular.",
-      price: "R$ 55/h",
-    },
-  ];
+function resolveFoto(path) {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
+function formatInstruments(list) {
+  const arr = (list || []).filter(Boolean);
+  if (arr.length === 0) return "Instrumentos não informados";
+  if (arr.length === 1) return arr[0];
+  if (arr.length === 2) return `${arr[0]} e ${arr[1]}`;
+  return `${arr.slice(0, -1).join(", ")} e ${arr[arr.length - 1]}`;
+}
+
+function TeacherList({ searchTerm = "" }) {
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const carregarProfessores = async () => {
+      try {
+        setLoading(true);
+        const resp = await fetch(`${API_BASE_URL}/user/professores`);
+        if (!resp.ok) throw new Error("erro_professores");
+        const data = await resp.json();
+
+        const enriched = await Promise.all(
+          (Array.isArray(data) ? data : []).map(async (prof) => {
+            const foto = resolveFoto(
+              prof.profile_picture || prof.foto || prof.foto_perfil || ""
+            );
+            let media = 0;
+            let total = 0;
+            let instrumentosNomes = [];
+            try {
+              const statsResp = await fetch(
+                `${API_BASE_URL}/ratings/PROFESSOR/${prof.id}/stats`
+              );
+              if (statsResp.ok) {
+                const stats = await statsResp.json();
+                media = Number(stats?.media) || 0;
+                total = Number.isFinite(Number(stats?.total)) ? Number(stats.total) : 0;
+              }
+            } catch (err) {
+              /* ignora erro de stats */
+            }
+            try {
+              const instResp = await fetch(`${API_BASE_URL}/instruments/professor/${prof.id}`);
+              if (instResp.ok) {
+                const inst = await instResp.json();
+                instrumentosNomes = Array.isArray(inst) ? inst.map((i) => i.nome).filter(Boolean) : [];
+              }
+            } catch (err) {
+              /* ignora erro de instrumentos */
+            }
+            return {
+              id: prof.id,
+              uuid: prof.global_uuid,
+              name: prof.nome,
+              city: "Caico - RN",
+              instrument: formatInstruments(instrumentosNomes),
+              image: foto,
+              rating: media.toFixed(1),
+              reviews: `${total} reviews`,
+              bio: prof.bio || "Nenhuma bio informada.",
+              price: "R$ 90/h",
+              instrumentosNomes,
+            };
+          })
+        );
+
+        setTeachers(enriched);
+      } catch (err) {
+        console.error("Erro ao carregar professores", err);
+        setTeachers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    carregarProfessores();
+  }, []);
+
+  const termo = (searchTerm || "").trim().toLowerCase();
+  const visiveis =
+    termo.length === 0
+      ? teachers
+      : teachers.filter((t) =>
+          (t.instrumentosNomes || []).some((inst) =>
+            inst.toLowerCase().includes(termo)
+          )
+        );
 
   return (
     <main className="teacher-list">
       <h2 className="teacher-title">
-        Nossa seleção de professores particulares no Brasil
+        Nossa selecao de professores particulares no Brasil
       </h2>
 
-      <div className="teacher-grid">
-        {teachers.map((t) => (
-          <div className="teacher-card" key={t.id}>
+      {loading && <p>Carregando professores...</p>}
 
-            {/* IMAGEM CERTA — PERFEITA, PROPORCIONAL */}
+      <div className="teacher-grid">
+        {visiveis.map((t) => (
+          <div
+            className="teacher-card"
+            key={t.id}
+            onClick={() => navigate(`/professor/${t.uuid || t.id}`)}
+          >
             <div className="teacher-image">
-              <img src={t.image} alt={t.name} />
+              {t.image ? (
+                <img src={t.image} alt={t.name} />
+              ) : (
+                <div className="teacher-placeholder">
+                  {t.name?.[0]?.toUpperCase() || "?"}
+                </div>
+              )}
             </div>
 
             <div className="teacher-info">
@@ -102,67 +135,13 @@ function TeacherList() {
               </p>
 
               <p className="teacher-description">
-                <strong>{t.instrument}</strong> • {t.bio}
+                <strong>{t.instrument}</strong> - {t.bio}
               </p>
 
               <p className="teacher-price">{t.price}</p>
             </div>
           </div>
         ))}
-      </div>
-      <div className="teachers-section">
-        <h3>Professores em Destaque</h3>
-        <p>Aprenda com especialistas renomados</p>
-        
-        <div className="teachers-grid">
-          <div className="teacher-card">
-            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #4285f4, #34a853)'}}>JS</div>
-            <h4>João Silva</h4>
-            <p>Especialista em Guitarra</p>
-            <span className="teacher-rating">⭐ 4.9</span>
-            <div className="teacher-stats">
-              <span>2.5k alunos</span>
-              <span>•</span>
-              <span>120 aulas</span>
-            </div>
-          </div>
-          
-          <div className="teacher-card">
-            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #ea4335, #fbbc05)'}}>MA</div>
-            <h4>Maria Andrade</h4>
-            <p>Professora de Piano</p>
-            <span className="teacher-rating">⭐ 4.8</span>
-            <div className="teacher-stats">
-              <span>1.8k alunos</span>
-              <span>•</span>
-              <span>95 aulas</span>
-            </div>
-          </div>
-          
-          <div className="teacher-card">
-            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #34a853, #4285f4)'}}>PC</div>
-            <h4>Pedro Costa</h4>
-            <p>Mestre em Violino</p>
-            <span className="teacher-rating">⭐ 4.9</span>
-            <div className="teacher-stats">
-              <span>1.2k alunos</span>
-              <span>•</span>
-              <span>80 aulas</span>
-            </div>
-          </div>
-          
-          <div className="teacher-card">
-            <div className="teacher-avatar" style={{background: 'linear-gradient(135deg, #fbbc05, #ea4335)'}}>AF</div>
-            <h4>Ana Ferreira</h4>
-            <p>Coach Vocal</p>
-            <span className="teacher-rating">⭐ 4.7</span>
-            <div className="teacher-stats">
-              <span>3.1k alunos</span>
-              <span>•</span>
-              <span>150 aulas</span>
-            </div>
-          </div>
-        </div>
       </div>
     </main>
   );

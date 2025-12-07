@@ -91,11 +91,18 @@ class Instrumento(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     nome: str
-    tipo: str
+    tipo: str  # referencia tb_categoria.id
 
     aulas: List["Aula"] = Relationship(back_populates="instrumento")
     professores_rel: List["ProfessorInstrumento"] = Relationship(back_populates="instrumento")
     tags_rel: List["Tag"] = Relationship(back_populates="instrumento")
+
+
+class Categoria(SQLModel, table=True):
+    __tablename__ = "tb_categoria"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    nome: str = Field(nullable=False, unique=True)
 
 # ----------------------------
 # Tags

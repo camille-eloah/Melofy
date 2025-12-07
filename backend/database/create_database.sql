@@ -60,13 +60,6 @@ CREATE TABLE tb_instrumento (
     FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
 );
 
-CREATE TABLE tb_instrumento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    tipo INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
-);
-
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     -- 🎸 CORDAS
     (2, 'Guitarra', 1),
@@ -253,7 +246,7 @@ CREATE TABLE tb_aula (
     CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES tb_aluno(id),
     CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)
-
+);
 
 CREATE TABLE tb_solicitacao_agendamento (
     sol_id INT AUTO_INCREMENT PRIMARY KEY,
