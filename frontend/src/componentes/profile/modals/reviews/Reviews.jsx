@@ -70,16 +70,26 @@ const Avaliacoes = ({
   useEffect(() => {
     const avaliadoId = perfilAvaliado?.id;
     const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
-    if (!avaliadoId || !avaliadoTipo) return;
+    if (!avaliadoId || !avaliadoTipo) {
+      setAvaliacoes([]);
+      return;
+    }
 
     const carregar = async () => {
       try {
         setCarregando(true);
+        console.log("[Reviews] carregando avaliacoes", { avaliadoId, avaliadoTipo, perfilAvaliado });
         const resp = await fetch(`${API_BASE_URL}/ratings/${avaliadoTipo}/${avaliadoId}`, {
           credentials: "include",
         });
         if (!resp.ok) {
-          console.error("Falha ao carregar avaliacoes", await resp.text());
+          console.error("Falha ao carregar avaliacoes", {
+            status: resp.status,
+            body: await resp.text(),
+            avaliadoId,
+            avaliadoTipo,
+          });
+          setAvaliacoes([]);
           return;
         }
         const data = await resp.json();
@@ -91,15 +101,24 @@ const Avaliacoes = ({
               texto: r.texto || "",
             }))
           : [];
+        console.log("[Reviews] avaliacoes recebidas", {
+          avaliadoId,
+          avaliadoTipo,
+          total: convertidos.length,
+          autores: convertidos.map((c) => c.nome),
+        });
         setAvaliacoes(convertidos);
       } catch (err) {
         console.error("Erro ao carregar avaliacoes", err);
+        setAvaliacoes([]);
       } finally {
         setCarregando(false);
       }
     };
 
     carregar();
+    // limpa estado enquanto carrega um novo perfil
+    return () => setAvaliacoes([]);
   }, [perfilAvaliado?.id, perfilAvaliado?.tipo]);
 
   async function enviarAvaliacao() {
@@ -118,6 +137,7 @@ const Avaliacoes = ({
         nota: novaEstrela,
         texto: novoTexto,
       };
+      console.log("[Reviews] enviando avaliacao", payload);
       const resp = await fetch(`${API_BASE_URL}/ratings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -128,6 +148,7 @@ const Avaliacoes = ({
       if (!resp.ok) {
         throw new Error(data?.detail || "Falha ao enviar avaliacao");
       }
+      console.log("[Reviews] avaliacao criada", data);
       const novo = {
         nome: data.autor_nome,
         foto: resolveFoto(data.autor_foto) || "",
