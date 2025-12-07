@@ -14,6 +14,7 @@ const Avaliacoes = ({
   fotoAbsoluta = "",
   perfilAvaliado = {},
   currentUser = null,
+  onRatingChange = null,
 }) => {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [novaEstrela, setNovaEstrela] = useState(0);
@@ -189,6 +190,9 @@ const Avaliacoes = ({
       setNovaEstrela(0);
       setJaAvaliou(true);
       setEditando(false);
+      if (onRatingChange) {
+        onRatingChange();
+      }
     } catch (err) {
       console.error("Erro ao enviar avaliacao", err);
     } finally {

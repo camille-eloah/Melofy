@@ -1,10 +1,10 @@
-import Swal from "sweetalert2";
+﻿import Swal from "sweetalert2";
 import "./ProfileUser.css";
 import Header from "../layout/Header";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ButtonChat from "../layout/ButtonChat";
 import Footer from "../layout/Footer";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextModal";
 import EditProfileInfoModal from "./modals/editProfileInfoModal/EditProfileInfoModal";
 import ProfilePictureModal from "./modals/profilePictureModal/ProfilePictureModal";
@@ -54,6 +54,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [descText, setDescText] = useState(() => usuarioProp?.texto_desc || defaultDescText);
   const [hasEditedTexts, setHasEditedTexts] = useState(false);
   const [usuarioIdState, setUsuarioIdState] = useState(() => usuarioProp?.id || null);
+  const [ratingStats, setRatingStats] = useState({ media: 0, total: 0 });
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -65,11 +66,34 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const tipoPath = tipoSlug === "professor" ? "professor" : tipoSlug === "aluno" ? "aluno" : null;
   const userIdentifier = userUuidParam || identifierFromPath || null;
   const isUuid = userIdentifier ? userIdentifier.includes("-") : false;
+  const usuarioId = usuarioIdState ?? (usuarioProp?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null));
+  const tipoPerfil = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toLowerCase();
+  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toUpperCase();
   const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
   const [pacote, setPacote] = useState({
     quantidade: "",
     valor: "",
   });
+  const refreshRatingStats = useCallback(() => {
+    if (!usuarioId || !tipoUsuario) {
+      setRatingStats({ media: 0, total: 0 });
+      return Promise.resolve();
+    }
+    return fetch(`${API_BASE_URL}/ratings/${tipoUsuario}/${usuarioId}/stats`)
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("stats_error");
+      })
+      .then((data) => {
+        setRatingStats({
+          media: Number(data?.media) || 0,
+          total: Number.isFinite(Number(data?.total)) ? Number(data.total) : 0,
+        });
+      })
+      .catch(() => {
+        setRatingStats({ media: 0, total: 0 });
+      });
+  }, [usuarioId, tipoUsuario]);
 
   useEffect(() => {
     // SIMULA usuário logado professor para eu poder entrar sem acesso ao back
@@ -204,6 +228,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       });
   }, [navigate, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
 
+  useEffect(() => {
+    refreshRatingStats();
+  }, [refreshRatingStats]);
+
   const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
   const absoluteProfilePicture =
@@ -211,27 +239,26 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       ? `${API_BASE_URL}${profilePicture.startsWith("/") ? "" : "/"}${profilePicture}`
       : profilePicture;
   const tipoAtual = (currentUser?.tipo_usuario || currentUser?.tipo || "").toString().toLowerCase();
-  const tipoPerfil = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toLowerCase();
   const isOwner =
     currentUser?.id &&
     usuario?.id &&
     currentUser.id === usuario.id &&
     (!tipoPath || tipoPath === tipoAtual) &&
     (!tipoPerfil || tipoPerfil === tipoAtual);
-  const tipoUsuario = (usuario?.tipo_usuario || usuario?.tipo || tipoPath || "").toString().toUpperCase();
   const badgeInfo =
     tipoUsuario === "PROFESSOR"
       ? { label: "Professor", variant: "professor" }
       : tipoUsuario === "ALUNO"
         ? { label: "Aluno", variant: "aluno" }
         : null;
-  const usuarioId = usuarioIdState ?? (usuario?.id ?? (!isUuid && userIdentifier && !Number.isNaN(Number(userIdentifier)) ? Number(userIdentifier) : null));
   const isProfessor = tipoPerfil === "professor";
   const displayedPicture =
     previewUrl ||
     (absoluteProfilePicture
       ? `${absoluteProfilePicture}${absoluteProfilePicture.includes("?") ? "&" : "?"}v=${cacheBust}`
       : null);
+  const ratingMedia = Number.isFinite(ratingStats.media) ? ratingStats.media.toFixed(1) : "0.0";
+  const ratingTotal = ratingStats.total ?? 0;
 
   const handleFotoClick = () => {
     if (isOwner) {
@@ -704,7 +731,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             </div>
 
             <h3>{nomeUsuario}</h3>
-            <p className="avaliacao">&lt;Avaliacao&gt;</p>
+            <div className="avaliacao-badge">
+              <span className="teacher-rating">⭐ {ratingMedia}</span>
+              <span className="teacher-reviews">({ratingTotal} reviews)</span>
+            </div>
 
             <div className="info">
               <p>
@@ -785,6 +815,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
             tipo: usuario?.tipo_usuario || usuario?.tipo || null,
           }}
           currentUser={currentUser}
+          onRatingChange={refreshRatingStats}
         />
 
         {/* <div className="avaliacoes">
@@ -822,3 +853,5 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 }
 
 export default ProfileUser;
+
+
