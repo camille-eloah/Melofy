@@ -45,6 +45,7 @@ function Instrumentos() {
   const [modalOptions, setModalOptions] = useState([]);
   const [professorInstruments, setProfessorInstruments] = useState([]);
   const [addingInstrument, setAddingInstrument] = useState(false);
+  const [firstName, setFirstName] = useState("");
 
   const baseInstrumentIds = INSTRUMENTOS.map((inst) => inst.id);
   const extraInstruments = professorInstruments.filter(
@@ -60,6 +61,7 @@ function Instrumentos() {
     }
 
     const user = JSON.parse(userStr);
+    setFirstName((user.nome || "").split(" ")[0] || "");
 
     if (user.tipo_usuario !== "PROFESSOR") {
       navigate("/home");
@@ -233,7 +235,7 @@ function Instrumentos() {
       </header>
 
       <div className="instrumentos-content">
-        <h1>Prof.(a), escolha os instrumentos que deseja ensinar!</h1>
+        <h1>{firstName ? `${firstName}, escolha os instrumentos que deseja ensinar!` : "Prof.(a), escolha os instrumentos que deseja ensinar!"}</h1>
         <h2>Estamos quase finalizando seu cadastro...</h2>
 
         <div className="instrumentos-circles-container">
