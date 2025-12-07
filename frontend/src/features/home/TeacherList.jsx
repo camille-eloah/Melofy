@@ -114,7 +114,13 @@ function TeacherList({ searchTerm = "" }) {
             onClick={() => navigate(`/professor/${t.uuid || t.id}`)}
           >
             <div className="teacher-image">
-              <img src={t.image || ""} alt={t.name} />
+              {t.image ? (
+                <img src={t.image} alt={t.name} />
+              ) : (
+                <div className="teacher-placeholder">
+                  {t.name?.[0]?.toUpperCase() || "?"}
+                </div>
+              )}
             </div>
 
             <div className="teacher-info">
