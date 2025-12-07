@@ -764,6 +764,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 <button className="btn-agendar" onClick={openScheduleModal}>
                   Agendar Aula
                 </button>
+                <button className="btn-agendar" type="button" onClick={() => navigate("/chat")}>
+                  Enviar Mensagem
+                </button>
               </div>
             )}
           </div>
