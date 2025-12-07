@@ -220,3 +220,17 @@
   font-weight: 700;
   color: #1a1738;
 }
+
+/* Placeholder de inicial isolado para o modal */
+.review-foto-placeholder {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

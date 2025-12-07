@@ -2,11 +2,6 @@ import "./Reviews.css";
 import { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-const INLINE_PLACEHOLDER_BASE = (letra = "?") =>
-  "data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><rect width='60' height='60' rx='12' fill='%23e2e8f0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%2374889a' font-family='Arial, sans-serif' font-size='22'>${letra}</text></svg>`
-  );
 
 function resolveFoto(path) {
   if (!path) return "";
@@ -18,13 +13,13 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
   const [avaliacoes, setAvaliacoes] = useState([
     {
       nome: "Maria Santos",
-      foto: INLINE_PLACEHOLDER_BASE("M"),
+      foto: "",
       estrelas: 5,
       texto: "Excelente profissional! Explica com paciencia e clareza."
     },
     {
       nome: "Joao Pereira",
-      foto: INLINE_PLACEHOLDER_BASE("J"),
+      foto: "",
       estrelas: 4,
       texto: "Otimo atendimento, recomendo! A aula foi muito produtiva."
     }
@@ -49,7 +44,7 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
     if (usuarioProp?.nome || rawFotoProp) {
       setUsuarioLogado({
         nome: usuarioProp?.nome || "",
-        foto: rawFotoProp || INLINE_PLACEHOLDER_BASE(inicialProp)
+        foto: rawFotoProp ? resolveFoto(rawFotoProp) : ""
       });
       console.log("[Reviews] usuario via props", {
         usuarioProp,
@@ -89,7 +84,7 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
 
       setUsuarioLogado({
         nome: user?.nome || "",
-        foto: resolvedFoto || INLINE_PLACEHOLDER_BASE(inicial)
+        foto: resolvedFoto || ""
       });
     } catch (err) {
       console.error("Erro ao ler usuario logado", err);
@@ -101,7 +96,7 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
 
     const nova = {
       nome: usuarioLogado.nome || "Usuario",
-      foto: usuarioLogado.foto || INLINE_PLACEHOLDER_BASE("U"),
+      foto: usuarioLogado.foto || "",
       estrelas: novaEstrela,
       texto: novoTexto
     };
@@ -113,8 +108,14 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
   }
 
   const nomeExibicao = usuarioLogado.nome || "Usuario";
-  const fotoExibicao =
-    usuarioLogado.foto || INLINE_PLACEHOLDER_BASE((usuarioLogado.nome || "?").trim().charAt(0).toUpperCase() || "?");
+  const inicialExibicao = (nomeExibicao || "?").trim().charAt(0).toUpperCase() || "?";
+  const fotoExibicao = usuarioLogado.foto || "";
+
+  const handleCardFotoError = (index) => {
+    setAvaliacoes((prev) =>
+      prev.map((av, i) => (i === index ? { ...av, foto: "" } : av))
+    );
+  };
 
   return (
     <div className="avaliacoes-container">
@@ -123,15 +124,20 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
         <h3 className="titulo-bloco">Deixe sua avaliacao</h3>
 
         <div className="usuario-logado">
-          <img
-            src={fotoExibicao}
-            alt="foto do usuario logado"
-            onError={(e) => {
-              console.warn("[Reviews] erro ao carregar foto", { fotoExibicao });
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = INLINE_PLACEHOLDER;
-            }}
-          />
+          {fotoExibicao ? (
+            <img
+              src={fotoExibicao}
+              alt="foto do usuario logado"
+              onError={() =>
+                setUsuarioLogado((prev) => ({
+                  ...prev,
+                  foto: ""
+                }))
+              }
+            />
+          ) : (
+            <div className="review-foto-placeholder">{inicialExibicao}</div>
+          )}
           <div className="usuario-logado-info">
             <span className="usuario-logado-label">Comentando como</span>
             <span className="usuario-logado-nome">{nomeExibicao}</span>
@@ -153,7 +159,7 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
               className={`nova-star ${novaEstrela >= n ? "ativa" : ""}`}
               onClick={() => setNovaEstrela(n)}
             >
-              *
+              ★
             </span>
           ))}
         </div>
@@ -168,10 +174,20 @@ const Avaliacoes = ({ usuario: usuarioProp = {}, fotoAbsoluta = "" }) => {
       {avaliacoes.map((item, i) => (
         <div className="avaliacao-card" key={i}>
           <div className="top">
-            <img src={item.foto} alt="foto usuario" />
+            {item.foto ? (
+              <img
+                src={item.foto}
+                alt="foto usuario"
+                onError={() => handleCardFotoError(i)}
+              />
+            ) : (
+              <div className="review-foto-placeholder">
+                {(item.nome || "?").trim().charAt(0).toUpperCase() || "?"}
+              </div>
+            )}
             <div className="nome-e-estrelas">
               <span className="nome">{item.nome}</span>
-              <span className="estrelas">{"*".repeat(item.estrelas)}</span>
+              <span className="estrelas">{"★".repeat(item.estrelas)}</span>
             </div>
           </div>
           <p className="texto">{item.texto}</p>
