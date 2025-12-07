@@ -19,10 +19,13 @@ const instrumentosBase = [
   { nome: "Canto", img: cantoImg, categoria: "Vocal" },
 ]
 
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+
 function MainSection({ searchTerm = "", onSearchChange = () => {} }) {
   const [searchQuery, setSearchQuery] = useState(searchTerm || '')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [filteredInstruments, setFilteredInstruments] = useState([])
+  const [instrumentosApi, setInstrumentosApi] = useState([])
   const searchInputRef = useRef(null)
 
   
@@ -94,17 +97,40 @@ function MainSection({ searchTerm = "", onSearchChange = () => {} }) {
     return () => clearInterval(interval)
   }, [])
   useEffect(() => {
+    const loadInstruments = async () => {
+      try {
+        const resp = await fetch(`${API_BASE_URL}/instruments`);
+        if (!resp.ok) throw new Error("erro_instruments");
+        const data = await resp.json();
+        if (Array.isArray(data)) {
+          setInstrumentosApi(
+            data.map((inst) => ({
+              nome: inst.nome,
+              categoria: inst.tipo || "",
+            }))
+          );
+        } else {
+          setInstrumentosApi([]);
+        }
+      } catch (err) {
+        setInstrumentosApi([]);
+      }
+    };
+    loadInstruments();
+  }, []);
+
+  useEffect(() => {
     if ((searchQuery || '').trim() === '') {
       setFilteredInstruments([])
       return
     }
-    
-    const filtered = instrumentosBase.filter(instrument =>
-      instrument.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      instrument.categoria.toLowerCase().includes(searchQuery.toLowerCase())
+    const lista = instrumentosApi.length ? instrumentosApi : instrumentosBase;
+    const filtered = lista.filter(instrument =>
+      (instrument.nome || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (instrument.categoria || "").toLowerCase().includes(searchQuery.toLowerCase())
     )
     setFilteredInstruments(filtered)
-  }, [searchQuery])
+  }, [searchQuery, instrumentosApi])
   useEffect(() => {
     function handleClickOutside(event) {
       if (searchInputRef.current && !searchInputRef.current.contains(event.target)) {

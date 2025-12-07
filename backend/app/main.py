@@ -34,6 +34,7 @@ from app.models import (
     ProfessorTag,
     AvaliacoesDoAluno,
     AvaliacoesDoProfessor,
+    Categoria,
 )
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
@@ -277,6 +278,14 @@ def _instrumento_to_read(instrumento: Instrumento) -> InstrumentoRead:
         id=instrumento.id,
         nome=instrumento.nome,
         tipo=str(instrumento.tipo),
+    )
+
+
+def _instrumento_to_read_with_categoria(instrumento: Instrumento, categoria_nome: str | None) -> InstrumentoRead:
+    return InstrumentoRead(
+        id=instrumento.id,
+        nome=instrumento.nome,
+        tipo=categoria_nome or str(instrumento.tipo),
     )
 
 
@@ -598,19 +607,22 @@ def adicionar_instrumento_professor(
 
 @router_instruments.get("/", response_model=List[InstrumentoRead])
 def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)):
-    stmt = select(Instrumento)
+    stmt = select(Instrumento, Categoria).join(Categoria, Categoria.id == Instrumento.tipo, isouter=True)
     if q:
         stmt = stmt.where(Instrumento.nome.ilike(f"%{q}%"))
-    instrumentos = db.exec(stmt).all()
-    return [_instrumento_to_read(instr) for instr in instrumentos]
+    resultados = db.exec(stmt).all()
+    return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
 
 @router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
 def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == professor_id
+    stmt = (
+        select(Instrumento, Categoria)
+        .join(ProfessorInstrumento)
+        .join(Categoria, Categoria.id == Instrumento.tipo, isouter=True)
+        .where(ProfessorInstrumento.professor_id == professor_id)
     )
-    instrumentos = db.exec(stmt).all()
-    return [_instrumento_to_read(instr) for instr in instrumentos]
+    resultados = db.exec(stmt).all()
+    return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
 
 
 @router_instruments.get("/professor/uuid/{user_uuid}", response_model=List[InstrumentoRead])
