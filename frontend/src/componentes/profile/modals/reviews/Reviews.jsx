@@ -1,4 +1,4 @@
-import "./Reviews.css";
+﻿import "./Reviews.css";
 import { useEffect, useState } from "react";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -76,6 +76,7 @@ const Avaliacoes = ({
     const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
     if (!avaliadoId || !avaliadoTipo) {
       setAvaliacoes([]);
+      setJaAvaliou(false);
       return;
     }
 
@@ -117,6 +118,7 @@ const Avaliacoes = ({
       } catch (err) {
         console.error("Erro ao carregar avaliacoes", err);
         setAvaliacoes([]);
+        setJaAvaliou(false);
       } finally {
         setCarregando(false);
       }
@@ -124,8 +126,11 @@ const Avaliacoes = ({
 
     carregar();
     // limpa estado enquanto carrega um novo perfil
-    return () => setAvaliacoes([]);
-  }, [perfilAvaliado?.id, perfilAvaliado?.tipo]);
+    return () => {
+      setAvaliacoes([]);
+      setJaAvaliou(false);
+    };
+  }, [perfilAvaliado?.id, perfilAvaliado?.tipo, idLogado]);
 
   async function enviarAvaliacao() {
     if (novaEstrela === 0 || !novoTexto.trim()) return;
@@ -176,7 +181,9 @@ const Avaliacoes = ({
   const inicialExibicao = (nomeExibicao || "?").trim().charAt(0).toUpperCase() || "?";
   const fotoExibicao = usuarioLogado.foto || "";
   const tipoAvaliado = (perfilAvaliado?.tipo || "").toString().toUpperCase();
-  const podeAvaliar = (!tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado) && !jaAvaliou;
+  const tiposDiferentes = !tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado;
+  const podeAvaliar = tiposDiferentes && !jaAvaliou;
+  const podeEditar = jaAvaliou && tiposDiferentes;
 
   const handleCardFotoError = (index) => {
     setAvaliacoes((prev) =>
@@ -187,10 +194,10 @@ const Avaliacoes = ({
   return (
     <div className="avaliacoes-container">
 
-      {jaAvaliou && (
+      {podeEditar && (
         <div className="avaliacao-nova">
-          <h3 className="titulo-bloco">Você já avaliou este perfil</h3>
-          <p className="texto">Edite sua avaliação existente para atualizar nota ou comentário.</p>
+          <h3 className="titulo-bloco">VocÃª jÃ¡ avaliou este perfil</h3>
+          <p className="texto">Edite sua avaliaÃ§Ã£o existente para atualizar nota ou comentÃ¡rio.</p>
           <button className="botao-enviar" disabled>
             Editar (em breve)
           </button>
@@ -278,3 +285,4 @@ const Avaliacoes = ({
 };
 
 export default Avaliacoes;
+
