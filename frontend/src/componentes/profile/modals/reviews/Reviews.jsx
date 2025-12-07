@@ -19,6 +19,7 @@ const Avaliacoes = ({
   const [novaEstrela, setNovaEstrela] = useState(0);
   const [novoTexto, setNovoTexto] = useState("");
   const [usuarioLogado, setUsuarioLogado] = useState({ nome: "", foto: "" });
+  const [tipoLogado, setTipoLogado] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
@@ -37,6 +38,7 @@ const Avaliacoes = ({
         nome: currentUser.nome,
         foto: rawFoto ? resolveFoto(rawFoto) : "",
       });
+      setTipoLogado((currentUser?.tipo_usuario || currentUser?.tipo || "").toString().toUpperCase());
       return;
     }
 
@@ -59,6 +61,7 @@ const Avaliacoes = ({
         nome: user?.nome || "",
         foto: resolvedFoto || ""
       });
+      setTipoLogado((user?.tipo_usuario || user?.tipo || "").toString().toUpperCase());
     } catch (err) {
       console.error("Erro ao ler usuario logado", err);
     }
@@ -105,6 +108,7 @@ const Avaliacoes = ({
     const avaliadoId = perfilAvaliado?.id;
     const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
     if (!avaliadoId || !avaliadoTipo) return;
+    if (tipoLogado && avaliadoTipo && tipoLogado === avaliadoTipo) return;
 
     try {
       setEnviando(true);
@@ -143,6 +147,8 @@ const Avaliacoes = ({
   const nomeExibicao = usuarioLogado.nome || "Usuario";
   const inicialExibicao = (nomeExibicao || "?").trim().charAt(0).toUpperCase() || "?";
   const fotoExibicao = usuarioLogado.foto || "";
+  const tipoAvaliado = (perfilAvaliado?.tipo || "").toString().toUpperCase();
+  const podeAvaliar = !tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado;
 
   const handleCardFotoError = (index) => {
     setAvaliacoes((prev) =>
@@ -153,54 +159,56 @@ const Avaliacoes = ({
   return (
     <div className="avaliacoes-container">
 
-      <div className="avaliacao-nova">
-        <h3 className="titulo-bloco">Deixe sua avaliacao</h3>
+      {podeAvaliar && (
+        <div className="avaliacao-nova">
+          <h3 className="titulo-bloco">Deixe sua avaliacao</h3>
 
-        <div className="usuario-logado">
-          {fotoExibicao ? (
-            <img
-              src={fotoExibicao}
-              alt="foto do usuario logado"
-              onError={() =>
-                setUsuarioLogado((prev) => ({
-                  ...prev,
-                  foto: ""
-                }))
-              }
-            />
-          ) : (
-            <div className="review-foto-placeholder">{inicialExibicao}</div>
-          )}
-          <div className="usuario-logado-info">
-            <span className="usuario-logado-label">Comentando como</span>
-            <span className="usuario-logado-nome">{nomeExibicao}</span>
+          <div className="usuario-logado">
+            {fotoExibicao ? (
+              <img
+                src={fotoExibicao}
+                alt="foto do usuario logado"
+                onError={() =>
+                  setUsuarioLogado((prev) => ({
+                    ...prev,
+                    foto: ""
+                  }))
+                }
+              />
+            ) : (
+              <div className="review-foto-placeholder">{inicialExibicao}</div>
+            )}
+            <div className="usuario-logado-info">
+              <span className="usuario-logado-label">Comentando como</span>
+              <span className="usuario-logado-nome">{nomeExibicao}</span>
+            </div>
           </div>
+
+          <textarea
+            className="novo-input"
+            placeholder="Escreva um comentario"
+            rows={4}
+            value={novoTexto}
+            onChange={(e) => setNovoTexto(e.target.value)}
+          ></textarea>
+
+          <div className="container-estrelas">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <span
+                key={n}
+                className={`nova-star ${novaEstrela >= n ? "ativa" : ""}`}
+                onClick={() => setNovaEstrela(n)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+
+          <button className="botao-enviar" onClick={enviarAvaliacao} disabled={enviando}>
+            {enviando ? "Enviando..." : "Enviar avaliacao"}
+          </button>
         </div>
-
-        <textarea
-          className="novo-input"
-          placeholder="Escreva um comentario"
-          rows={4}
-          value={novoTexto}
-          onChange={(e) => setNovoTexto(e.target.value)}
-        ></textarea>
-
-        <div className="container-estrelas">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <span
-              key={n}
-              className={`nova-star ${novaEstrela >= n ? "ativa" : ""}`}
-              onClick={() => setNovaEstrela(n)}
-            >
-              ★
-            </span>
-          ))}
-        </div>
-
-        <button className="botao-enviar" onClick={enviarAvaliacao} disabled={enviando}>
-          {enviando ? "Enviando..." : "Enviar avaliacao"}
-        </button>
-      </div>
+      )}
 
       <h3 className="titulo-lista">Avaliacoes de usuarios</h3>
       {carregando && <p className="texto">Carregando avaliacoes...</p>}
