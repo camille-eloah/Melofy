@@ -252,7 +252,7 @@ function ChatMelofy() {
                 </div>
 
                 <div className="message-bubble received">
-                    <div className="message-avatar">{getIniciais(chatAtivo.nome)}</div>
+                    <div className="message-avatar">{renderAvatar(chatAtivo)}</div>
                     <div className="message-content-wrapper">
                     <div className="message-content">
                         <p>É normal no início. Amanhã focaremos nessa parte específica. Traga suas dúvidas!</p>
