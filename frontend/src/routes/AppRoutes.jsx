@@ -10,6 +10,7 @@ import Instrumentos from '../componentes/instrumentos/Instrumentos'
 import Feedback from '../componentes/feedback/FeedBack'
 import ChatMelofy from '../componentes/chat/Chat'
 import NotFound from '../componentes/notfound/NotFound'
+import DashProfessor from '../componentes/dashprofessor/DashProfessor'
 
 
 export default function AppRoutes() {
@@ -27,7 +28,8 @@ export default function AppRoutes() {
       <Route path="/instrumentos" element={<Instrumentos />} />
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/chat" element={<ChatMelofy />} />
-      <Route path="/notfound" element={<NotFound />} />
+      <Route path="*" element={<NotFound />} />
+      <Route path='/dashprofessor' element={<DashProfessor />} />
 
 
     </Routes>
