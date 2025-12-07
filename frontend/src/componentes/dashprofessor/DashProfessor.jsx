@@ -16,7 +16,8 @@ import {
   FaMapPin,
   FaRoad,
   FaHashtag,
-  FaBuilding
+  FaBuilding,
+  FaLink
 } from 'react-icons/fa'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
@@ -160,7 +161,7 @@ function DashProfessor() {
                   <label className="input-label">
                     Valor por hora (R$)
                   </label>
-                  <div className="input-field-wrapper">
+                  <div className="valor-input-wrapper">
                     <span className="input-prefix">R$</span>
                     <input
                       type="number"
@@ -169,7 +170,7 @@ function DashProfessor() {
                       placeholder="0,00"
                       min="0"
                       step="0.01"
-                      className="config-input"
+                      className="simple-input"
                       required
                     />
                   </div>
@@ -228,14 +229,14 @@ function DashProfessor() {
                       </div>
                     </div>
                     <div className="input-group">
-                      <div className="input-field-wrapper">
-                        <FaVideo className="input-icon" />
+                      <div className="link-input-wrapper">
+                        <FaLink className="input-icon" />
                         <input
                           type="url"
                           value={linkGoogleMeet}
                           onChange={(e) => setLinkGoogleMeet(e.target.value)}
                           placeholder="https://meet.google.com/abc-defg-hij"
-                          className="config-input"
+                          className="simple-input"
                           required={tipoAula === 'remota'}
                         />
                       </div>
@@ -266,95 +267,83 @@ function DashProfessor() {
                         <label className="input-label">
                           <FaCity className="input-label-icon" /> Cidade
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.cidade}
-                            onChange={(e) => handleLocalizacaoChange('cidade', e.target.value)}
-                            placeholder="Digite a cidade"
-                            className="config-input"
-                            required
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.cidade}
+                          onChange={(e) => handleLocalizacaoChange('cidade', e.target.value)}
+                          placeholder="Digite a cidade"
+                          className="simple-input"
+                          required
+                        />
                       </div>
 
                       <div className="input-group">
                         <label className="input-label">
                           <FaMapPin className="input-label-icon" /> Estado
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.estado}
-                            onChange={(e) => handleLocalizacaoChange('estado', e.target.value)}
-                            placeholder="Ex: SP, RJ, MG"
-                            className="config-input"
-                            required
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.estado}
+                          onChange={(e) => handleLocalizacaoChange('estado', e.target.value)}
+                          placeholder="Ex: SP, RJ, MG"
+                          className="simple-input"
+                          required
+                        />
                       </div>
 
                       <div className="input-group">
                         <label className="input-label">
                           <FaRoad className="input-label-icon" /> Rua/Avenida
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.rua}
-                            onChange={(e) => handleLocalizacaoChange('rua', e.target.value)}
-                            placeholder="Nome da rua ou avenida"
-                            className="config-input"
-                            required
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.rua}
+                          onChange={(e) => handleLocalizacaoChange('rua', e.target.value)}
+                          placeholder="Nome da rua ou avenida"
+                          className="simple-input"
+                          required
+                        />
                       </div>
 
                       <div className="input-group">
                         <label className="input-label">
                           <FaHashtag className="input-label-icon" /> Número
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.numero}
-                            onChange={(e) => handleLocalizacaoChange('numero', e.target.value)}
-                            placeholder="Número do local"
-                            className="config-input"
-                            required
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.numero}
+                          onChange={(e) => handleLocalizacaoChange('numero', e.target.value)}
+                          placeholder="Número do local"
+                          className="simple-input"
+                          required
+                        />
                       </div>
 
                       <div className="input-group">
                         <label className="input-label">
                           <FaMapPin className="input-label-icon" /> Bairro
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.bairro}
-                            onChange={(e) => handleLocalizacaoChange('bairro', e.target.value)}
-                            placeholder="Bairro do local"
-                            className="config-input"
-                            required
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.bairro}
+                          onChange={(e) => handleLocalizacaoChange('bairro', e.target.value)}
+                          placeholder="Bairro do local"
+                          className="simple-input"
+                          required
+                        />
                       </div>
 
                       <div className="input-group full-width">
                         <label className="input-label">
                           Complemento (opcional)
                         </label>
-                        <div className="input-field-wrapper">
-                          <input
-                            type="text"
-                            value={localizacao.complemento}
-                            onChange={(e) => handleLocalizacaoChange('complemento', e.target.value)}
-                            placeholder="Ex: Sala 203, Bloco B, Andar 2"
-                            className="config-input"
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          value={localizacao.complemento}
+                          onChange={(e) => handleLocalizacaoChange('complemento', e.target.value)}
+                          placeholder="Ex: Sala 203, Bloco B, Andar 2"
+                          className="simple-input"
+                        />
                       </div>
                     </div>
                     
