@@ -729,7 +729,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
               </div>
             )}
 
-            {!isOwner && (
+            {!isOwner && isProfessor && (
               <div className="botoes">
                 <button className="btn-agendar" onClick={openScheduleModal}>
                   Agendar Aula
