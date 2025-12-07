@@ -19,8 +19,8 @@ const instrumentosBase = [
   { nome: "Canto", img: cantoImg, categoria: "Vocal" },
 ]
 
-function MainSection() {
-  const [searchQuery, setSearchQuery] = useState('')
+function MainSection({ searchTerm = "", onSearchChange = () => {} }) {
+  const [searchQuery, setSearchQuery] = useState(searchTerm || '')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [filteredInstruments, setFilteredInstruments] = useState([])
   const searchInputRef = useRef(null)
@@ -94,7 +94,7 @@ function MainSection() {
     return () => clearInterval(interval)
   }, [])
   useEffect(() => {
-    if (searchQuery.trim() === '') {
+    if ((searchQuery || '').trim() === '') {
       setFilteredInstruments([])
       return
     }
@@ -122,10 +122,11 @@ function MainSection() {
   const handleSearch = (query = '') => {
     if (query) {
       setSearchQuery(query)
+      onSearchChange(query)
+    } else {
+      onSearchChange(searchQuery)
     }
-    console.log(`Buscando: ${searchQuery || query}`)
     setShowSuggestions(false)
-
   }
 
   const handleSuggestionClick = (instrumentName) => {

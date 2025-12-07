@@ -1,4 +1,4 @@
-import "./TeacherList.css";
+﻿import "./TeacherList.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -18,7 +18,7 @@ function formatInstruments(list) {
   return `${arr.slice(0, -1).join(", ")} e ${arr[arr.length - 1]}`;
 }
 
-function TeacherList() {
+function TeacherList({ searchTerm = "" }) {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -64,13 +64,14 @@ function TeacherList() {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
-              city: "Caicó - RN",
+              city: "Caico - RN",
               instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
               reviews: `${total} reviews`,
               bio: prof.bio || "Nenhuma bio informada.",
               price: "R$ 90/h",
+              instrumentosNomes,
             };
           })
         );
@@ -87,6 +88,16 @@ function TeacherList() {
     carregarProfessores();
   }, []);
 
+  const termo = (searchTerm || "").trim().toLowerCase();
+  const visiveis =
+    termo.length === 0
+      ? teachers
+      : teachers.filter((t) =>
+          (t.instrumentosNomes || []).some((inst) =>
+            inst.toLowerCase().includes(termo)
+          )
+        );
+
   return (
     <main className="teacher-list">
       <h2 className="teacher-title">
@@ -96,7 +107,7 @@ function TeacherList() {
       {loading && <p>Carregando professores...</p>}
 
       <div className="teacher-grid">
-        {teachers.map((t) => (
+        {visiveis.map((t) => (
           <div
             className="teacher-card"
             key={t.id}
