@@ -1031,8 +1031,15 @@ async def upload_profile_picture(
         shutil.copyfileobj(file.file, buffer)
 
     mount_prefix = media_mount_path.rstrip("/")
+    photo_path = f"{mount_prefix}/{settings.profile_pic_dir}/{usuario.tipo_usuario.value.lower()}/{dest_path.name}"
+    if hasattr(usuario, "profile_picture"):
+        usuario.profile_picture = photo_path
+        db.add(usuario)
+        db.commit()
+        db.refresh(usuario)
+
     return {
-        "profile_picture": f"{mount_prefix}/{settings.profile_pic_dir}/{usuario.tipo_usuario.value.lower()}/{dest_path.name}"
+        "profile_picture": photo_path
     }
 
 
@@ -1085,5 +1092,6 @@ app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
+
 
 
