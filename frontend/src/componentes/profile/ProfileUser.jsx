@@ -96,7 +96,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, [usuarioId, tipoUsuario]);
 
   useEffect(() => {
-    // SIMULA usuário logado professor para eu poder entrar sem acesso ao back
     setCurrentUser({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
     setUsuario({ id: 1, nome: "Teste", tipo_usuario: "PROFESSOR" });
     setUsuarioIdState(1);
@@ -118,26 +117,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const handleConfirmarAgendamento = () => {
     console.log("Dados do agendamento enviados:", agendamento);
 
-    // Quando o backend estiver pronto, usar:
-    /*
-    fetch(`${API_BASE_URL}/agendamentos`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(agendamento),
-      credentials: "include"
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Agendamento salvo!", data);
-        alert("Agendamento concluído!");
-        closeScheduleModal();
-      })
-      .catch(error => console.error("Erro ao salvar agendamento:", error));
-    */
-
-    // Código temporário só pra mostrar feedback
     Swal.fire({
       title: "Agendamento enviado!",
       text: "Quando o back estiver pronto irá salvar.",
@@ -147,9 +126,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }).then(() => {
       closeScheduleModal();
     });
-
   };
-
 
   console.log("[ProfileUser] params", {
     userUuidParam,
@@ -163,7 +140,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   });
 
   useEffect(() => {
-    // se houver um identificador na rota, buscar o perfil correspondente
     if (!userIdentifier) return;
 
     const identifierPath = isUuid ? `uuid/${userIdentifier}` : userIdentifier;
@@ -205,7 +181,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" })
       .then((res) => {
         if (res.ok) return res.json();
-        if (res.status === 401) return null; // sem login, segue sem redirecionar
+        if (res.status === 401) return null;
         throw new Error("erro");
       })
       .then((data) => {
@@ -216,16 +192,13 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         const isMesmoPathUuid = identifierFromPath && isUuid && data?.global_uuid && String(identifierFromPath) === String(data.global_uuid);
         const tipoConfere = !tipoPath || tipoPath === tipoAtual;
         const isMesmoUsuario = (isMesmoUuid || isMesmoPathUuid) && tipoConfere;
-        // só preenche com o próprio usuário se for o mesmo id/uuid (rota) e o tipo da rota (se houver) combinar
         if ((!userIdentifier && !(usuario && usuario.id)) || (isMesmoUsuario && !(usuario && usuario.id))) {
           setUsuario(data || {});
           if (data?.id) setUsuarioIdState(data.id);
           if (data?.profile_picture) setCacheBust(Date.now());
         }
       })
-      .catch(() => {
-        /* ignora falhas de rede sem redirecionar */
-      });
+      .catch(() => {});
   }, [navigate, userUuidParam, userIdentifier, tipoPath, usuario, isUuid, identifierFromPath]);
 
   useEffect(() => {
@@ -484,7 +457,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         }
       })
       .catch(() => {
-        /* ignora erros silenciosamente */
         console.log("[ProfileUser] erro ao buscar tags; mantendo estado atual");
       });
 
@@ -564,7 +536,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           const normalized = (tagsData || []).map(normalizeTagResponse).filter(Boolean);
           setTags(normalized);
         } else {
-          // Se der 404 (ex.: backend sem professor para o id), segue sem interromper o fluxo
           console.warn("[ProfileUser] falha ao salvar tags, prosseguindo", { status: tagsResp.status });
           setTags(tagsPayload);
         }
@@ -588,6 +559,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       email: values?.email ?? usuario.email ?? "",
       telefone: values?.telefone ?? "",
       bio: values?.bio ?? "",
+      link_aula: values?.link_aula ?? usuario.link_aula ?? "",
     };
 
     setIsSavingProfileInfo(true);
@@ -637,15 +609,20 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           .filter(Boolean),
       );
 
+  const handleLinkClick = (e) => {
+    e.preventDefault();
+    if (usuario.link_aula) {
+      window.open(usuario.link_aula, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="profile-page">
       <Header />
 
       <div className="profile-container">
         <div className="lado-esquerdo-profile">
-          {/* Container top-items acima do main-text */}
           <div className="top-items">
-            {/* Categorias no inicio (esquerda) */}
             <div className="categorias">
               {badgeInfo && (
                 <span className={`categoria-item categoria-badge categoria-badge-${badgeInfo.variant}`}>
@@ -664,31 +641,24 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
               })}
             </div>
 
-            {/* Botao de edicao no final (direita)*/}
             {isOwner && (
               <button className="btn-editar-texto" title="Editar textos" onClick={openEditTextsModal}>
                 <span aria-hidden="true">✎</span>
               </button>
             )}
-
           </div>
 
-          {/* Texto principal a esquerda */}
           <div className="main-text">
             <div className="texto-intro">
-              <p>
-                {introText}
-              </p>
+              <p>{introText}</p>
             </div>
 
             <div className="texto-desc">
               <p>{descText}</p>
             </div>
           </div>
-
         </div>
 
-        {/* Cartao de perfil a direita */}
         <div className="lado-direito-profile">
           <div className="card-perfil">
             <div
@@ -702,9 +672,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                   handleFotoClick();
                 }
               }}
-
             >
-
               {displayedPicture ? (
                 <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
               ) : (
@@ -745,6 +713,22 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 <span>Telefone:</span>
                 <span>{usuario.telefone || "Nao informado"}</span>
               </p>
+              {isProfessor && usuario.link_aula && (
+                <p className="link-aula">
+                  <span>Link da Aula:</span>
+                  <a 
+                    href={usuario.link_aula} 
+                    onClick={handleLinkClick}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link-aula-url"
+                  >
+                    {usuario.link_aula.length > 30 
+                      ? `${usuario.link_aula.substring(0, 30)}...` 
+                      : usuario.link_aula}
+                  </a>
+                </p>
+              )}
               <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
             </div>
 
@@ -764,6 +748,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 <button className="btn-agendar" onClick={openScheduleModal}>
                   Agendar Aula
                 </button>
+                {usuario.link_aula && (
+                  <button 
+                    className="btn-entrar-aula"
+                    onClick={handleLinkClick}
+                  >
+                    Entrar na Aula
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -802,11 +794,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           initialEmail={usuario?.email || ""}
           initialPhone={usuario?.telefone || ""}
           initialBio={usuario?.bio || ""}
+          initialLinkAula={usuario?.link_aula || ""}
           onSave={handleSaveProfileInfo}
           isSaving={isSavingProfileInfo}
         />
 
-        {/* Avaliacoes abaixo */}
         <Reviews
           usuario={usuario}
           fotoAbsoluta={displayedPicture}
@@ -817,17 +809,6 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           currentUser={currentUser}
           onRatingChange={refreshRatingStats}
         />
-
-        {/* <div className="avaliacoes">
-          <h4>&lt;Avaliacoes&gt;</h4>
-          <div className="box-avaliacao avaliacao-card">
-            <span className="star">★</span>
-            <span>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec venenatis, ligula sit amet efficitur
-              maximus, purus ligula viverra eros, eu pellentesque.
-            </span>
-          </div>
-        </div> */}
       </div>
 
       <ScheduleClassModal
@@ -853,5 +834,3 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
 }
 
 export default ProfileUser;
-
-
