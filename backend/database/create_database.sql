@@ -254,6 +254,7 @@ CREATE TABLE tb_pacotes (
     pac_nome VARCHAR(255) NOT NULL,
     pac_quantidade_aulas INT NOT NULL CHECK (pac_quantidade_aulas > 0),
     pac_valor_total DECIMAL(10,2) NOT NULL CHECK (pac_valor_total > 0),
+    pac_valor_hora_aula DECIMAL(10,2) GENERATED ALWAYS AS (pac_valor_total / pac_quantidade_aulas) STORED,
     pac_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     pac_ativo BOOLEAN NOT NULL DEFAULT TRUE,
 

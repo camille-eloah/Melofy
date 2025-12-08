@@ -25,6 +25,7 @@ class PacoteRead(BaseModel):
     pac_nome: str
     pac_quantidade_aulas: int
     pac_valor_total: float
+    pac_valor_hora_aula: Optional[float] = None
     pac_criado_em: datetime
     pac_ativo: bool
 

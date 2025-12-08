@@ -9,8 +9,10 @@ import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextM
 import EditProfileInfoModal from "./modals/editProfileInfoModal/EditProfileInfoModal";
 import ProfilePictureModal from "./modals/profilePictureModal/ProfilePictureModal";
 import CreatePackageModal from "./modals/createPackageModal/CreatePackageModal";
+import EditPackageModal from "./modals/editPackageModal/EditPackageModal";
 import ScheduleClassModal from "./modals/scheduleClassModal/ScheduleClassModal";
 import Reviews from "./modals/reviews/Reviews";
+import UserCard from "./user-card/UserCard";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -73,7 +75,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [pacote, setPacote] = useState({
     quantidade: "",
     valor: "",
+    nome: "",
   });
+  const [pacotes, setPacotes] = useState([]);
+  const [isLoadingPacotes, setIsLoadingPacotes] = useState(false);
+  const [isEditPackageModalOpen, setIsEditPackageModalOpen] = useState(false);
+  const [editingPacote, setEditingPacote] = useState(null);
   const refreshRatingStats = useCallback(() => {
     if (!usuarioId || !tipoUsuario) {
       setRatingStats({ media: 0, total: 0 });
@@ -273,37 +280,146 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
 
     try {
-      await fetch(`${API_BASE_URL}/pacotes`, {
+      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          qtd_aulas: pacote.quantidade,
-          preco: pacote.valor,
-          nome: pacote.nome,
+          pac_nome: pacote.nome.trim(),
+          pac_quantidade_aulas: pacote.quantidade,
+          pac_valor_total: pacote.valor,
         }),
       });
+
+      if (!resp.ok) {
+        const error = await resp.json();
+        throw new Error(error?.detail || "Erro ao cadastrar pacote");
+      }
+
+      const novoPackote = await resp.json();
 
       Swal.fire({
         title: "Sucesso!",
         text: "Pacote cadastrado com sucesso!",
         icon: "success",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
 
+      console.log("✅ Novo pacote criado:", novoPackote);
+
       setPacote({ quantidade: "", valor: "", nome: "" });
+
+      // Recarregar lista de pacotes
+      await carregarPacotes();
 
       return true;
 
     } catch (error) {
+      console.error("❌ Erro ao cadastrar pacote:", error);
       Swal.fire({
         title: "Erro!",
-        text: "Erro ao cadastrar pacote",
+        text: error.message || "Erro ao cadastrar pacote",
         icon: "error",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
 
       return false;
     }
   }
+
+  const carregarPacotes = useCallback(async (profId = null) => {
+    if (!isProfessor) return;
+
+    setIsLoadingPacotes(true);
+    try {
+      // If profId is provided or user is not owner, use public endpoint
+      // Otherwise use authenticated endpoint for owner's packages
+      const endpoint = profId 
+        ? `${API_BASE_URL}/lessons/professor/${profId}/pacotes/`
+        : `${API_BASE_URL}/lessons/pacotes/`;
+
+      const resp = await fetch(endpoint, {
+        credentials: "include",
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        console.log("✅ Pacotes carregados:", data);
+        setPacotes(Array.isArray(data) ? data : []);
+      } else {
+        console.warn("⚠️ Erro ao carregar pacotes:", resp.status);
+        setPacotes([]);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao carregar pacotes:", error);
+      setPacotes([]);
+    } finally {
+      setIsLoadingPacotes(false);
+    }
+  }, [isProfessor]);
+
+  const openEditPackageModal = (pac) => {
+    setEditingPacote({ ...pac });
+    setIsEditPackageModalOpen(true);
+  };
+
+  const closeEditPackageModal = () => {
+    setIsEditPackageModalOpen(false);
+    setEditingPacote(null);
+  };
+
+  const handleEditPacote = async (dadosEditados) => {
+    if (!editingPacote?.pac_id) return false;
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/${editingPacote.pac_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          pac_nome: dadosEditados.nome.trim(),
+          pac_quantidade_aulas: dadosEditados.quantidade,
+          pac_valor_total: dadosEditados.valor,
+        }),
+      });
+
+      if (!resp.ok) {
+        const error = await resp.json();
+        throw new Error(error?.detail || "Erro ao atualizar pacote");
+      }
+
+      console.log("✅ Pacote atualizado com sucesso");
+
+      // Recarregar lista de pacotes
+      await carregarPacotes();
+
+      return true;
+    } catch (error) {
+      console.error("❌ Erro ao atualizar pacote:", error);
+      Swal.fire({
+        title: "Erro!",
+        text: error.message || "Erro ao atualizar pacote",
+        icon: "error",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
+      });
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (isProfessor && usuario?.id) {
+      carregarPacotes(usuario.id);
+    }
+  }, [usuario?.id, isProfessor, carregarPacotes]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -674,108 +790,25 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         </div>
 
         <div className="lado-direito-profile">
-          <div className="card-perfil">
-            <div
-              className={`foto-wrapper ${isOwner ? "foto-interativa" : ""}`}
-              onClick={isOwner ? handleFotoClick : undefined}
-              role={isOwner ? "button" : undefined}
-              tabIndex={isOwner ? 0 : undefined}
-              onKeyDown={(e) => {
-                if (isOwner && (e.key === "Enter" || e.key === " ")) {
-                  e.preventDefault();
-                  handleFotoClick();
-                }
-              }}
-            >
-              {displayedPicture ? (
-                <img src={displayedPicture} alt={`Foto de ${nomeUsuario}`} className="foto-perfil" />
-              ) : (
-                <div className="foto-vazia">{nomeUsuario[0]?.toUpperCase() || "?"}</div>
-              )}
-              {isOwner && (
-                <div className="foto-overlay">
-                  <span className="camera-icon" aria-hidden="true">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M4 7h4l2-3h4l2 3h4v12H4z" />
-                      <circle cx="12" cy="13" r="3.2" />
-                    </svg>
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <h3>{nomeUsuario}</h3>
-            <div className="avaliacao-badge">
-              <span className="teacher-rating">⭐ {ratingMedia}</span>
-              <span className="teacher-reviews">({ratingTotal} reviews)</span>
-            </div>
-
-            <div className="info">
-              <p>
-                <span>Email:</span>
-                <span>{usuario.email || "Nao informado"}</span>
-              </p>
-              <p>
-                <span>Telefone:</span>
-                <span>{usuario.telefone || "Nao informado"}</span>
-              </p>
-              {isProfessor && usuario.link_aula && (
-                <p className="link-aula">
-                  <span>Link da Aula:</span>
-                  <a 
-                    href={usuario.link_aula} 
-                    onClick={handleLinkClick}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link-aula-url"
-                  >
-                    {usuario.link_aula.length > 30 
-                      ? `${usuario.link_aula.substring(0, 30)}...` 
-                      : usuario.link_aula}
-                  </a>
-                </p>
-              )}
-              <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
-            </div>
-
-            {isOwner && (
-              <div className="botoes">
-                <button className="btn-editar" onClick={openEditProfileModal}>Editar Perfil</button>
-                {isProfessor && (
-                  <button className="btn-cadastrarpacote" onClick={() => setIsPackageModalOpen(true)}>
-                    Cadastrar Pacote
-                  </button>
-                )}
-              </div>
-            )}
-
-            {!isOwner && isProfessor && (
-              <div className="botoes">
-                <button className="btn-agendar" onClick={openScheduleModal}>
-                  Agendar Aula
-                </button>
-                {usuario.link_aula && (
-                  <button 
-                    className="btn-entrar-aula"
-                    onClick={handleLinkClick}
-                  >
-                    Entrar na Aula
-                  </button>
-                )}
-                <button className="btn-agendar" type="button" onClick={handleStartChat}>
-                  Enviar Mensagem
-                </button>
-              </div>
-            )}
-          </div>
+          <UserCard
+            usuario={usuario}
+            isOwner={isOwner}
+            isProfessor={isProfessor}
+            displayedPicture={displayedPicture}
+            nomeUsuario={nomeUsuario}
+            ratingMedia={ratingMedia}
+            ratingTotal={ratingTotal}
+            pacotes={pacotes}
+            isLoadingPacotes={isLoadingPacotes}
+            onPhotoClick={handleFotoClick}
+            onEditProfileClick={openEditProfileModal}
+            onCreatePackageClick={() => setIsPackageModalOpen(true)}
+            onScheduleClassClick={openScheduleModal}
+            onEnterClassClick={handleLinkClick}
+            onStartChatClick={handleStartChat}
+            onEditPackageClick={openEditPackageModal}
+            onCarregarPacotes={carregarPacotes}
+          />
         </div>
 
         <ProfilePictureModal
@@ -831,6 +864,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       <ScheduleClassModal
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
+        pacotes={pacotes}
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}
@@ -842,6 +876,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         pacote={pacote}
         onChange={setPacote}
         onSubmit={handleSubmitPacote}
+      />
+
+      <EditPackageModal
+        open={isEditPackageModalOpen}
+        onClose={closeEditPackageModal}
+        pacote={editingPacote}
+        onChange={setEditingPacote}
+        onSubmit={handleEditPacote}
       />
 
       <ButtonChat />

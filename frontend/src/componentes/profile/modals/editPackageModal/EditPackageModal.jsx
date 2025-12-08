@@ -1,8 +1,8 @@
-// CreatePackageModal.jsx
-import "./CreatePackageModal.css";
+// EditPackageModal.jsx
+import "./EditPackageModal.css";
 import Swal from "sweetalert2";
 
-function CreatePackageModal({
+function EditPackageModal({
   open,
   onClose,
   pacote,
@@ -14,9 +14,9 @@ function CreatePackageModal({
   const handleSubmit = async () => {
     try {
       // Proteções contra undefined + trim seguro
-      const nome = (pacote?.nome || "").toString().trim();
-      const quantidade = Number(pacote?.quantidade);
-      const valor = Number(pacote?.valor);
+      const nome = (pacote?.pac_nome || "").toString().trim();
+      const quantidade = Number(pacote?.pac_quantidade_aulas);
+      const valor = Number(pacote?.pac_valor_total);
 
       if (!nome) {
         await Swal.fire({
@@ -63,7 +63,7 @@ function CreatePackageModal({
       // mostra feedback de sucesso (aguarda fechar automatico)
       await Swal.fire({
         icon: "success",
-        title: "Pacote salvo!",
+        title: "Pacote atualizado!",
         showConfirmButton: false,
         timer: 1200,
         timerProgressBar: true,
@@ -79,7 +79,7 @@ function CreatePackageModal({
       try {
         result = onSubmit ? await onSubmit({ nome, quantidade, valor }) : true;
       } catch (err) {
-        // Se onSubmit falhar (lançar), o erro já foi tratado por handleSubmitPacote
+        // Se onSubmit falhar (lançar), o erro já foi tratado por handleEditPacote
         // Apenas não fechamos o modal
         console.error("onSubmit falhou:", err);
         return;
@@ -94,8 +94,8 @@ function CreatePackageModal({
       // sucesso: fecha modal
       onClose();
     } catch (err) {
-      // Erro inesperado (ex.: tentativa de acessar .trim em undefined já prevenimos, mas guarda)
-      console.error("Erro ao submeter pacote:", err);
+      // Erro inesperado
+      console.error("Erro ao submeter edição de pacote:", err);
       await Swal.fire({
         icon: "error",
         title: "Erro inesperado",
@@ -114,15 +114,15 @@ function CreatePackageModal({
         className="pacote-modal-container"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3>Cadastrar Pacote de Aula</h3>
+        <h3>Editar Pacote de Aula</h3>
 
         <div className="pacote-input-group">
           <label>Nome ou Descrição do Pacote</label>
           <input
             type="text"
             placeholder="Ex.: Pacote Mensal Premium"
-            value={pacote.nome || ""}
-            onChange={(e) => onChange({ ...pacote, nome: e.target.value })}
+            value={pacote?.pac_nome || ""}
+            onChange={(e) => onChange({ ...pacote, pac_nome: e.target.value })}
           />
         </div>
 
@@ -132,9 +132,12 @@ function CreatePackageModal({
             type="number"
             min={1}
             placeholder="Ex.: 4"
-            value={pacote.quantidade || ""}
+            value={pacote?.pac_quantidade_aulas || ""}
             onChange={(e) =>
-              onChange({ ...pacote, quantidade: e.target.value === "" ? "" : Number(e.target.value) })
+              onChange({
+                ...pacote,
+                pac_quantidade_aulas: e.target.value === "" ? "" : Number(e.target.value),
+              })
             }
           />
         </div>
@@ -144,15 +147,18 @@ function CreatePackageModal({
           <input
             type="number"
             placeholder="Ex.: 280"
-            value={pacote.valor || ""}
+            value={pacote?.pac_valor_total || ""}
             onChange={(e) =>
-              onChange({ ...pacote, valor: e.target.value === "" ? "" : Number(e.target.value) })
+              onChange({
+                ...pacote,
+                pac_valor_total: e.target.value === "" ? "" : Number(e.target.value),
+              })
             }
           />
         </div>
 
         <button className="pacote-btn-confirmar" onClick={handleSubmit}>
-          Salvar Pacote
+          Salvar Alterações
         </button>
 
         <button className="pacote-btn-cancelar" onClick={onClose}>
@@ -163,4 +169,4 @@ function CreatePackageModal({
   );
 }
 
-export default CreatePackageModal;
+export default EditPackageModal;
