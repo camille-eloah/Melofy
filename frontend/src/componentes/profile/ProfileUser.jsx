@@ -849,6 +849,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                           <p className="pacote-valor">
                             R$ <strong>{Number(pac.pac_valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
                           </p>
+                          <p className="pacote-valor-hora">
+                            <strong>R$ {Number(pac.pac_valor_hora_aula || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong> por aula
+                          </p>
                           {isOwner && (
                             <div className="pacote-acoes">
                               <button 

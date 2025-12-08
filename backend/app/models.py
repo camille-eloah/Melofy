@@ -5,7 +5,7 @@ from datetime import datetime, date
 from enum import Enum
 from pydantic_settings import BaseSettings
 from typing import List
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Numeric
 
 
 # ----------------------------
@@ -233,7 +233,8 @@ class Pacote(SQLModel, table=True):
     pac_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
     pac_nome: str = Field(nullable=False)                    # Nome/descrição do pacote
     pac_quantidade_aulas: int = Field(nullable=False, gt=0)  # Quantidade de aulas (> 0)
-    pac_valor_total: float = Field(nullable=False, gt=0, sa_type="DECIMAL(10,2)")  # Valor total
+    pac_valor_total: float = Field(gt=0, sa_column=Column(Numeric(10, 2), nullable=False))  # Valor total
+    pac_valor_hora_aula: Optional[float] = Field(default=None, nullable=True)  # Valor calculado: total / quantidade
     pac_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     pac_ativo: bool = Field(default=True, nullable=False)
 
