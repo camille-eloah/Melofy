@@ -18,21 +18,34 @@ function ChatMelofy() {
   const [historicoPorChat, setHistoricoPorChat] = useState({});
 
   const [meuId, setMeuId] = useState(null);
+  const [meuTipo, setMeuTipo] = useState(null);
 
-  useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const resp = await fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" });
-        if (!resp.ok) throw new Error("Erro ao obter usuário atual");
-        const data = await resp.json();
-        setMeuId(data.id);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+useEffect(() => {
+  const carregarUsuario = async () => {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/auth/me`, { credentials: "include" });
+      if (!resp.ok) throw new Error("Erro ao obter usuário atual");
 
-    carregarUsuario();
-  }, []);
+      const data = await resp.json();
+
+      setMeuId(data.id);
+      setMeuTipo(data.tipo_usuario); // 🔥 salva o tipo (aluno ou professor)
+
+      console.log(
+        "%c🔎 DEBUG — Usuário logado:",
+        "color: #4ade80; font-size: 14px; font-weight: bold;"
+      );
+      console.log("➡️ ID:", data.id);
+      console.log("➡️ Tipo:", data.tipo_usuario);
+      console.log("➡️ Nome:", data.nome);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  carregarUsuario();
+}, []);
 
 useEffect(() => {
   const carregarConversas = async () => {
