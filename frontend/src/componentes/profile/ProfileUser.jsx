@@ -73,7 +73,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [pacote, setPacote] = useState({
     quantidade: "",
     valor: "",
+    nome: "",
   });
+  const [pacotes, setPacotes] = useState([]);
+  const [isLoadingPacotes, setIsLoadingPacotes] = useState(false);
   const refreshRatingStats = useCallback(() => {
     if (!usuarioId || !tipoUsuario) {
       setRatingStats({ media: 0, total: 0 });
@@ -273,37 +276,89 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
 
     try {
-      await fetch(`${API_BASE_URL}/pacotes`, {
+      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          qtd_aulas: pacote.quantidade,
-          preco: pacote.valor,
-          nome: pacote.nome,
+          pac_nome: pacote.nome.trim(),
+          pac_quantidade_aulas: pacote.quantidade,
+          pac_valor_total: pacote.valor,
         }),
       });
+
+      if (!resp.ok) {
+        const error = await resp.json();
+        throw new Error(error?.detail || "Erro ao cadastrar pacote");
+      }
+
+      const novoPackote = await resp.json();
 
       Swal.fire({
         title: "Sucesso!",
         text: "Pacote cadastrado com sucesso!",
         icon: "success",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
 
+      console.log("✅ Novo pacote criado:", novoPackote);
+
       setPacote({ quantidade: "", valor: "", nome: "" });
+
+      // Recarregar lista de pacotes
+      await carregarPacotes();
 
       return true;
 
     } catch (error) {
+      console.error("❌ Erro ao cadastrar pacote:", error);
       Swal.fire({
         title: "Erro!",
-        text: "Erro ao cadastrar pacote",
+        text: error.message || "Erro ao cadastrar pacote",
         icon: "error",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
 
       return false;
     }
   }
+
+  const carregarPacotes = useCallback(async () => {
+    if (!isOwner || !isProfessor) return;
+
+    setIsLoadingPacotes(true);
+    try {
+      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/`, {
+        credentials: "include",
+      });
+
+      if (resp.ok) {
+        const data = await resp.json();
+        console.log("✅ Pacotes carregados:", data);
+        setPacotes(Array.isArray(data) ? data : []);
+      } else {
+        console.warn("⚠️ Erro ao carregar pacotes:", resp.status);
+        setPacotes([]);
+      }
+    } catch (error) {
+      console.error("❌ Erro ao carregar pacotes:", error);
+      setPacotes([]);
+    } finally {
+      setIsLoadingPacotes(false);
+    }
+  }, [isOwner, isProfessor]);
+
+  useEffect(() => {
+    if (isOwner && isProfessor) {
+      carregarPacotes();
+    }
+  }, [isOwner, isProfessor, carregarPacotes]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -773,6 +828,79 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                 <button className="btn-agendar" type="button" onClick={handleStartChat}>
                   Enviar Mensagem
                 </button>
+              </div>
+            )}
+
+            {/* Seção de Pacotes do Professor */}
+            {isProfessor && pacotes.length > 0 && (
+              <div className="secao-pacotes">
+                <h4>📦 Pacotes de Aulas</h4>
+                {isLoadingPacotes ? (
+                  <p className="loading-pacotes">Carregando pacotes...</p>
+                ) : (
+                  <div className="lista-pacotes">
+                    {pacotes.map((pac) => (
+                      <div key={pac.pac_id} className="card-pacote">
+                        <div className="pacote-info">
+                          <h5>{pac.pac_nome}</h5>
+                          <p>
+                            <strong>{pac.pac_quantidade_aulas}</strong> aula(s)
+                          </p>
+                          <p className="pacote-valor">
+                            R$ <strong>{Number(pac.pac_valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                          </p>
+                          {isOwner && (
+                            <div className="pacote-acoes">
+                              <button 
+                                className="btn-editar-pacote"
+                                onClick={() => {
+                                  console.log("Editar pacote:", pac.pac_id);
+                                  // Implementar edição de pacote
+                                }}
+                              >
+                                Editar
+                              </button>
+                              <button 
+                                className="btn-deletar-pacote"
+                                onClick={async () => {
+                                  const confirmDelete = await Swal.fire({
+                                    title: "Deletar Pacote?",
+                                    text: `Você tem certeza que deseja deletar "${pac.pac_nome}"?`,
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonText: "Sim, deletar",
+                                    cancelButtonText: "Cancelar",
+                                    confirmButtonColor: "#d33",
+                                  });
+
+                                  if (confirmDelete.isConfirmed) {
+                                    try {
+                                      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/${pac.pac_id}`, {
+                                        method: "DELETE",
+                                        credentials: "include",
+                                      });
+
+                                      if (resp.ok) {
+                                        Swal.fire("Deletado!", "Pacote removido com sucesso.", "success");
+                                        await carregarPacotes();
+                                      } else {
+                                        throw new Error("Erro ao deletar");
+                                      }
+                                    } catch (error) {
+                                      Swal.fire("Erro!", "Falha ao deletar pacote.", "error");
+                                    }
+                                  }
+                                }}
+                              >
+                                Deletar
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

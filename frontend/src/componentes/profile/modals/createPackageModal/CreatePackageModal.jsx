@@ -24,6 +24,10 @@ function CreatePackageModal({
           title: "Campo obrigatório",
           text: "Informe o nome do pacote",
           confirmButtonColor: "#3085d6",
+          didRender: (modal) => {
+            const backdrop = document.querySelector(".swal2-container");
+            if (backdrop) backdrop.style.zIndex = "9999";
+          },
         });
         return;
       }
@@ -34,6 +38,10 @@ function CreatePackageModal({
           title: "Quantidade inválida",
           text: "Informe pelo menos 1 aula",
           confirmButtonColor: "#3085d6",
+          didRender: (modal) => {
+            const backdrop = document.querySelector(".swal2-container");
+            if (backdrop) backdrop.style.zIndex = "9999";
+          },
         });
         return;
       }
@@ -44,6 +52,10 @@ function CreatePackageModal({
           title: "Valor inválido",
           text: "Informe um valor maior que 0",
           confirmButtonColor: "#3085d6",
+          didRender: (modal) => {
+            const backdrop = document.querySelector(".swal2-container");
+            if (backdrop) backdrop.style.zIndex = "9999";
+          },
         });
         return;
       }
@@ -55,23 +67,21 @@ function CreatePackageModal({
         showConfirmButton: false,
         timer: 1200,
         timerProgressBar: true,
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
 
       // Chamamos onSubmit — pode ser síncrono ou assíncrono.
       // Se onSubmit for async e retornar true/false, aguardamos e checamos.
       let result;
       try {
-        result = onSubmit ? await onSubmit({ ...pacote, nome, quantidade, valor }) : true;
+        result = onSubmit ? await onSubmit({ nome, quantidade, valor }) : true;
       } catch (err) {
-        // Se onSubmit falhar (lançar), mostramos erro e não fechamos modal
+        // Se onSubmit falhar (lançar), o erro já foi tratado por handleSubmitPacote
+        // Apenas não fechamos o modal
         console.error("onSubmit falhou:", err);
-        await Swal.fire({
-          icon: "error",
-          title: "Erro",
-          text: "Falha ao cadastrar pacote.",
-          confirmButtonColor: "#d33",
-        });
-        
         return;
       }
 
@@ -90,6 +100,10 @@ function CreatePackageModal({
         icon: "error",
         title: "Erro inesperado",
         text: "Ocorreu um erro. Veja o console para mais detalhes.",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
       });
     }
   };
