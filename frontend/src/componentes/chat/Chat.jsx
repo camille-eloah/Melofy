@@ -65,17 +65,6 @@ useEffect(() => {
 
       const data = await resp.json();
 
-      console.log("📌 RAW do backend (my-conversations):", data);
-      console.log(
-        "📌 RAW do backend:",
-        JSON.stringify(data, null, 2)
-      );
-      data.forEach((item, i) => {
-        console.log("Item", i, { ...item });
-        console.log("  └─ Foto URL:", item.foto);
-      });
-
-
       const lista = data.map(c => ({
         uuid: c.uuid,
         nome: c.nome,
@@ -86,8 +75,6 @@ useEffect(() => {
         naoLida: false,
         online: false,
       }));
-
-      console.log("📌 Lista montada para setMensagens:", lista);
 
       setMensagens(lista);
     } catch (err) {
@@ -273,11 +260,6 @@ useEffect(() => {
 
   const renderAvatar = (chat) => {
     if (chat?.foto) {
-      console.log("🖼️ Renderizando imagem:", { 
-        nome: chat.nome, 
-        foto: chat.foto,
-        url_resolvida: chat.foto
-      });
       return (
         <img
           src={chat.foto}
@@ -286,18 +268,13 @@ useEffect(() => {
           onError={(e) => {
             console.error("❌ Erro ao carregar imagem:", { 
               src: e.target.src, 
-              nome: chat.nome,
-              statusCode: e.target.status 
+              nome: chat.nome
             });
             e.target.style.display = 'none';
-          }}
-          onLoad={() => {
-            console.log("✅ Imagem carregada com sucesso:", chat.foto);
           }}
         />
       );
     }
-    console.log("📝 Usando iniciais para:", chat?.nome);
     return getIniciais(chat?.nome || '');
   };
 
