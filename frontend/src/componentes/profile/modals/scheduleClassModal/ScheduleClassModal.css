@@ -93,6 +93,7 @@
     transition: 0.25s ease;
     font-weight: 600;
     font-size: 0.95rem;
+    width: 100%;
 }
 
 .schedule-horario-btn:hover {
