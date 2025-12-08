@@ -9,6 +9,7 @@ import EditProfileTextModal from "./modals/editProfileTextModal/EditProfileTextM
 import EditProfileInfoModal from "./modals/editProfileInfoModal/EditProfileInfoModal";
 import ProfilePictureModal from "./modals/profilePictureModal/ProfilePictureModal";
 import CreatePackageModal from "./modals/createPackageModal/CreatePackageModal";
+import EditPackageModal from "./modals/editPackageModal/EditPackageModal";
 import ScheduleClassModal from "./modals/scheduleClassModal/ScheduleClassModal";
 import Reviews from "./modals/reviews/Reviews";
 
@@ -77,6 +78,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   });
   const [pacotes, setPacotes] = useState([]);
   const [isLoadingPacotes, setIsLoadingPacotes] = useState(false);
+  const [isEditPackageModalOpen, setIsEditPackageModalOpen] = useState(false);
+  const [editingPacote, setEditingPacote] = useState(null);
   const refreshRatingStats = useCallback(() => {
     if (!usuarioId || !tipoUsuario) {
       setRatingStats({ media: 0, total: 0 });
@@ -353,6 +356,57 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       setIsLoadingPacotes(false);
     }
   }, [isOwner, isProfessor]);
+
+  const openEditPackageModal = (pac) => {
+    setEditingPacote({ ...pac });
+    setIsEditPackageModalOpen(true);
+  };
+
+  const closeEditPackageModal = () => {
+    setIsEditPackageModalOpen(false);
+    setEditingPacote(null);
+  };
+
+  const handleEditPacote = async (dadosEditados) => {
+    if (!editingPacote?.pac_id) return false;
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/${editingPacote.pac_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          pac_nome: dadosEditados.nome.trim(),
+          pac_quantidade_aulas: dadosEditados.quantidade,
+          pac_valor_total: dadosEditados.valor,
+        }),
+      });
+
+      if (!resp.ok) {
+        const error = await resp.json();
+        throw new Error(error?.detail || "Erro ao atualizar pacote");
+      }
+
+      console.log("✅ Pacote atualizado com sucesso");
+
+      // Recarregar lista de pacotes
+      await carregarPacotes();
+
+      return true;
+    } catch (error) {
+      console.error("❌ Erro ao atualizar pacote:", error);
+      Swal.fire({
+        title: "Erro!",
+        text: error.message || "Erro ao atualizar pacote",
+        icon: "error",
+        didRender: (modal) => {
+          const backdrop = document.querySelector(".swal2-container");
+          if (backdrop) backdrop.style.zIndex = "9999";
+        },
+      });
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (isOwner && isProfessor) {
@@ -856,10 +910,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                             <div className="pacote-acoes">
                               <button 
                                 className="btn-editar-pacote"
-                                onClick={() => {
-                                  console.log("Editar pacote:", pac.pac_id);
-                                  // Implementar edição de pacote
-                                }}
+                                onClick={() => openEditPackageModal(pac)}
                               >
                                 Editar
                               </button>
@@ -973,6 +1024,14 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         pacote={pacote}
         onChange={setPacote}
         onSubmit={handleSubmitPacote}
+      />
+
+      <EditPackageModal
+        open={isEditPackageModalOpen}
+        onClose={closeEditPackageModal}
+        pacote={editingPacote}
+        onChange={setEditingPacote}
+        onSubmit={handleEditPacote}
       />
 
       <ButtonChat />
