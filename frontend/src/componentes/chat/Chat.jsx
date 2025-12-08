@@ -17,7 +17,7 @@ function ChatMelofy() {
   const [busca, setBusca] = useState('');
   const [historicoPorChat, setHistoricoPorChat] = useState({});
 
-  const [meuId, setMeuId] = useState(null);
+  const [meuUuid, setMeuUuid] = useState(null);
   const [meuTipo, setMeuTipo] = useState(null);
 
 useEffect(() => {
@@ -28,14 +28,14 @@ useEffect(() => {
 
       const data = await resp.json();
 
-      setMeuId(data.id);
+      setMeuUuid(data.global_uuid);
       setMeuTipo(data.tipo_usuario); // 🔥 salva o tipo (aluno ou professor)
 
       console.log(
         "%c🔎 DEBUG — Usuário logado:",
         "color: #4ade80; font-size: 14px; font-weight: bold;"
       );
-      console.log("➡️ ID:", data.id);
+      console.log("➡️ UUID:", data.global_uuid);
       console.log("➡️ Tipo:", data.tipo_usuario);
       console.log("➡️ Nome:", data.nome);
 
@@ -66,7 +66,7 @@ useEffect(() => {
 
 
       const lista = data.map(c => ({
-        id: c.id,
+        uuid: c.uuid,
         nome: c.nome,
         foto: c.foto,
         instrumentos: c.instrumentos || [], 
@@ -88,17 +88,23 @@ useEffect(() => {
 }, []);
 
 
-  const abrirChat = (chatId) => {
-    const chatSelecionado = mensagens.find(msg => msg.id === chatId);
+  const abrirChat = (chatUuid) => {
+    const chatSelecionado = mensagens.find(msg => msg.uuid === chatUuid);
     setChatAtivo(chatSelecionado);
     
     setMensagens(prev => prev.map(msg => 
-      msg.id === chatId ? {...msg, naoLida: false} : msg
+      msg.uuid === chatUuid ? {...msg, naoLida: false} : msg
     ));
   };
 
   const enviarMensagem = async () => {
     if (!novaMensagem.trim() || !chatAtivo) return;
+    
+    // Validar se UUID é real (não temporário)
+    if (chatAtivo.uuid.startsWith('tmp-')) {
+      alert('⚠️ Você precisa selecionar um contato real para enviar mensagens');
+      return;
+    }
 
     const tempId = `temp-${Date.now()}`;
     const agora = new Date();
@@ -112,8 +118,8 @@ useEffect(() => {
     };
 
     setHistoricoPorChat((prev) => {
-      const atual = prev[chatAtivo.id] || criarHistoricoDummy(chatAtivo);
-      return { ...prev, [chatAtivo.id]: [...atual, novaEntrada] };
+      const atual = prev[chatAtivo.uuid] || criarHistoricoDummy(chatAtivo);
+      return { ...prev, [chatAtivo.uuid]: [...atual, novaEntrada] };
     });
     setNovaMensagem('');
 
@@ -122,7 +128,7 @@ useEffect(() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          destinatario_id: chatAtivo.id,
+          destinatario_uuid: chatAtivo.uuid,
           texto: mensagemTexto,
         }),
         credentials: 'include',
@@ -134,7 +140,7 @@ useEffect(() => {
 
       const data = await resposta.json();
       setHistoricoPorChat((prev) => {
-        const historico = prev[chatAtivo.id] || [];
+        const historico = prev[chatAtivo.uuid] || [];
         const atualizado = historico.map((msg) =>
           msg.id === tempId
             ? {
@@ -145,16 +151,16 @@ useEffect(() => {
               }
             : msg
         );
-        return { ...prev, [chatAtivo.id]: atualizado };
+        return { ...prev, [chatAtivo.uuid]: atualizado };
       });
     } catch (error) {
       console.error(error);
       setHistoricoPorChat((prev) => {
-        const historico = prev[chatAtivo.id] || [];
+        const historico = prev[chatAtivo.uuid] || [];
         const atualizado = historico.map((msg) =>
           msg.id === tempId ? { ...msg, status: 'error' } : msg
         );
-        return { ...prev, [chatAtivo.id]: atualizado };
+        return { ...prev, [chatAtivo.uuid]: atualizado };
       });
     }
   };
@@ -162,7 +168,7 @@ useEffect(() => {
   useEffect(() => {
     if (!contato) return;
     const baseChat = {
-      id: contato.id ?? `tmp-${Date.now()}`,
+      uuid: contato.uuid ?? `tmp-${Date.now()}`,
       nome: contato.nome || 'Contato',
       instrumentos: Array.isArray(contato.instrumentos) ? contato.instrumentos : [],
       mensagem: contato.mensagem || 'Nova conversa iniciada',
@@ -173,14 +179,14 @@ useEffect(() => {
     };
 
     setMensagens((prev) => {
-      const existente = prev.find((msg) => msg.id === baseChat.id);
+      const existente = prev.find((msg) => msg.uuid === baseChat.uuid);
       if (existente) {
         const merged = { ...existente, ...baseChat };
         setChatAtivo(merged);
-        return prev.map((msg) => (msg.id === baseChat.id ? merged : msg));
+        return prev.map((msg) => (msg.uuid === baseChat.uuid ? merged : msg));
       }
       setChatAtivo(baseChat);
-      return prev.some(m => m.id === baseChat.id)
+      return prev.some(m => m.uuid === baseChat.uuid)
     ? prev
     : [baseChat, ...prev];
 
@@ -188,11 +194,17 @@ useEffect(() => {
   }, [contato]);
 
   useEffect(() => {
-    if (!chatAtivo || !meuId) return; // aguarda ID ser carregado
+    if (!chatAtivo || !meuUuid) return; // aguarda UUID ser carregado
+    
+    // Não fazer requisição se for UUID temporário
+    if (chatAtivo.uuid.startsWith('tmp-')) {
+      console.warn("⚠️ Chat temporário, ignorando carregamento de histórico");
+      return;
+    }
 
     const carregarHistorico = async () => {
       try {
-        const resp = await fetch(`${API_BASE_URL}/messages/conversation/${chatAtivo.id}/full`, {
+        const resp = await fetch(`${API_BASE_URL}/messages/conversation/${chatAtivo.uuid}/full`, {
           credentials: "include",
         });
 
@@ -204,7 +216,7 @@ useEffect(() => {
           id: msg.id,
           texto: msg.texto,
           hora: formatarHora(new Date(msg.created_at)),
-          autor: msg.remetente_id === meuId ? "me" : "other",
+          autor: msg.remetente_uuid === meuUuid ? "me" : "other",
           status: "sent"
         }));
 
@@ -219,7 +231,7 @@ useEffect(() => {
         // salvar histórico
         setHistoricoPorChat(prev => ({
           ...prev,
-          [chatAtivo.id]: mensagensFormatadas
+          [chatAtivo.uuid]: mensagensFormatadas
         }));
 
 
@@ -229,7 +241,7 @@ useEffect(() => {
     };
 
     carregarHistorico();
-  }, [chatAtivo, meuId]);
+  }, [chatAtivo, meuUuid]);
 
 
 
@@ -271,23 +283,23 @@ useEffect(() => {
     }
   };
 
-  const historicoMensagens = chatAtivo ? (historicoPorChat[chatAtivo.id] || []) : [];
+  const historicoMensagens = chatAtivo ? (historicoPorChat[chatAtivo.uuid] || []) : [];
 
   const criarHistoricoDummy = (chat) => ([
     {
-      id: `rcvd-${chat.id}-1`,
+      id: `rcvd-${chat.uuid}-1`,
       autor: 'other',
-      texto: 'Ol­á! Como está o estudo da Sonata? Praticou os movimentos que passei?',
+      texto: 'Olá! Como está o estudo da Sonata? Praticou os movimentos que passei?',
       hora: '20:42',
     },
     {
-      id: `sent-${chat.id}-1`,
+      id: `sent-${chat.uuid}-1`,
       autor: 'me',
       texto: 'Estou praticando diariamente! Ainda tenho dificuldade com o ritmo do terceiro movimento.',
       hora: '20:44',
     },
     {
-      id: `rcvd-${chat.id}-2`,
+      id: `rcvd-${chat.uuid}-2`,
       autor: 'other',
       texto: 'É normal no início. Amanhã focaremos nessa parte específica. Traga suas dúvidas!',
       hora: '20:46',
@@ -335,11 +347,11 @@ useEffect(() => {
             <div className="conversations-list">
             {filtrarConversas.map((chat) => (
                 <div
-                key={chat.id}
+                key={chat.uuid}
                 className={`conversation-item ${chat.naoLida ? 'unread' : ''} ${
-                    chatAtivo?.id === chat.id ? 'active' : ''
+                    chatAtivo?.uuid === chat.uuid ? 'active' : ''
                 }`}
-                onClick={() => abrirChat(chat.id)}
+                onClick={() => abrirChat(chat.uuid)}
                 >
                 <div className="avatar-container">
                     <div className={`avatar ${chat.online ? 'online' : ''}`}>

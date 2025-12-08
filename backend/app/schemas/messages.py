@@ -4,8 +4,8 @@ from datetime import datetime
 
 class MessageOut(BaseModel):
     id: int
-    remetente_id: int
-    destinatario_id: int
+    remetente_uuid: str
+    destinatario_uuid: str
     texto: str
     lido: bool
     created_at: datetime

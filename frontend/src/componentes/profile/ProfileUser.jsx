@@ -614,7 +614,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     navigate("/chat", {
       state: {
         contato: {
-          id: usuario?.id || userIdentifier || null,
+          uuid: usuario?.global_uuid || userIdentifier || null,
           nome: nomeUsuario,
           foto: displayedPicture,
           instrumento: primeiroInstrumento?.nome || primeiroInstrumento?.tipo || "",

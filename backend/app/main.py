@@ -109,9 +109,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 media_mount_path = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
@@ -1224,11 +1228,11 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
 # -----------------
 
 class MessageCreate(BaseModel):
-    destinatario_id: int
+    destinatario_uuid: str
     texto: str
 
 class PessoaInfo(BaseModel):
-    id: int
+    uuid: str
     nome: str
     foto: str | None = None
     instrumentos: list[str]
@@ -1245,22 +1249,28 @@ def create_message(
 ):
     autor_tipo, autor = _get_current_user(request, db)
 
-    # 🔥 1 — Buscar o usuário destinatário (professor ou aluno)
-    destinatario = buscar_usuario_por_id(db, payload.destinatario_id)
+    # 🔥 1 — Buscar o usuário destinatário por UUID (professor ou aluno)
+    destinatario = None
+    destinatario_tipo = None
+    
+    # Tentar buscar como professor
+    destinatario = db.exec(select(Professor).where(Professor.global_uuid == payload.destinatario_uuid)).first()
+    if destinatario:
+        destinatario_tipo = TipoUsuario.PROFESSOR
+    else:
+        # Tentar buscar como aluno
+        destinatario = db.exec(select(Aluno).where(Aluno.global_uuid == payload.destinatario_uuid)).first()
+        if destinatario:
+            destinatario_tipo = TipoUsuario.ALUNO
+    
     if not destinatario:
         raise HTTPException(status_code=404, detail="Destinatário não encontrado")
 
-    # 🔥 2 — Descobrir o tipo automaticamente
-    if hasattr(destinatario, "alu_id"):     # ou a propriedade certa do modelo
-        destinatario_tipo = TipoUsuario.ALUNO
-    else:
-        destinatario_tipo = TipoUsuario.PROFESSOR
-
-    # 🔥 3 — Criar a mensagem corretamente
+    # 🔥 2 — Criar a mensagem com UUIDs
     msg = Message(
-        remetente_id=autor.id,
+        remetente_uuid=autor.global_uuid,
         remetente_tipo=autor_tipo,
-        destinatario_id=payload.destinatario_id,
+        destinatario_uuid=payload.destinatario_uuid,
         destinatario_tipo=destinatario_tipo,
         texto=payload.texto.strip(),
     )
@@ -1271,9 +1281,9 @@ def create_message(
     return msg
 
 
-@router_messages.get("/conversation/{destinatario_id}", response_model=list[MessageOut])
+@router_messages.get("/conversation/{destinatario_uuid}", response_model=list[MessageOut])
 def listar_conversa(
-    destinatario_id: int,
+    destinatario_uuid: str,
     request: Request,
     db: Session = Depends(get_session),
 ):
@@ -1282,18 +1292,18 @@ def listar_conversa(
     msgs = db.exec(
         select(Message).where(
             # mensagens enviadas por mim
-            ((Message.remetente_id == autor.id) & (Message.destinatario_id == destinatario_id))
+            ((Message.remetente_uuid == autor.global_uuid) & (Message.destinatario_uuid == destinatario_uuid))
             |
             # mensagens que recebi
-            ((Message.remetente_id == destinatario_id) & (Message.destinatario_id == autor.id))
+            ((Message.remetente_uuid == destinatario_uuid) & (Message.destinatario_uuid == autor.global_uuid))
         ).order_by(Message.created_at)
     ).all()
 
     return msgs
 
-@router_messages.get("/conversation/{destinatario_id}/full", response_model=ConversationDetail)
+@router_messages.get("/conversation/{destinatario_uuid}/full", response_model=ConversationDetail)
 def listar_conversa_com_instrumentos(
-    destinatario_id: int,
+    destinatario_uuid: str,
     request: Request,
     db: Session = Depends(get_session),
 ):
@@ -1302,34 +1312,38 @@ def listar_conversa_com_instrumentos(
     # 1 — Buscar mensagens
     msgs = db.exec(
         select(Message).where(
-            ((Message.remetente_id == autor.id) & (Message.destinatario_id == destinatario_id)) |
-            ((Message.remetente_id == destinatario_id) & (Message.destinatario_id == autor.id))
+            ((Message.remetente_uuid == autor.global_uuid) & (Message.destinatario_uuid == destinatario_uuid)) |
+            ((Message.remetente_uuid == destinatario_uuid) & (Message.destinatario_uuid == autor.global_uuid))
         ).order_by(Message.created_at)
     ).all()
 
-    # 2 — Buscar usuário da outra ponta
-    pessoa = buscar_usuario_por_id(db, destinatario_id)
+    # 2 — Buscar usuário da outra ponta por UUID
+    pessoa = None
+    pessoa = db.exec(select(Professor).where(Professor.global_uuid == destinatario_uuid)).first()
+    if not pessoa:
+        pessoa = db.exec(select(Aluno).where(Aluno.global_uuid == destinatario_uuid)).first()
+    
     if not pessoa:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
 
     # 3 — Buscar instrumentos (se for professor)
     instrumentos = []
-    if hasattr(pessoa, "tipo") and pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
+    if pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
         stmt = (
             select(Instrumento.nome)
-            .join(ProfessorInstrumento, ProfessorInstrumento.id_instrumento == Instrumento.id)
-            .where(ProfessorInstrumento.id_professor == destinatario_id)
+            .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
+            .where(ProfessorInstrumento.id_professor == pessoa.id)
         )
         instrumentos = [row[0] for row in db.exec(stmt).all()]
 
     return {
         "mensagens": msgs,
         "pessoa": {
-            "id": pessoa.id,
+            "uuid": pessoa.global_uuid,
             "nome": pessoa.nome,
-            "foto": getattr(pessoa, "foto", None),
+            "foto": getattr(pessoa, "profile_picture", None),
             "instrumentos": instrumentos,
-            "tipo": pessoa.tipo_usuario.value   # 🔥 adicionar aqui
+            "tipo": pessoa.tipo_usuario.value
         }
     }
 
@@ -1344,21 +1358,26 @@ def listar_minhas_conversas(
 
     msgs = db.exec(
         select(Message).where(
-            (Message.remetente_id == autor.id) |
-            (Message.destinatario_id == autor.id)
+            (Message.remetente_uuid == autor.global_uuid) |
+            (Message.destinatario_uuid == autor.global_uuid)
         ).order_by(Message.created_at.desc())
     ).all()
 
     conversas = {}
     for m in msgs:
-        pessoa_id = m.destinatario_id if m.remetente_id == autor.id else m.remetente_id
-        if pessoa_id not in conversas:
-            conversas[pessoa_id] = m
+        pessoa_uuid = m.destinatario_uuid if m.remetente_uuid == autor.global_uuid else m.remetente_uuid
+        if pessoa_uuid not in conversas:
+            conversas[pessoa_uuid] = m
 
     resultado = []
-    for pessoa_id, ultima_msg in conversas.items():
+    for pessoa_uuid, ultima_msg in conversas.items():
 
-        pessoa = buscar_usuario_por_id(db, pessoa_id)
+        # Buscar pessoa por UUID
+        pessoa = None
+        pessoa = db.exec(select(Professor).where(Professor.global_uuid == pessoa_uuid)).first()
+        if not pessoa:
+            pessoa = db.exec(select(Aluno).where(Aluno.global_uuid == pessoa_uuid)).first()
+        
         if not pessoa:
             continue
 
@@ -1368,21 +1387,19 @@ def listar_minhas_conversas(
             stmt = (
                 select(Instrumento.nome)
                 .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
-                .where(ProfessorInstrumento.id_professor == pessoa_id)
+                .where(ProfessorInstrumento.id_professor == pessoa.id)
             )
             instrumentos = [row[0] for row in db.exec(stmt).all()]
 
         resultado.append({
-            "id": pessoa_id,
+            "uuid": pessoa_uuid,
             "nome": pessoa.nome,
-            "foto": getattr(pessoa, "foto", None),
+            "foto": getattr(pessoa, "profile_picture", None),
             "mensagem": ultima_msg.texto,
             "hora": ultima_msg.created_at,
             "instrumentos": instrumentos,
-
-            # 🟢 ADICIONADO:
-            "pessoa_tipo": pessoa.tipo_usuario.value,     # aluno / professor
-            "autor_tipo": autor_tipo.value        # tipo do usuário logado
+            "pessoa_tipo": pessoa.tipo_usuario.value,
+            "autor_tipo": autor_tipo.value
         })
 
     return resultado
