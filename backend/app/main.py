@@ -1314,7 +1314,7 @@ def listar_conversa_com_instrumentos(
 
     # 3 — Buscar instrumentos (se for professor)
     instrumentos = []
-    if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
+    if hasattr(pessoa, "tipo") and pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
         stmt = (
             select(Instrumento.nome)
             .join(ProfessorInstrumento, ProfessorInstrumento.id_instrumento == Instrumento.id)
@@ -1328,9 +1328,11 @@ def listar_conversa_com_instrumentos(
             "id": pessoa.id,
             "nome": pessoa.nome,
             "foto": getattr(pessoa, "foto", None),
-            "instrumentos": instrumentos
+            "instrumentos": instrumentos,
+            "tipo": pessoa.tipo_usuario.value   # 🔥 adicionar aqui
         }
     }
+
 
 
 @router_messages.get("/my-conversations")
@@ -1347,7 +1349,6 @@ def listar_minhas_conversas(
         ).order_by(Message.created_at.desc())
     ).all()
 
-    # Última mensagem por pessoa
     conversas = {}
     for m in msgs:
         pessoa_id = m.destinatario_id if m.remetente_id == autor.id else m.remetente_id
@@ -1361,11 +1362,9 @@ def listar_minhas_conversas(
         if not pessoa:
             continue
 
-        # -----------------------------
-        # BUSCAR INSTRUMENTOS (se professor)
-        # -----------------------------
+        # Buscar instrumentos (se professor)
         instrumentos = []
-        if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
+        if pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
             stmt = (
                 select(Instrumento.nome)
                 .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
@@ -1376,10 +1375,14 @@ def listar_minhas_conversas(
         resultado.append({
             "id": pessoa_id,
             "nome": pessoa.nome,
-            "foto": pessoa.foto if hasattr(pessoa, "foto") else None,
+            "foto": getattr(pessoa, "foto", None),
             "mensagem": ultima_msg.texto,
             "hora": ultima_msg.created_at,
-            "instrumentos": instrumentos,  # <<<<<< ADICIONADO AQUI
+            "instrumentos": instrumentos,
+
+            # 🟢 ADICIONADO:
+            "pessoa_tipo": pessoa.tipo_usuario.value,     # aluno / professor
+            "autor_tipo": autor_tipo.value        # tipo do usuário logado
         })
 
     return resultado
