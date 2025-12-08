@@ -579,6 +579,20 @@ def listar_pacotes(
     
     return pacotes
 
+@router_lessons.get("/professor/{prof_id}/pacotes/", response_model=list[PacoteRead])
+def listar_pacotes_professor(
+    prof_id: int,
+    db: Session = Depends(get_session),
+):
+    """Lista todos os pacotes ativos de um professor específico (endpoint público)"""
+    pacotes = db.exec(
+        select(Pacote).where(
+            (Pacote.pac_prof_id == prof_id) & (Pacote.pac_ativo == True)
+        )
+    ).all()
+    
+    return pacotes
+
 @router_lessons.get("/pacotes/{pacote_id}", response_model=PacoteRead)
 def obter_pacote(
     pacote_id: int,

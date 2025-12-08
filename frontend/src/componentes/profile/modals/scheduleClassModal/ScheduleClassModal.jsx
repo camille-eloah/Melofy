@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import "./ScheduleClassModal.css";
 import Calendar from "react-calendar";
-// import "react-calendar/dist/Calendar.css";
 
 const ScheduleClassModal = ({
     isOpen,
     onClose,
+    pacotes = [],
     handleConfirmarAgendamento,
 }) => {
-    if (!isOpen) return null;
-
     const horariosDisponiveis = ["09:00", "10:30", "14:00", "16:00", "19:00"];
 
     const [calendarDate, setCalendarDate] = useState(null);
@@ -18,6 +16,10 @@ const ScheduleClassModal = ({
     const [statusMessage, setStatusMessage] = useState("");
     const [selectedPackage, setSelectedPackage] = useState(null);
 
+    if (!isOpen) return null;
+
+    console.log("[ScheduleClassModal] Pacotes recebidos:", pacotes);
+    console.log("[ScheduleClassModal] Quantidade de pacotes:", pacotes.length);
 
     const confirmar = () => {
         handleConfirmarAgendamento({
@@ -33,13 +35,6 @@ const ScheduleClassModal = ({
         }, 1500);
     };
 
-
-    const pacotesCriados = [
-        { id: 1, nome: "Pacote Mensal Premium", quantidade: 4, valorTotal: 280 },
-        { id: 2, nome: "Pacote Semanal Rápido", quantidade: 1, valorTotal: 80 },
-        { id: 3, nome: "Pacote Intensivo de Provas", quantidade: 6, valorTotal: 390 },
-    ];
-
     return (
         <div className="schedule-modal-overlay" onClick={onClose}>
             <div
@@ -51,23 +46,26 @@ const ScheduleClassModal = ({
                 <div className="schedule-form-group">
                     <label>Selecione um pacote:</label>
 
-                    <div className="schedule-horarios-grid">
-                        {pacotesCriados.map((p) => (
-                            <button
-                                key={p.id}
-                                className={`schedule-horario-btn ${selectedPackage?.id === p.id ? "selected" : ""}`}
-                                onClick={() => setSelectedPackage(p)}
-                            >
-                                <div className="schedule-package-card">
-                                    <span className="schedule-package-name">{p.nome}</span>
-                                    <span className="schedule-package-info">
-                                        {p.quantidade} aulas — R$ {p.valorTotal}
-                                    </span>
-                                </div>
-
-                            </button>
-                        ))}
-                    </div>
+                    {pacotes.length > 0 ? (
+                        <div className="schedule-horarios-grid">
+                            {pacotes.map((p) => (
+                                <button
+                                    key={p.pac_id}
+                                    className={`schedule-horario-btn ${selectedPackage?.pac_id === p.pac_id ? "selected" : ""}`}
+                                    onClick={() => setSelectedPackage(p)}
+                                >
+                                    <div className="schedule-package-card">
+                                        <span className="schedule-package-name">{p.pac_nome}</span>
+                                        <span className="schedule-package-info">
+                                            {p.pac_quantidade_aulas} aulas — R$ {Number(p.pac_valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="schedule-no-packages">Nenhum pacote disponível</p>
+                    )}
                 </div>
 
 

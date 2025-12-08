@@ -333,12 +333,18 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     }
   }
 
-  const carregarPacotes = useCallback(async () => {
-    if (!isOwner || !isProfessor) return;
+  const carregarPacotes = useCallback(async (profId = null) => {
+    if (!isProfessor) return;
 
     setIsLoadingPacotes(true);
     try {
-      const resp = await fetch(`${API_BASE_URL}/lessons/pacotes/`, {
+      // If profId is provided or user is not owner, use public endpoint
+      // Otherwise use authenticated endpoint for owner's packages
+      const endpoint = profId 
+        ? `${API_BASE_URL}/lessons/professor/${profId}/pacotes/`
+        : `${API_BASE_URL}/lessons/pacotes/`;
+
+      const resp = await fetch(endpoint, {
         credentials: "include",
       });
 
@@ -356,7 +362,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     } finally {
       setIsLoadingPacotes(false);
     }
-  }, [isOwner, isProfessor]);
+  }, [isProfessor]);
 
   const openEditPackageModal = (pac) => {
     setEditingPacote({ ...pac });
@@ -410,10 +416,10 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   };
 
   useEffect(() => {
-    if (isOwner && isProfessor) {
-      carregarPacotes();
+    if (isProfessor && usuario?.id) {
+      carregarPacotes(usuario.id);
     }
-  }, [isOwner, isProfessor, carregarPacotes]);
+  }, [usuario?.id, isProfessor, carregarPacotes]);
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -858,6 +864,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       <ScheduleClassModal
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
+        pacotes={pacotes}
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}
