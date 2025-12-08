@@ -39,7 +39,7 @@ function FeaturedTeachers() {
           <div className="teacher-avatar" style={{ background: "linear-gradient(135deg, #34a853, #4285f4)" }}>
             PC
           </div>
-          <h4>Pedro Costa</h4>
+          <h4>Pedro Victor</h4>
           <p>Mestre em Violino</p>
           <span className="teacher-rating">⭐ 4.9</span>
           <div className="teacher-stats">

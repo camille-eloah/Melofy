@@ -134,7 +134,7 @@ class ProfessorInstrumento(SQLModel, table=True):
     __tablename__ = "tb_professor_instrumento"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(
+    id_professor: int = Field(
         sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
     instrumento_id: int = Field(
@@ -147,7 +147,7 @@ class ProfessorInstrumento(SQLModel, table=True):
 
 class ProfessorInstrumentosEscolha(SQLModel):
     # schema usado só no body da requisição (não é tabela!)
-    professor_id: int
+    id_professor: int
     instrumentos_ids: List[int]
 
 
@@ -155,8 +155,8 @@ class ProfessorTag(SQLModel, table=True):
     __tablename__ = "tb_professor_tag"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(
-        sa_column=Column("professor_id", Integer, ForeignKey("tb_professor.id"), nullable=False)
+    id_professor: int = Field(
+        sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
     tag_id: int = Field(
         sa_column=Column("tag_id", Integer, ForeignKey("tb_tags.id"), nullable=False)
@@ -221,6 +221,24 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     professor: Optional[Professor] = Relationship()
     aluno: Optional[Aluno] = Relationship()
     instrumento: Optional[Instrumento] = Relationship()
+
+# ----------------------------
+# Pacotes de Aulas
+# ----------------------------
+
+class Pacote(SQLModel, table=True):
+    __tablename__ = "tb_pacotes"
+
+    pac_id: Optional[int] = Field(default=None, primary_key=True)
+    pac_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    pac_nome: str = Field(nullable=False)                    # Nome/descrição do pacote
+    pac_quantidade_aulas: int = Field(nullable=False, gt=0)  # Quantidade de aulas (> 0)
+    pac_valor_total: float = Field(nullable=False, gt=0, sa_type="DECIMAL(10,2)")  # Valor total
+    pac_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    pac_ativo: bool = Field(default=True, nullable=False)
+
+    # Relationship para acesso ao professor
+    professor: Optional[Professor] = Relationship()
 
 # ----------------------------
 # Avaliações
@@ -300,7 +318,7 @@ class DadosBancarios(SQLModel, table=True):
     dad_chave: str = Field(nullable=False, unique=True) # Chave PIX ou identificador único
 
     # FKs opcionais: só um dos dois será usado
-    professor_id: Optional[int] = Field(default=None, foreign_key="tb_professor.id")
+    id_professor: Optional[int] = Field(default=None, foreign_key="tb_professor.id")
     aluno_id: Optional[int] = Field(default=None, foreign_key="tb_aluno.id")
 
     professor: Optional[Professor] = Relationship(back_populates="dados_bancarios")
@@ -317,4 +335,20 @@ class Feedback(SQLModel, table=True):
     assunto: str
     mensagem: str
     criado_em: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ----------------------------
+# Mensagens privadas
+# ----------------------------
+class Message(SQLModel, table=True):
+    __tablename__ = "tb_mensagens"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    remetente_uuid: str = Field(nullable=False, index=True)
+    remetente_tipo: TipoUsuario = Field(nullable=False)
+    destinatario_uuid: str = Field(nullable=False, index=True)
+    destinatario_tipo: TipoUsuario = Field(nullable=False)
+    texto: str = Field(nullable=False)
+    lido: bool = Field(default=False, nullable=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     

@@ -609,6 +609,20 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           .filter(Boolean),
       );
 
+  const handleStartChat = () => {
+    const primeiroInstrumento = instrumentosProfessor?.[0];
+    navigate("/chat", {
+      state: {
+        contato: {
+          uuid: usuario?.global_uuid || userIdentifier || null,
+          nome: nomeUsuario,
+          foto: displayedPicture,
+          instrumento: primeiroInstrumento?.nome || primeiroInstrumento?.tipo || "",
+        },
+      },
+    });
+  };
+
   const handleLinkClick = (e) => {
     e.preventDefault();
     if (usuario.link_aula) {
@@ -756,6 +770,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
                     Entrar na Aula
                   </button>
                 )}
+                <button className="btn-agendar" type="button" onClick={handleStartChat}>
+                  Enviar Mensagem
+                </button>
               </div>
             )}
           </div>
