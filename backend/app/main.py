@@ -1227,6 +1227,11 @@ class MessageCreate(BaseModel):
     destinatario_id: int
     texto: str
 
+class ConversationDetail(BaseModel):
+    mensagens: list[MessageOut]
+    instrumentos: list[str]
+
+
 @router_messages.post("/conversation", response_model=MessageOut)
 def create_message(
     payload: MessageCreate,
@@ -1281,6 +1286,48 @@ def listar_conversa(
 
     return msgs
 
+@router_messages.get("/conversation/{destinatario_id}/full")
+def listar_conversa_com_instrumentos(
+    destinatario_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    # 1 — Buscar mensagens
+    msgs = db.exec(
+        select(Message).where(
+            ((Message.remetente_id == autor.id) & (Message.destinatario_id == destinatario_id)) |
+            ((Message.remetente_id == destinatario_id) & (Message.destinatario_id == autor.id))
+        ).order_by(Message.created_at)
+    ).all()
+
+    # 2 — Buscar usuário da outra ponta
+    pessoa = buscar_usuario_por_id(db, destinatario_id)
+    if not pessoa:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # 3 — Buscar instrumentos (se for professor)
+    instrumentos = []
+    if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
+        stmt = (
+            select(Tag.nome)
+            .join(ProfessorTag)
+            .where(ProfessorTag.professor_id == destinatario_id)
+        )
+        instrumentos = [row[0] for row in db.exec(stmt).all()]
+
+    return {
+        "mensagens": msgs,
+        "pessoa": {
+            "id": pessoa.id,
+            "nome": pessoa.nome,
+            "foto": getattr(pessoa, "foto", None),
+            "instrumentos": instrumentos
+        }
+    }
+
+
 @router_messages.get("/my-conversations")
 def listar_minhas_conversas(
     request: Request,
@@ -1295,6 +1342,7 @@ def listar_minhas_conversas(
         ).order_by(Message.created_at.desc())
     ).all()
 
+    # Última mensagem por pessoa
     conversas = {}
     for m in msgs:
         pessoa_id = m.destinatario_id if m.remetente_id == autor.id else m.remetente_id
@@ -1303,17 +1351,34 @@ def listar_minhas_conversas(
 
     resultado = []
     for pessoa_id, ultima_msg in conversas.items():
+
         pessoa = buscar_usuario_por_id(db, pessoa_id)
-        if pessoa:
-            resultado.append({
-                "id": pessoa_id,
-                "nome": pessoa.nome,
-                "foto": pessoa.foto if hasattr(pessoa, "foto") else None,
-                "mensagem": ultima_msg.texto,
-                "hora": ultima_msg.created_at,
-            })
+        if not pessoa:
+            continue
+
+        # -----------------------------
+        # BUSCAR INSTRUMENTOS (se professor)
+        # -----------------------------
+        instrumentos = []
+        if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
+            stmt = (
+                select(Tag.nome)
+                .join(ProfessorTag)
+                .where(ProfessorTag.professor_id == pessoa_id)
+            )
+            instrumentos = [row[0] for row in db.exec(stmt).all()]
+
+        resultado.append({
+            "id": pessoa_id,
+            "nome": pessoa.nome,
+            "foto": pessoa.foto if hasattr(pessoa, "foto") else None,
+            "mensagem": ultima_msg.texto,
+            "hora": ultima_msg.created_at,
+            "instrumentos": instrumentos,  # <<<<<< ADICIONADO AQUI
+        })
 
     return resultado
+
 
 
 app.include_router(router_user)

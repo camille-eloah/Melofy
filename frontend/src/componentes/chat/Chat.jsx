@@ -44,16 +44,20 @@ useEffect(() => {
 
       const data = await resp.json();
 
+      console.log("📌 RAW do backend (my-conversations):", data);
+
       const lista = data.map(c => ({
         id: c.id,
         nome: c.nome,
         foto: c.foto,
-        instrumento: c.instrumento || "",
+        instrumentos: c.instrumentos || [], 
         mensagem: c.mensagem,
         hora: formatarHora(new Date(c.hora)),
         naoLida: false,
         online: false,
       }));
+
+      console.log("📌 Lista montada para setMensagens:", lista);
 
       setMensagens(lista);
     } catch (err) {
@@ -141,7 +145,7 @@ useEffect(() => {
     const baseChat = {
       id: contato.id ?? `tmp-${Date.now()}`,
       nome: contato.nome || 'Contato',
-      instrumento: contato.instrumento || 'Instrumento',
+      instrumentos: Array.isArray(contato.instrumentos) ? contato.instrumentos : [],
       mensagem: contato.mensagem || 'Nova conversa iniciada',
       hora: 'agora',
       naoLida: false,
@@ -169,15 +173,15 @@ useEffect(() => {
 
     const carregarHistorico = async () => {
       try {
-        const resp = await fetch(`${API_BASE_URL}/messages/conversation/${chatAtivo.id}`, {
+        const resp = await fetch(`${API_BASE_URL}/messages/conversation/${chatAtivo.id}/full`, {
           credentials: "include",
         });
 
         if (!resp.ok) throw new Error("Erro ao carregar histórico");
-
         const data = await resp.json();
 
-        const mensagensFormatadas = data.map(msg => ({
+        // mensagens
+        const mensagensFormatadas = data.mensagens.map(msg => ({
           id: msg.id,
           texto: msg.texto,
           hora: formatarHora(new Date(msg.created_at)),
@@ -185,10 +189,20 @@ useEffect(() => {
           status: "sent"
         }));
 
+        // atualizar dados do chat ativo com nome/foto/instrumentos atualizados
+        setChatAtivo(prev => ({
+          ...prev,
+          nome: data.pessoa.nome,
+          foto: data.pessoa.foto,
+          instrumentos: data.pessoa.instrumentos || []
+        }));
+
+        // salvar histórico
         setHistoricoPorChat(prev => ({
           ...prev,
           [chatAtivo.id]: mensagensFormatadas
         }));
+
 
       } catch (err) {
         console.error(err);
@@ -202,7 +216,9 @@ useEffect(() => {
 
   const filtrarConversas = mensagens.filter(chat =>
     chat.nome.toLowerCase().includes(busca.toLowerCase()) ||
-    chat.instrumento.toLowerCase().includes(busca.toLowerCase())
+    (chat.instrumentos || []).some(inst =>
+      inst.toLowerCase().includes(busca.toLowerCase())
+    )
   );
 
   const getIniciais = (nome) => {
@@ -322,7 +338,11 @@ useEffect(() => {
                     </div>
                     
                     <div className="conversation-details">
-                    <span className="instrument-tag">{chat.instrumento}</span>
+                    <div className="instrument-tags">
+                    {(chat.instrumentos || []).slice(0, 3).map((inst, index) => (
+                      <span key={index} className="instrument-tag">{inst}</span>
+                    ))}
+                  </div>
                     <p className="message-preview">{chat.mensagem}</p>
                     </div>
                 </div>
