@@ -226,6 +226,7 @@
     transition: 0.25s ease;
     font-weight: 600;
     color: #004a66;
+    background-color: rgba(0, 160, 220, 0.15);
 }
 
 .react-calendar__tile:hover {
