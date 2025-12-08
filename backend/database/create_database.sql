@@ -310,10 +310,10 @@ CREATE TABLE tb_dados_bancarios (
     dad_agencia VARCHAR(255) NOT NULL,
     dad_conta VARCHAR(255) NOT NULL,
     dad_chave VARCHAR(255) NOT NULL UNIQUE,
-    professor_id INT NULL,
+    id_professor INT NULL,
     aluno_id INT NULL,
 
-    FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
 );
 
@@ -338,10 +338,10 @@ CREATE TABLE tb_tags (
 
 CREATE TABLE tb_professor_tag (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    professor_id INT NOT NULL,
+    id_professor INT NOT NULL,
     tag_id INT NOT NULL,
-    UNIQUE KEY uk_professor_tag (professor_id, tag_id),
-    FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_professor_tag (id_professor, tag_id),
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 );
 

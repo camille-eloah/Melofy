@@ -134,7 +134,7 @@ class ProfessorInstrumento(SQLModel, table=True):
     __tablename__ = "tb_professor_instrumento"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(
+    id_professor: int = Field(
         sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
     instrumento_id: int = Field(
@@ -147,7 +147,7 @@ class ProfessorInstrumento(SQLModel, table=True):
 
 class ProfessorInstrumentosEscolha(SQLModel):
     # schema usado só no body da requisição (não é tabela!)
-    professor_id: int
+    id_professor: int
     instrumentos_ids: List[int]
 
 
@@ -155,8 +155,8 @@ class ProfessorTag(SQLModel, table=True):
     __tablename__ = "tb_professor_tag"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    professor_id: int = Field(
-        sa_column=Column("professor_id", Integer, ForeignKey("tb_professor.id"), nullable=False)
+    id_professor: int = Field(
+        sa_column=Column("id_professor", Integer, ForeignKey("tb_professor.id"), nullable=False)
     )
     tag_id: int = Field(
         sa_column=Column("tag_id", Integer, ForeignKey("tb_tags.id"), nullable=False)
@@ -300,7 +300,7 @@ class DadosBancarios(SQLModel, table=True):
     dad_chave: str = Field(nullable=False, unique=True) # Chave PIX ou identificador único
 
     # FKs opcionais: só um dos dois será usado
-    professor_id: Optional[int] = Field(default=None, foreign_key="tb_professor.id")
+    id_professor: Optional[int] = Field(default=None, foreign_key="tb_professor.id")
     aluno_id: Optional[int] = Field(default=None, foreign_key="tb_aluno.id")
 
     professor: Optional[Professor] = Relationship(back_populates="dados_bancarios")

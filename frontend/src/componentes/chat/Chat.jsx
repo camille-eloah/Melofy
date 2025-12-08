@@ -45,6 +45,12 @@ useEffect(() => {
       const data = await resp.json();
 
       console.log("📌 RAW do backend (my-conversations):", data);
+      console.log(
+        "📌 RAW do backend:",
+        JSON.stringify(data, null, 2)
+      );
+      data.forEach((item, i) => console.log("Item", i, { ...item }));
+
 
       const lista = data.map(c => ({
         id: c.id,

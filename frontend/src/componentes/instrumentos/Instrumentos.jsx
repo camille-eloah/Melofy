@@ -107,7 +107,7 @@ function Instrumentos() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          professor_id: user.id,
+          id_professor: user.id,
           instrumentos_ids: selectedIds,
         }),
       });
@@ -162,7 +162,7 @@ function Instrumentos() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          professor_id: user.id,
+          id_professor: user.id,
           instrumento_id: instrumentoId,
         }),
       });

@@ -16,9 +16,9 @@ class InstrumentoUpdate(SQLModel):
     tipo: Optional[str] = None
 
 class ProfessorInstrumentosCreate(SQLModel):
-    professor_id: int
+    id_professor: int
     instrumentos_ids: List[int]
 
 class ProfessorInstrumentoCreate(SQLModel):
-    professor_id: int
+    id_professor: int
     instrumento_id: int

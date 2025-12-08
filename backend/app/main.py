@@ -587,7 +587,7 @@ def adicionar_instrumento_professor(
     dados: ProfessorInstrumentoCreate,
     db: Session = Depends(get_session),
 ):
-    professor = db.get(Professor, dados.professor_id)
+    professor = db.get(Professor, dados.id_professor)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
@@ -597,14 +597,14 @@ def adicionar_instrumento_professor(
 
     existente = db.exec(
         select(ProfessorInstrumento).where(
-            ProfessorInstrumento.professor_id == dados.professor_id,
+            ProfessorInstrumento.id_professor == dados.id_professor,
             ProfessorInstrumento.instrumento_id == dados.instrumento_id,
         )
     ).first()
 
     if not existente:
         rel = ProfessorInstrumento(
-            professor_id=dados.professor_id,
+            id_professor=dados.id_professor,
             instrumento_id=dados.instrumento_id,
         )
         db.add(rel)
@@ -621,13 +621,13 @@ def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)
     resultados = db.exec(stmt).all()
     return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
 
-@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
-def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
+@router_instruments.get("/professor/{id_professor}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor(id_professor: int, db: Session = Depends(get_session)):
     stmt = (
         select(Instrumento, Categoria)
         .join(ProfessorInstrumento)
         .join(Categoria, Categoria.id == Instrumento.tipo, isouter=True)
-        .where(ProfessorInstrumento.professor_id == professor_id)
+        .where(ProfessorInstrumento.id_professor == id_professor)
     )
     resultados = db.exec(stmt).all()
     return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
@@ -639,7 +639,7 @@ def listar_instrumentos_professor_por_uuid(user_uuid: str, db: Session = Depends
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
     stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == professor.id
+        ProfessorInstrumento.id_professor == professor.id
     )
     instrumentos = db.exec(stmt).all()
     return [_instrumento_to_read(instr) for instr in instrumentos]
@@ -683,13 +683,13 @@ def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
     db: Session = Depends(get_session),
 ):
-    professor = db.get(Professor, dados.professor_id)
+    professor = db.get(Professor, dados.id_professor)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
     # Apaga escolhas antigas
     antigos = db.exec(
-        select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+        select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == dados.id_professor)
     ).all()
     for rel in antigos:
         db.delete(rel)
@@ -700,13 +700,13 @@ def escolher_instrumentos_professor(
         if not instrumento:
             raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
 
-        rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
+        rel = ProfessorInstrumento(id_professor=dados.id_professor, instrumento_id=instr_id)
         db.add(rel)
 
     db.commit()
 
     # Retorna os instrumentos do professor
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == dados.id_professor)
     instrumentos_professor = db.exec(stmt).all()
 
     return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": [_instrumento_to_read(instr) for instr in instrumentos_professor]}
@@ -735,7 +735,7 @@ def listar_tags_professor(user_id: int, db: Session = Depends(get_session)):
     professor = db.get(Professor, user_id)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor nao encontrado")
-    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.professor_id == user_id)
+    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.id_professor == user_id)
     tags = db.exec(stmt).all()
     return [_tag_to_response(tag) for tag in tags]
 
@@ -775,7 +775,7 @@ def atualizar_tags_professor(
         vistos.add(chave)
         nomes_unicos.append(normalizado)
 
-    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.professor_id == user_id)).all()
+    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.id_professor == user_id)).all()
     for rel in antigos:
         db.delete(rel)
     db.commit()
@@ -783,7 +783,7 @@ def atualizar_tags_professor(
     tags_resultado: List[Tag] = []
     for nome in nomes_unicos:
         tag = _get_or_create_tag_by_name(db, nome)
-        rel = ProfessorTag(professor_id=user_id, tag_id=tag.id)
+        rel = ProfessorTag(id_professor=user_id, tag_id=tag.id)
         db.add(rel)
         tags_resultado.append(tag)
 
@@ -791,7 +791,7 @@ def atualizar_tags_professor(
     instrument_ids = {tag.instrumento_id for tag in tags_resultado if tag.instrumento_id}
     if instrument_ids:
         existentes = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+            select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == user_id)
         ).all()
         existentes_ids = {rel.instrumento_id for rel in existentes}
 
@@ -803,12 +803,12 @@ def atualizar_tags_professor(
         # Adicionar instrumentos novos
         for instr_id in instrument_ids:
             if instr_id not in existentes_ids:
-                db.add(ProfessorInstrumento(professor_id=user_id, instrumento_id=instr_id))
+                db.add(ProfessorInstrumento(id_professor=user_id, instrumento_id=instr_id))
 
     else:
         # Nenhuma tag de instrumento: limpa relacionamentos existentes
         antigos_instr = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+            select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == user_id)
         ).all()
         for rel in antigos_instr:
             db.delete(rel)
@@ -836,9 +836,9 @@ def filtrar_professor_por_aula():
 # 7. Agendamento de Aulas
 # ----------------------------
 @router_schedule.get("/agendamentos/")
-def listar_agendamentos(professor_id: int | None = None):
-    if professor_id:
-        return {"msg": f"Lista de agendamentos do professor {professor_id}"}
+def listar_agendamentos(id_professor: int | None = None):
+    if id_professor:
+        return {"msg": f"Lista de agendamentos do professor {id_professor}"}
     return {"msg": "Lista de todos os agendamentos"}
 
 @router_schedule.get("/agendamentos/{agendamento_id}")
@@ -1227,10 +1227,15 @@ class MessageCreate(BaseModel):
     destinatario_id: int
     texto: str
 
-class ConversationDetail(BaseModel):
-    mensagens: list[MessageOut]
+class PessoaInfo(BaseModel):
+    id: int
+    nome: str
+    foto: str | None = None
     instrumentos: list[str]
 
+class ConversationDetail(BaseModel):
+    mensagens: list[MessageOut]
+    pessoa: PessoaInfo
 
 @router_messages.post("/conversation", response_model=MessageOut)
 def create_message(
@@ -1286,7 +1291,7 @@ def listar_conversa(
 
     return msgs
 
-@router_messages.get("/conversation/{destinatario_id}/full")
+@router_messages.get("/conversation/{destinatario_id}/full", response_model=ConversationDetail)
 def listar_conversa_com_instrumentos(
     destinatario_id: int,
     request: Request,
@@ -1311,9 +1316,9 @@ def listar_conversa_com_instrumentos(
     instrumentos = []
     if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
         stmt = (
-            select(Tag.nome)
-            .join(ProfessorTag)
-            .where(ProfessorTag.professor_id == destinatario_id)
+            select(Instrumento.nome)
+            .join(ProfessorInstrumento, ProfessorInstrumento.id_instrumento == Instrumento.id)
+            .where(ProfessorInstrumento.id_professor == destinatario_id)
         )
         instrumentos = [row[0] for row in db.exec(stmt).all()]
 
@@ -1362,9 +1367,9 @@ def listar_minhas_conversas(
         instrumentos = []
         if hasattr(pessoa, "tipo") and pessoa.tipo == TipoUsuario.PROFESSOR:
             stmt = (
-                select(Tag.nome)
-                .join(ProfessorTag)
-                .where(ProfessorTag.professor_id == pessoa_id)
+                select(Instrumento.nome)
+                .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
+                .where(ProfessorInstrumento.id_professor == pessoa_id)
             )
             instrumentos = [row[0] for row in db.exec(stmt).all()]
 
