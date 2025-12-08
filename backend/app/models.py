@@ -223,6 +223,24 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     instrumento: Optional[Instrumento] = Relationship()
 
 # ----------------------------
+# Pacotes de Aulas
+# ----------------------------
+
+class Pacote(SQLModel, table=True):
+    __tablename__ = "tb_pacotes"
+
+    pac_id: Optional[int] = Field(default=None, primary_key=True)
+    pac_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    pac_nome: str = Field(nullable=False)                    # Nome/descrição do pacote
+    pac_quantidade_aulas: int = Field(nullable=False, gt=0)  # Quantidade de aulas (> 0)
+    pac_valor_total: float = Field(nullable=False, gt=0, sa_type="DECIMAL(10,2)")  # Valor total
+    pac_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    pac_ativo: bool = Field(default=True, nullable=False)
+
+    # Relationship para acesso ao professor
+    professor: Optional[Professor] = Relationship()
+
+# ----------------------------
 # Avaliações
 # ----------------------------
 

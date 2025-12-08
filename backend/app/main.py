@@ -37,6 +37,7 @@ from app.models import (
     AvaliacoesDoProfessor,
     Categoria,
     Message,
+    Pacote,
 )
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
@@ -70,6 +71,7 @@ from app.schemas.instrumentos import (
 )
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
 from app.schemas.ratings import RatingCreate, RatingRead, RatingUpdate
+from app.schemas.pacotes import PacoteCreate, PacoteUpdate, PacoteRead
 
 
 logger = logging.getLogger(__name__)
@@ -535,29 +537,123 @@ def excluir_aula(aula_id: int):
 # 4. Pacotes 
 # ----------------------------
 
-@router_lessons.post("/pacotes/")
-def cadastrar_pacote():
-    return {"msg": "Pacote cadastrado"}
+@router_lessons.post("/pacotes/", response_model=PacoteRead, status_code=201)
+def cadastrar_pacote(
+    pacote: PacoteCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Cadastra um novo pacote de aulas para o professor autenticado"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem criar pacotes")
+    
+    novo_pacote = Pacote(
+        pac_prof_id=professor.id,
+        pac_nome=pacote.pac_nome.strip(),
+        pac_quantidade_aulas=pacote.pac_quantidade_aulas,
+        pac_valor_total=pacote.pac_valor_total,
+    )
+    
+    db.add(novo_pacote)
+    db.commit()
+    db.refresh(novo_pacote)
+    logger.debug(f"Pacote criado: id={novo_pacote.pac_id}, prof={professor.id}")
+    return novo_pacote
 
-@router_lessons.get("/pacotes/")
-def listar_pacotes():
-    return {"msg": "Lista de pacotes"}
+@router_lessons.get("/pacotes/", response_model=list[PacoteRead])
+def listar_pacotes(
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Lista todos os pacotes do professor autenticado"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem listar pacotes")
+    
+    pacotes = db.exec(
+        select(Pacote).where(Pacote.pac_prof_id == professor.id)
+    ).all()
+    
+    return pacotes
 
-@router_lessons.get("/pacotes/{pacote_id}")
-def obter_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id}"}
+@router_lessons.get("/pacotes/{pacote_id}", response_model=PacoteRead)
+def obter_pacote(
+    pacote_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Obtém um pacote específico (apenas do professor autenticado)"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem acessar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para acessar este pacote")
+    
+    return pacote
 
-@router_lessons.put("/pacotes/{pacote_id}")
-def editar_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id} atualizado totalmente"}
+@router_lessons.put("/pacotes/{pacote_id}", response_model=PacoteRead)
+def editar_pacote(
+    pacote_id: int,
+    dados: PacoteUpdate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Edita um pacote existente"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem editar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para editar este pacote")
+    
+    # Atualizar campos fornecidos
+    dados_dict = dados.dict(exclude_unset=True)
+    for key, value in dados_dict.items():
+        setattr(pacote, key, value)
+    
+    db.add(pacote)
+    db.commit()
+    db.refresh(pacote)
+    logger.debug(f"Pacote atualizado: id={pacote.pac_id}")
+    return pacote
 
-@router_lessons.patch("/pacotes/{pacote_id}")
-def definir_valor(pacote_id: int):
-    return {"msg": f"Valor do pacote {pacote_id} atualizado"}
-
-@router_lessons.delete("/pacotes/{pacote_id}")
-def excluir_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id} excluído"}
+@router_lessons.delete("/pacotes/{pacote_id}", status_code=204)
+def excluir_pacote(
+    pacote_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Deleta um pacote"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem deletar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para deletar este pacote")
+    
+    db.delete(pacote)
+    db.commit()
+    logger.debug(f"Pacote deletado: id={pacote.pac_id}")
+    return
 
 
 # ----------------------------

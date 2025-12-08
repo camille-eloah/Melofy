@@ -248,6 +248,18 @@ CREATE TABLE tb_aula (
     CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)
 );
 
+CREATE TABLE tb_pacotes (
+    pac_id INT AUTO_INCREMENT PRIMARY KEY,
+    pac_prof_id INT NOT NULL,
+    pac_nome VARCHAR(255) NOT NULL,
+    pac_quantidade_aulas INT NOT NULL CHECK (pac_quantidade_aulas > 0),
+    pac_valor_total DECIMAL(10,2) NOT NULL CHECK (pac_valor_total > 0),
+    pac_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pac_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_pacote_prof FOREIGN KEY (pac_prof_id) REFERENCES tb_professor(id)
+);
+
 CREATE TABLE tb_solicitacao_agendamento (
     sol_id INT AUTO_INCREMENT PRIMARY KEY,
     sol_prof_id INT NOT NULL,
