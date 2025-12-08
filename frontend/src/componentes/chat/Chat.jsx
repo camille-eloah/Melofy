@@ -6,6 +6,14 @@ import { useLocation } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8000";
 
+const resolverFoto = (fotoPath) => {
+  if (!fotoPath) return null;
+  // Se já é URL absoluta, retorna como está
+  if (fotoPath.startsWith('http')) return fotoPath;
+  // Se é caminho relativo, adiciona a base do API
+  return `${API_BASE_URL}${fotoPath.startsWith('/') ? '' : '/'}${fotoPath}`;
+};
+
 function ChatMelofy() {
   const location = useLocation();
   const contato = location.state?.contato;
@@ -62,13 +70,16 @@ useEffect(() => {
         "📌 RAW do backend:",
         JSON.stringify(data, null, 2)
       );
-      data.forEach((item, i) => console.log("Item", i, { ...item }));
+      data.forEach((item, i) => {
+        console.log("Item", i, { ...item });
+        console.log("  └─ Foto URL:", item.foto);
+      });
 
 
       const lista = data.map(c => ({
         uuid: c.uuid,
         nome: c.nome,
-        foto: c.foto,
+        foto: resolverFoto(c.foto),
         instrumentos: c.instrumentos || [], 
         mensagem: c.mensagem,
         hora: formatarHora(new Date(c.hora)),
@@ -175,7 +186,7 @@ useEffect(() => {
       hora: 'agora',
       naoLida: false,
       online: true,
-      foto: contato.foto || null,
+      foto: resolverFoto(contato.foto),
     };
 
     setMensagens((prev) => {
@@ -224,7 +235,7 @@ useEffect(() => {
         setChatAtivo(prev => ({
           ...prev,
           nome: data.pessoa.nome,
-          foto: data.pessoa.foto,
+          foto: resolverFoto(data.pessoa.foto),
           instrumentos: data.pessoa.instrumentos || []
         }));
 
@@ -262,14 +273,31 @@ useEffect(() => {
 
   const renderAvatar = (chat) => {
     if (chat?.foto) {
+      console.log("🖼️ Renderizando imagem:", { 
+        nome: chat.nome, 
+        foto: chat.foto,
+        url_resolvida: chat.foto
+      });
       return (
         <img
           src={chat.foto}
           alt={`Foto de ${chat.nome}`}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          onError={(e) => {
+            console.error("❌ Erro ao carregar imagem:", { 
+              src: e.target.src, 
+              nome: chat.nome,
+              statusCode: e.target.status 
+            });
+            e.target.style.display = 'none';
+          }}
+          onLoad={() => {
+            console.log("✅ Imagem carregada com sucesso:", chat.foto);
+          }}
         />
       );
     }
+    console.log("📝 Usando iniciais para:", chat?.nome);
     return getIniciais(chat?.nome || '');
   };
 
