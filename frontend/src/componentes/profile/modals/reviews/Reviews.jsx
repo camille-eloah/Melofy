@@ -14,6 +14,7 @@ const Avaliacoes = ({
   fotoAbsoluta = "",
   perfilAvaliado = {},
   currentUser = null,
+  onRatingChange = null,
 }) => {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [novaEstrela, setNovaEstrela] = useState(0);
@@ -24,6 +25,8 @@ const Avaliacoes = ({
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [jaAvaliou, setJaAvaliou] = useState(false);
+  const [editando, setEditando] = useState(false);
+  const [avaliacaoMinha, setAvaliacaoMinha] = useState(null);
 
   useEffect(() => {
     // Prioriza o usuario autenticado (prop currentUser); fallback para localStorage
@@ -114,7 +117,11 @@ const Avaliacoes = ({
           autores: convertidos.map((c) => c.nome),
         });
         setAvaliacoes(convertidos);
-        setJaAvaliou(Boolean(idLogado && convertidos.some((c) => String(c.autorId) === String(idLogado))));
+        const minha = idLogado
+          ? convertidos.find((c) => String(c.autorId) === String(idLogado))
+          : null;
+        setAvaliacaoMinha(minha);
+        setJaAvaliou(Boolean(minha));
       } catch (err) {
         console.error("Erro ao carregar avaliacoes", err);
         setAvaliacoes([]);
@@ -138,7 +145,7 @@ const Avaliacoes = ({
     const avaliadoId = perfilAvaliado?.id;
     const avaliadoTipo = (perfilAvaliado?.tipo || "").toString().toUpperCase();
     if (!avaliadoId || !avaliadoTipo) return;
-    if (tipoLogado && avaliadoTipo && tipoLogado === avaliadoTipo) return;
+    if (!editando && tipoLogado && avaliadoTipo && tipoLogado === avaliadoTipo) return;
 
     try {
       setEnviando(true);
@@ -148,9 +155,11 @@ const Avaliacoes = ({
         nota: novaEstrela,
         texto: novoTexto,
       };
-      console.log("[Reviews] enviando avaliacao", payload);
-      const resp = await fetch(`${API_BASE_URL}/ratings`, {
-        method: "POST",
+      const url = `${API_BASE_URL}/ratings${editando ? `/${avaliadoTipo}/${avaliadoId}` : ""}`;
+      const method = editando ? "PATCH" : "POST";
+      console.log("[Reviews] enviando avaliacao", { payload, method, url });
+      const resp = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify(payload),
@@ -159,17 +168,31 @@ const Avaliacoes = ({
       if (!resp.ok) {
         throw new Error(data?.detail || "Falha ao enviar avaliacao");
       }
-      console.log("[Reviews] avaliacao criada", data);
-      const novo = {
+      console.log("[Reviews] avaliacao salva", data);
+      const novoOuEditado = {
+        id: data.id,
+        autorId: data.autor_id,
         nome: data.autor_nome,
         foto: resolveFoto(data.autor_foto) || "",
         estrelas: data.nota,
         texto: data.texto || "",
       };
-      setAvaliacoes((prev) => [...prev, novo]);
+      setAvaliacoes((prev) => {
+        if (editando && avaliacaoMinha) {
+          return prev.map((av) =>
+            av.autorId && String(av.autorId) === String(avaliacaoMinha.autorId) ? novoOuEditado : av
+          );
+        }
+        return [...prev, novoOuEditado];
+      });
+      setAvaliacaoMinha(novoOuEditado);
       setNovoTexto("");
       setNovaEstrela(0);
       setJaAvaliou(true);
+      setEditando(false);
+      if (onRatingChange) {
+        onRatingChange();
+      }
     } catch (err) {
       console.error("Erro ao enviar avaliacao", err);
     } finally {
@@ -182,8 +205,8 @@ const Avaliacoes = ({
   const fotoExibicao = usuarioLogado.foto || "";
   const tipoAvaliado = (perfilAvaliado?.tipo || "").toString().toUpperCase();
   const tiposDiferentes = !tipoLogado || !tipoAvaliado ? true : tipoLogado !== tipoAvaliado;
-  const podeAvaliar = tiposDiferentes && !jaAvaliou;
-  const podeEditar = jaAvaliou && tiposDiferentes;
+  const podeAvaliar = tiposDiferentes && (!jaAvaliou || editando);
+  const podeEditar = jaAvaliou && tiposDiferentes && !editando;
 
   const handleCardFotoError = (index) => {
     setAvaliacoes((prev) =>
@@ -194,12 +217,21 @@ const Avaliacoes = ({
   return (
     <div className="avaliacoes-container">
 
-      {podeEditar && (
+            {podeEditar && (
         <div className="avaliacao-nova">
           <h3 className="titulo-bloco">Você já avaliou este perfil</h3>
           <p className="texto">Edite sua avaliação existente para atualizar nota ou comentário.</p>
-          <button className="botao-enviar" disabled>
-            Editar (em breve)
+          <button
+            className="botao-enviar"
+            onClick={() => {
+              setEditando(true);
+              if (avaliacaoMinha) {
+                setNovaEstrela(avaliacaoMinha.estrelas || 0);
+                setNovoTexto(avaliacaoMinha.texto || "");
+              }
+            }}
+          >
+            Editar
           </button>
         </div>
       )}
@@ -285,4 +317,5 @@ const Avaliacoes = ({
 };
 
 export default Avaliacoes;
+
 

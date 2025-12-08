@@ -138,12 +138,24 @@
   color: #9b5de5;
 }
 
-.notification-container {
+.notification-container,
+.menu-container {
   position: relative;
   margin-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.notification-button {
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notification-button,
+.menu-button {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.1));
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #e5e7eb;
@@ -157,9 +169,11 @@
   position: relative;
   width: 44px;
   height: 44px;
+  min-width: 44px;
 }
 
-.notification-button:hover {
+.notification-button:hover,
+.menu-button:hover {
   color: #ffffff;
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.2));
   border-color: rgba(14, 165, 233, 0.4);
@@ -167,7 +181,8 @@
   box-shadow: 0 5px 15px rgba(14, 165, 233, 0.2);
 }
 
-.notification-button.active {
+.notification-button.active,
+.menu-button.active {
   background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), rgba(59, 130, 246, 0.3));
   border-color: #0ea5e9;
 }
@@ -470,6 +485,66 @@
 .view-all:hover {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3);
+}
+
+.menu-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-icon {
+  display: block;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  z-index: 100;
+}
+
+.menu-modal {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: #020b2b;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+  z-index: 101;
+  min-width: 200px;
+  padding: 10px 0;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-list li button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 10px 20px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.menu-list li button:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 900px) {

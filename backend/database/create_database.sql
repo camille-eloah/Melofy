@@ -60,13 +60,6 @@ CREATE TABLE tb_instrumento (
     FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
 );
 
-CREATE TABLE tb_instrumento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    tipo INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES tb_categoria(id)
-);
-
 INSERT INTO tb_instrumento (id, nome, tipo) VALUES
     -- 🎸 CORDAS
     (2, 'Guitarra', 1),
@@ -253,7 +246,19 @@ CREATE TABLE tb_aula (
     CONSTRAINT fk_aula_prof FOREIGN KEY (aul_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_aula_alu FOREIGN KEY (aul_alu_id) REFERENCES tb_aluno(id),
     CONSTRAINT fk_aula_inst FOREIGN KEY (aul_inst_id) REFERENCES tb_instrumento(id)
+);
 
+CREATE TABLE tb_pacotes (
+    pac_id INT AUTO_INCREMENT PRIMARY KEY,
+    pac_prof_id INT NOT NULL,
+    pac_nome VARCHAR(255) NOT NULL,
+    pac_quantidade_aulas INT NOT NULL CHECK (pac_quantidade_aulas > 0),
+    pac_valor_total DECIMAL(10,2) NOT NULL CHECK (pac_valor_total > 0),
+    pac_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    pac_ativo BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT fk_pacote_prof FOREIGN KEY (pac_prof_id) REFERENCES tb_professor(id)
+);
 
 CREATE TABLE tb_solicitacao_agendamento (
     sol_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -317,10 +322,10 @@ CREATE TABLE tb_dados_bancarios (
     dad_agencia VARCHAR(255) NOT NULL,
     dad_conta VARCHAR(255) NOT NULL,
     dad_chave VARCHAR(255) NOT NULL UNIQUE,
-    professor_id INT NULL,
+    id_professor INT NULL,
     aluno_id INT NULL,
 
-    FOREIGN KEY (professor_id) REFERENCES tb_professor(id),
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id),
     FOREIGN KEY (aluno_id) REFERENCES tb_aluno(id)
 );
 
@@ -345,9 +350,23 @@ CREATE TABLE tb_tags (
 
 CREATE TABLE tb_professor_tag (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    professor_id INT NOT NULL,
+    id_professor INT NOT NULL,
     tag_id INT NOT NULL,
-    UNIQUE KEY uk_professor_tag (professor_id, tag_id),
-    FOREIGN KEY (professor_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_professor_tag (id_professor, tag_id),
+    FOREIGN KEY (id_professor) REFERENCES tb_professor(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
+);
+
+-- Mensagens privadas entre professores e alunos
+CREATE TABLE tb_mensagens (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    remetente_uuid CHAR(36) NOT NULL,
+    remetente_tipo ENUM('PROFESSOR','ALUNO') NOT NULL,
+    destinatario_uuid CHAR(36) NOT NULL,
+    destinatario_tipo ENUM('PROFESSOR','ALUNO') NOT NULL,
+    texto TEXT NOT NULL,
+    lido BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_mensagens_remetente (remetente_uuid, created_at),
+    INDEX idx_mensagens_destinatario (destinatario_uuid, created_at)
 );

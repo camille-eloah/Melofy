@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from jose import JWTError
 from sqlmodel import Session, select
+from pydantic import BaseModel
 
 from app.core.config import get_settings
 from app.core.security import (
@@ -34,6 +35,9 @@ from app.models import (
     ProfessorTag,
     AvaliacoesDoAluno,
     AvaliacoesDoProfessor,
+    Categoria,
+    Message,
+    Pacote,
 )
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.schemas.auth import LoginRequest
@@ -43,6 +47,7 @@ from app.services.auth import (
     gerar_tokens,
     obter_usuario_por_id_tipo,
 )
+from app.schemas.messages import MessageOut
 from app.services.dev_bypass import credenciais_bypass, obter_usuario_bypass
 from typing import List
 from app.services.user import montar_resposta_usuario, buscar_usuario_por_id, buscar_usuario_por_uuid
@@ -53,6 +58,7 @@ settings = get_settings()
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from sqlalchemy import func
 from app.models import Professor, Instrumento, ProfessorInstrumento
 
 import logging
@@ -64,7 +70,8 @@ from app.schemas.instrumentos import (
     ProfessorInstrumentoCreate,
 )
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
-from app.schemas.ratings import RatingCreate, RatingRead
+from app.schemas.ratings import RatingCreate, RatingRead, RatingUpdate
+from app.schemas.pacotes import PacoteCreate, PacoteUpdate, PacoteRead
 
 
 logger = logging.getLogger(__name__)
@@ -104,9 +111,13 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 media_mount_path = settings.media_url_path if settings.media_url_path.startswith("/") else f"/{settings.media_url_path}"
@@ -165,6 +176,11 @@ router_feedback = APIRouter(
 router_tags = APIRouter(
     prefix="/tags",
     tags=["tags"]
+)
+
+router_messages = APIRouter(
+    prefix="/messages",
+    tags=["messages"]
 )
 
 
@@ -276,6 +292,14 @@ def _instrumento_to_read(instrumento: Instrumento) -> InstrumentoRead:
         id=instrumento.id,
         nome=instrumento.nome,
         tipo=str(instrumento.tipo),
+    )
+
+
+def _instrumento_to_read_with_categoria(instrumento: Instrumento, categoria_nome: str | None) -> InstrumentoRead:
+    return InstrumentoRead(
+        id=instrumento.id,
+        nome=instrumento.nome,
+        tipo=categoria_nome or str(instrumento.tipo),
     )
 
 
@@ -513,29 +537,123 @@ def excluir_aula(aula_id: int):
 # 4. Pacotes 
 # ----------------------------
 
-@router_lessons.post("/pacotes/")
-def cadastrar_pacote():
-    return {"msg": "Pacote cadastrado"}
+@router_lessons.post("/pacotes/", response_model=PacoteRead, status_code=201)
+def cadastrar_pacote(
+    pacote: PacoteCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Cadastra um novo pacote de aulas para o professor autenticado"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem criar pacotes")
+    
+    novo_pacote = Pacote(
+        pac_prof_id=professor.id,
+        pac_nome=pacote.pac_nome.strip(),
+        pac_quantidade_aulas=pacote.pac_quantidade_aulas,
+        pac_valor_total=pacote.pac_valor_total,
+    )
+    
+    db.add(novo_pacote)
+    db.commit()
+    db.refresh(novo_pacote)
+    logger.debug(f"Pacote criado: id={novo_pacote.pac_id}, prof={professor.id}")
+    return novo_pacote
 
-@router_lessons.get("/pacotes/")
-def listar_pacotes():
-    return {"msg": "Lista de pacotes"}
+@router_lessons.get("/pacotes/", response_model=list[PacoteRead])
+def listar_pacotes(
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Lista todos os pacotes do professor autenticado"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem listar pacotes")
+    
+    pacotes = db.exec(
+        select(Pacote).where(Pacote.pac_prof_id == professor.id)
+    ).all()
+    
+    return pacotes
 
-@router_lessons.get("/pacotes/{pacote_id}")
-def obter_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id}"}
+@router_lessons.get("/pacotes/{pacote_id}", response_model=PacoteRead)
+def obter_pacote(
+    pacote_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Obtém um pacote específico (apenas do professor autenticado)"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem acessar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para acessar este pacote")
+    
+    return pacote
 
-@router_lessons.put("/pacotes/{pacote_id}")
-def editar_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id} atualizado totalmente"}
+@router_lessons.put("/pacotes/{pacote_id}", response_model=PacoteRead)
+def editar_pacote(
+    pacote_id: int,
+    dados: PacoteUpdate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Edita um pacote existente"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem editar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para editar este pacote")
+    
+    # Atualizar campos fornecidos
+    dados_dict = dados.dict(exclude_unset=True)
+    for key, value in dados_dict.items():
+        setattr(pacote, key, value)
+    
+    db.add(pacote)
+    db.commit()
+    db.refresh(pacote)
+    logger.debug(f"Pacote atualizado: id={pacote.pac_id}")
+    return pacote
 
-@router_lessons.patch("/pacotes/{pacote_id}")
-def definir_valor(pacote_id: int):
-    return {"msg": f"Valor do pacote {pacote_id} atualizado"}
-
-@router_lessons.delete("/pacotes/{pacote_id}")
-def excluir_pacote(pacote_id: int):
-    return {"msg": f"Pacote {pacote_id} excluído"}
+@router_lessons.delete("/pacotes/{pacote_id}", status_code=204)
+def excluir_pacote(
+    pacote_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Deleta um pacote"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem deletar pacotes")
+    
+    pacote = db.get(Pacote, pacote_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para deletar este pacote")
+    
+    db.delete(pacote)
+    db.commit()
+    logger.debug(f"Pacote deletado: id={pacote.pac_id}")
+    return
 
 
 # ----------------------------
@@ -569,7 +687,7 @@ def adicionar_instrumento_professor(
     dados: ProfessorInstrumentoCreate,
     db: Session = Depends(get_session),
 ):
-    professor = db.get(Professor, dados.professor_id)
+    professor = db.get(Professor, dados.id_professor)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
@@ -579,14 +697,14 @@ def adicionar_instrumento_professor(
 
     existente = db.exec(
         select(ProfessorInstrumento).where(
-            ProfessorInstrumento.professor_id == dados.professor_id,
+            ProfessorInstrumento.id_professor == dados.id_professor,
             ProfessorInstrumento.instrumento_id == dados.instrumento_id,
         )
     ).first()
 
     if not existente:
         rel = ProfessorInstrumento(
-            professor_id=dados.professor_id,
+            id_professor=dados.id_professor,
             instrumento_id=dados.instrumento_id,
         )
         db.add(rel)
@@ -597,19 +715,22 @@ def adicionar_instrumento_professor(
 
 @router_instruments.get("/", response_model=List[InstrumentoRead])
 def listar_instrumentos(q: str | None = None, db: Session = Depends(get_session)):
-    stmt = select(Instrumento)
+    stmt = select(Instrumento, Categoria).join(Categoria, Categoria.id == Instrumento.tipo, isouter=True)
     if q:
         stmt = stmt.where(Instrumento.nome.ilike(f"%{q}%"))
-    instrumentos = db.exec(stmt).all()
-    return [_instrumento_to_read(instr) for instr in instrumentos]
+    resultados = db.exec(stmt).all()
+    return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
 
-@router_instruments.get("/professor/{professor_id}", response_model=List[InstrumentoRead])
-def listar_instrumentos_professor(professor_id: int, db: Session = Depends(get_session)):
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == professor_id
+@router_instruments.get("/professor/{id_professor}", response_model=List[InstrumentoRead])
+def listar_instrumentos_professor(id_professor: int, db: Session = Depends(get_session)):
+    stmt = (
+        select(Instrumento, Categoria)
+        .join(ProfessorInstrumento)
+        .join(Categoria, Categoria.id == Instrumento.tipo, isouter=True)
+        .where(ProfessorInstrumento.id_professor == id_professor)
     )
-    instrumentos = db.exec(stmt).all()
-    return [_instrumento_to_read(instr) for instr in instrumentos]
+    resultados = db.exec(stmt).all()
+    return [_instrumento_to_read_with_categoria(instr, cat.nome if cat else None) for instr, cat in resultados]
 
 
 @router_instruments.get("/professor/uuid/{user_uuid}", response_model=List[InstrumentoRead])
@@ -618,7 +739,7 @@ def listar_instrumentos_professor_por_uuid(user_uuid: str, db: Session = Depends
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
     stmt = select(Instrumento).join(ProfessorInstrumento).where(
-        ProfessorInstrumento.professor_id == professor.id
+        ProfessorInstrumento.id_professor == professor.id
     )
     instrumentos = db.exec(stmt).all()
     return [_instrumento_to_read(instr) for instr in instrumentos]
@@ -662,13 +783,13 @@ def escolher_instrumentos_professor(
     dados: ProfessorInstrumentosCreate,
     db: Session = Depends(get_session),
 ):
-    professor = db.get(Professor, dados.professor_id)
+    professor = db.get(Professor, dados.id_professor)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor não encontrado")
 
     # Apaga escolhas antigas
     antigos = db.exec(
-        select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+        select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == dados.id_professor)
     ).all()
     for rel in antigos:
         db.delete(rel)
@@ -679,13 +800,13 @@ def escolher_instrumentos_professor(
         if not instrumento:
             raise HTTPException(status_code=400, detail=f"Instrumento com id {instr_id} não existe")
 
-        rel = ProfessorInstrumento(professor_id=dados.professor_id, instrumento_id=instr_id)
+        rel = ProfessorInstrumento(id_professor=dados.id_professor, instrumento_id=instr_id)
         db.add(rel)
 
     db.commit()
 
     # Retorna os instrumentos do professor
-    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == dados.professor_id)
+    stmt = select(Instrumento).join(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == dados.id_professor)
     instrumentos_professor = db.exec(stmt).all()
 
     return {"message": "Instrumentos escolhidos com sucesso", "instrumentos": [_instrumento_to_read(instr) for instr in instrumentos_professor]}
@@ -714,7 +835,7 @@ def listar_tags_professor(user_id: int, db: Session = Depends(get_session)):
     professor = db.get(Professor, user_id)
     if not professor:
         raise HTTPException(status_code=404, detail="Professor nao encontrado")
-    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.professor_id == user_id)
+    stmt = select(Tag).join(ProfessorTag).where(ProfessorTag.id_professor == user_id)
     tags = db.exec(stmt).all()
     return [_tag_to_response(tag) for tag in tags]
 
@@ -754,7 +875,7 @@ def atualizar_tags_professor(
         vistos.add(chave)
         nomes_unicos.append(normalizado)
 
-    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.professor_id == user_id)).all()
+    antigos = db.exec(select(ProfessorTag).where(ProfessorTag.id_professor == user_id)).all()
     for rel in antigos:
         db.delete(rel)
     db.commit()
@@ -762,7 +883,7 @@ def atualizar_tags_professor(
     tags_resultado: List[Tag] = []
     for nome in nomes_unicos:
         tag = _get_or_create_tag_by_name(db, nome)
-        rel = ProfessorTag(professor_id=user_id, tag_id=tag.id)
+        rel = ProfessorTag(id_professor=user_id, tag_id=tag.id)
         db.add(rel)
         tags_resultado.append(tag)
 
@@ -770,7 +891,7 @@ def atualizar_tags_professor(
     instrument_ids = {tag.instrumento_id for tag in tags_resultado if tag.instrumento_id}
     if instrument_ids:
         existentes = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+            select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == user_id)
         ).all()
         existentes_ids = {rel.instrumento_id for rel in existentes}
 
@@ -782,12 +903,12 @@ def atualizar_tags_professor(
         # Adicionar instrumentos novos
         for instr_id in instrument_ids:
             if instr_id not in existentes_ids:
-                db.add(ProfessorInstrumento(professor_id=user_id, instrumento_id=instr_id))
+                db.add(ProfessorInstrumento(id_professor=user_id, instrumento_id=instr_id))
 
     else:
         # Nenhuma tag de instrumento: limpa relacionamentos existentes
         antigos_instr = db.exec(
-            select(ProfessorInstrumento).where(ProfessorInstrumento.professor_id == user_id)
+            select(ProfessorInstrumento).where(ProfessorInstrumento.id_professor == user_id)
         ).all()
         for rel in antigos_instr:
             db.delete(rel)
@@ -815,9 +936,9 @@ def filtrar_professor_por_aula():
 # 7. Agendamento de Aulas
 # ----------------------------
 @router_schedule.get("/agendamentos/")
-def listar_agendamentos(professor_id: int | None = None):
-    if professor_id:
-        return {"msg": f"Lista de agendamentos do professor {professor_id}"}
+def listar_agendamentos(id_professor: int | None = None):
+    if id_professor:
+        return {"msg": f"Lista de agendamentos do professor {id_professor}"}
     return {"msg": "Lista de todos os agendamentos"}
 
 @router_schedule.get("/agendamentos/{agendamento_id}")
@@ -898,7 +1019,7 @@ def criar_avaliacao(
             )
         ).first()
         if existente:
-            raise HTTPException(status_code=409, detail="Voce ja avaliou este professor")
+            raise HTTPException(status_code=409, detail="Voce já avaliou este professor")
         nova = AvaliacoesDoProfessor(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
@@ -921,7 +1042,7 @@ def criar_avaliacao(
             raise HTTPException(status_code=403, detail="Apenas professores podem avaliar alunos")
         aluno = db.get(Aluno, rating.avaliado_id)
         if not aluno:
-            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+            raise HTTPException(status_code=404, detail="Aluno não encontrado")
         existente = db.exec(
             select(AvaliacoesDoAluno).where(
                 AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
@@ -929,7 +1050,7 @@ def criar_avaliacao(
             )
         ).first()
         if existente:
-            raise HTTPException(status_code=409, detail="Voce ja avaliou este aluno")
+            raise HTTPException(status_code=409, detail="Voce já avaliou este aluno")
         nova = AvaliacoesDoAluno(
             ava_comentario=rating.texto,
             ava_nota=rating.nota,
@@ -1003,6 +1124,107 @@ def listar_avaliacoes(
     raise HTTPException(status_code=400, detail="Tipo invalido")
 
 
+@router_ratings.get("/{tipo}/{avaliado_id}/stats")
+def stats_avaliacoes(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    db: Session = Depends(get_session),
+):
+    if tipo == TipoUsuario.PROFESSOR:
+        professor = db.get(Professor, avaliado_id)
+        if not professor:
+            raise HTTPException(status_code=404, detail="Professor nao encontrado")
+        result = db.exec(
+            select(
+                AvaliacoesDoProfessor.ava_prof_avaliado,
+                func.count(AvaliacoesDoProfessor.ava_id),
+                func.avg(AvaliacoesDoProfessor.ava_nota),
+            ).where(AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id)
+        ).first()
+    elif tipo == TipoUsuario.ALUNO:
+        aluno = db.get(Aluno, avaliado_id)
+        if not aluno:
+            raise HTTPException(status_code=404, detail="Aluno nao encontrado")
+        result = db.exec(
+            select(
+                AvaliacoesDoAluno.ava_alu_avaliado,
+                func.count(AvaliacoesDoAluno.ava_id),
+                func.avg(AvaliacoesDoAluno.ava_nota),
+            ).where(AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id)
+        ).first()
+    else:
+        raise HTTPException(status_code=400, detail="Tipo invalido")
+
+    total = int(result[1]) if result and result[1] is not None else 0
+    media = float(result[2]) if result and result[2] is not None else 0.0
+    return {"total": total, "media": round(media, 1)}
+
+
+@router_ratings.patch("/{tipo}/{avaliado_id}", response_model=RatingRead)
+def editar_avaliacao(
+    tipo: TipoUsuario,
+    avaliado_id: int,
+    dados: RatingUpdate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    if tipo == TipoUsuario.PROFESSOR:
+        if autor_tipo != TipoUsuario.ALUNO:
+            raise HTTPException(status_code=403, detail="Apenas alunos podem editar avaliacao de professor")
+        avaliacao = db.exec(
+            select(AvaliacoesDoProfessor).where(
+                AvaliacoesDoProfessor.ava_alu_avaliador == autor.id,
+                AvaliacoesDoProfessor.ava_prof_avaliado == avaliado_id,
+            )
+        ).first()
+        if not avaliacao:
+            raise HTTPException(status_code=404, detail="Avaliacao nao encontrada para este professor")
+        if dados.nota is not None:
+            avaliacao.ava_nota = dados.nota
+        if dados.texto is not None:
+            avaliacao.ava_comentario = dados.texto
+        db.add(avaliacao)
+        db.commit()
+        db.refresh(avaliacao)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.PROFESSOR,
+            avaliado_id=avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=avaliacao,
+        )
+
+    if tipo == TipoUsuario.ALUNO:
+        if autor_tipo != TipoUsuario.PROFESSOR:
+            raise HTTPException(status_code=403, detail="Apenas professores podem editar avaliacao de aluno")
+        avaliacao = db.exec(
+            select(AvaliacoesDoAluno).where(
+                AvaliacoesDoAluno.ava_prof_avaliador == autor.id,
+                AvaliacoesDoAluno.ava_alu_avaliado == avaliado_id,
+            )
+        ).first()
+        if not avaliacao:
+            raise HTTPException(status_code=404, detail="Avaliacao nao encontrada para este aluno")
+        if dados.nota is not None:
+            avaliacao.ava_nota = dados.nota
+        if dados.texto is not None:
+            avaliacao.ava_comentario = dados.texto
+        db.add(avaliacao)
+        db.commit()
+        db.refresh(avaliacao)
+        return _avaliacao_to_response(
+            avaliado_tipo=TipoUsuario.ALUNO,
+            avaliado_id=avaliado_id,
+            autor_tipo=autor_tipo,
+            autor=autor,
+            avaliacao_obj=avaliacao,
+        )
+
+    raise HTTPException(status_code=400, detail="Tipo invalido")
+
+
 @router_user.post("/{user_id}/profile-picture")
 async def upload_profile_picture(
     user_id: int,
@@ -1058,9 +1280,9 @@ async def upload_profile_picture(
         "profile_picture": photo_path
     }
 
-
-# 12. Feedback dos usuários
-
+# ---------------------------
+# 12. Feedback dos usuários 
+# ---------------------------
 
 DESTINATARIO_FEEDBACK = "lucenamaria767@gmail.com"
 
@@ -1097,6 +1319,193 @@ def obter_feedback(fb_id: int, db: Session = Depends(get_session)):
         raise HTTPException(status_code=404, detail="Feedback não encontrado")
     return feedback
 
+# -----------------
+# Mensagens
+# -----------------
+
+class MessageCreate(BaseModel):
+    destinatario_uuid: str
+    texto: str
+
+class PessoaInfo(BaseModel):
+    uuid: str
+    nome: str
+    foto: str | None = None
+    instrumentos: list[str]
+
+class ConversationDetail(BaseModel):
+    mensagens: list[MessageOut]
+    pessoa: PessoaInfo
+
+@router_messages.post("/conversation", response_model=MessageOut)
+def create_message(
+    payload: MessageCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    # 🔥 1 — Buscar o usuário destinatário por UUID (professor ou aluno)
+    destinatario = None
+    destinatario_tipo = None
+    
+    # Tentar buscar como professor
+    destinatario = db.exec(select(Professor).where(Professor.global_uuid == payload.destinatario_uuid)).first()
+    if destinatario:
+        destinatario_tipo = TipoUsuario.PROFESSOR
+    else:
+        # Tentar buscar como aluno
+        destinatario = db.exec(select(Aluno).where(Aluno.global_uuid == payload.destinatario_uuid)).first()
+        if destinatario:
+            destinatario_tipo = TipoUsuario.ALUNO
+    
+    if not destinatario:
+        raise HTTPException(status_code=404, detail="Destinatário não encontrado")
+
+    # 🔥 2 — Criar a mensagem com UUIDs
+    msg = Message(
+        remetente_uuid=autor.global_uuid,
+        remetente_tipo=autor_tipo,
+        destinatario_uuid=payload.destinatario_uuid,
+        destinatario_tipo=destinatario_tipo,
+        texto=payload.texto.strip(),
+    )
+
+    db.add(msg)
+    db.commit()
+    db.refresh(msg)
+    return msg
+
+
+@router_messages.get("/conversation/{destinatario_uuid}", response_model=list[MessageOut])
+def listar_conversa(
+    destinatario_uuid: str,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    msgs = db.exec(
+        select(Message).where(
+            # mensagens enviadas por mim
+            ((Message.remetente_uuid == autor.global_uuid) & (Message.destinatario_uuid == destinatario_uuid))
+            |
+            # mensagens que recebi
+            ((Message.remetente_uuid == destinatario_uuid) & (Message.destinatario_uuid == autor.global_uuid))
+        ).order_by(Message.created_at)
+    ).all()
+
+    return msgs
+
+@router_messages.get("/conversation/{destinatario_uuid}/full", response_model=ConversationDetail)
+def listar_conversa_com_instrumentos(
+    destinatario_uuid: str,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    # 1 — Buscar mensagens
+    msgs = db.exec(
+        select(Message).where(
+            ((Message.remetente_uuid == autor.global_uuid) & (Message.destinatario_uuid == destinatario_uuid)) |
+            ((Message.remetente_uuid == destinatario_uuid) & (Message.destinatario_uuid == autor.global_uuid))
+        ).order_by(Message.created_at)
+    ).all()
+
+    # 2 — Buscar usuário da outra ponta por UUID
+    pessoa = None
+    pessoa = db.exec(select(Professor).where(Professor.global_uuid == destinatario_uuid)).first()
+    if not pessoa:
+        pessoa = db.exec(select(Aluno).where(Aluno.global_uuid == destinatario_uuid)).first()
+    
+    if not pessoa:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    # 3 — Buscar instrumentos (se for professor)
+    instrumentos = []
+    if pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
+        stmt = (
+            select(Instrumento.nome)
+            .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
+            .where(ProfessorInstrumento.id_professor == pessoa.id)
+        )
+        instrumentos_raw = db.exec(stmt).all()
+        print(f"🔧 DEBUG Instrumentos raw em listar_conversa_com_instrumentos: {instrumentos_raw}")
+        instrumentos = [row[0] if isinstance(row, tuple) else row for row in instrumentos_raw]
+        print(f"🔧 DEBUG Instrumentos processados: {instrumentos}")
+
+    return {
+        "mensagens": msgs,
+        "pessoa": {
+            "uuid": pessoa.global_uuid,
+            "nome": pessoa.nome,
+            "foto": getattr(pessoa, "profile_picture", None),
+            "instrumentos": instrumentos,
+            "tipo": pessoa.tipo_usuario.value
+        }
+    }
+
+
+
+@router_messages.get("/my-conversations")
+def listar_minhas_conversas(
+    request: Request,
+    db: Session = Depends(get_session)
+):
+    autor_tipo, autor = _get_current_user(request, db)
+
+    msgs = db.exec(
+        select(Message).where(
+            (Message.remetente_uuid == autor.global_uuid) |
+            (Message.destinatario_uuid == autor.global_uuid)
+        ).order_by(Message.created_at.desc())
+    ).all()
+
+    conversas = {}
+    for m in msgs:
+        pessoa_uuid = m.destinatario_uuid if m.remetente_uuid == autor.global_uuid else m.remetente_uuid
+        if pessoa_uuid not in conversas:
+            conversas[pessoa_uuid] = m
+
+    resultado = []
+    for pessoa_uuid, ultima_msg in conversas.items():
+
+        # Buscar pessoa por UUID
+        pessoa = None
+        pessoa = db.exec(select(Professor).where(Professor.global_uuid == pessoa_uuid)).first()
+        if not pessoa:
+            pessoa = db.exec(select(Aluno).where(Aluno.global_uuid == pessoa_uuid)).first()
+        
+        if not pessoa:
+            continue
+
+        # Buscar instrumentos (se professor)
+        instrumentos = []
+        if pessoa.tipo_usuario == TipoUsuario.PROFESSOR:
+            stmt = (
+                select(Instrumento.nome)
+                .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
+                .where(ProfessorInstrumento.id_professor == pessoa.id)
+            )
+            instrumentos_raw = db.exec(stmt).all()
+            print(f"🔧 DEBUG Instrumentos raw para {pessoa.nome}: {instrumentos_raw}")
+            instrumentos = [row[0] if isinstance(row, tuple) else row for row in instrumentos_raw]
+            print(f"🔧 DEBUG Instrumentos processados: {instrumentos}")
+
+        resultado.append({
+            "uuid": pessoa_uuid,
+            "nome": pessoa.nome,
+            "foto": getattr(pessoa, "profile_picture", None),
+            "mensagem": ultima_msg.texto,
+            "hora": ultima_msg.created_at,
+            "instrumentos": instrumentos,
+            "pessoa_tipo": pessoa.tipo_usuario.value,
+            "autor_tipo": autor_tipo.value
+        })
+
+    return resultado
+
 
 
 app.include_router(router_user)
@@ -1108,6 +1517,5 @@ app.include_router(router_finance)
 app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
-
-
+app.include_router(router_messages)
 

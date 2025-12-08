@@ -32,3 +32,15 @@ class RatingRead(BaseModel):
     texto: Optional[str] = None
     criado_em: datetime
 
+
+class RatingUpdate(BaseModel):
+    nota: Optional[int] = Field(default=None, ge=1, le=5)
+    texto: Optional[str] = Field(default=None, max_length=2000)
+
+    @validator("texto")
+    def _normalize_text(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        normalized = value.strip()
+        return normalized or None
+

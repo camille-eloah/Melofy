@@ -1,4 +1,3 @@
-/* ===== Fundo geral da página ===== */
 .profile-page {
   background-color: #f5f7fb;
   font-family: 'Inter', sans-serif;
@@ -7,9 +6,8 @@
   flex-direction: column;
 }
 
-/* ===== Cabeçalho azul escuro ===== */
 .profile-header {
-  background-color: #020b2b;     /* azul bem escuro */
+  background-color: #020b2b;
   padding: 18px 80px;
   display: flex;
   align-items: center;
@@ -18,7 +16,6 @@
   box-sizing: border-box;
 }
 
-/* exemplo: lado esquerdo (logo/nome) */
 .profile-header-left {
   display: flex;
   align-items: center;
@@ -29,10 +26,9 @@
   width: 36px;
   height: 36px;
   border-radius: 999px;
-  background-color: #0ea5e9;    /* bolinha azul clara (placeholder do logo) */
+  background-color: #0ea5e9;
 }
 
-/* nome do site */
 .profile-header-left .brand {
   font-size: 20px;
   font-weight: 700;
@@ -41,7 +37,6 @@
   color: #ffffff;
 }
 
-/* links de navegação no topo */
 .profile-header-nav {
   display: flex;
   gap: 12px;
@@ -53,7 +48,7 @@
   border-radius: 999px;
   padding: 8px 18px;
   border: 1px solid transparent;
-  background-color: #0ea5e9;    /* botões azul claro, como na imagem */
+  background-color: #0ea5e9;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
@@ -67,7 +62,6 @@
   opacity: 0.9;
 }
 
-/* ===== Conteúdo abaixo do cabeçalho ===== */
 .profile-container {
   display: flex;
   flex-wrap: wrap;
@@ -98,7 +92,6 @@
   justify-content: flex-end;
 }
 
-/* ===== Texto da esquerda ===== */
 .texto-intro {
   flex: 1 1 60%;
   max-width: 600px;
@@ -113,10 +106,9 @@
 }
 
 .texto-desc p {
-  white-space: pre-line; /* preserva quebras de linha digitadas pelo usuario */
+  white-space: pre-line;
 }
 
-/* ===== Card do perfil ===== */
 .card-perfil {
   flex: 1 1 32%;
   max-width: 340px;
@@ -209,7 +201,6 @@
   margin-bottom: 18px;
 }
 
-/* Infos: Tarifa, Resposta, Alunos */
 .info {
   width: 100%;
   text-align: left;
@@ -232,7 +223,29 @@
   font-weight: 600;
 }
 
-/* Botões (reaproveitando suas classes) */
+.link-aula {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.link-aula-url {
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 600;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-aula-url:hover {
+  text-decoration: underline;
+  color: #0369a1;
+}
+
 .botoes {
   margin-top: 10px;
   display: flex;
@@ -243,7 +256,8 @@
 
 .btn-editar,
 .btn-agendar,
-.btn-cadastrarpacote  {
+.btn-cadastrarpacote,
+.btn-entrar-aula {
   border: none;
   padding: 10px 16px;
   border-radius: 999px;
@@ -253,7 +267,6 @@
   font-size: 13px;
 }
 
-/* Botão azul principal */
 .btn-editar {
   background-color: #0284c7;
   color: #fff;
@@ -263,18 +276,27 @@
   background-color: #0369a1;
 }
 
-/* Botão branco com texto azul */
-.btn-agendar, .btn-cadastrarpacote {
+.btn-agendar,
+.btn-cadastrarpacote {
   background-color: #ffffff;
   color: #0284c7;
   border: 1px solid #e2e8f0;
+}
+
+.btn-entrar-aula {
+  background-color: #10b981;
+  color: #ffffff;
+  border: 1px solid #10b981;
+}
+
+.btn-entrar-aula:hover {
+  background-color: #059669;
 }
 
 .btn-deletar:hover {
   background-color: #eff6ff;
 }
 
-/* Avaliações */
 .avaliacoes {
   width: 100%;
   margin-top: 40px;
@@ -299,7 +321,6 @@
   align-items: flex-start;
 }
 
-/* Responsivo */
 @media (max-width: 900px) {
   .profile-header {
     padding: 16px 20px;
@@ -331,7 +352,6 @@
   }
 }
 
-/* ===== Container top-items ===== */
 .top-items {
   position: relative;
   display: flex;
@@ -339,11 +359,10 @@
   align-items: flex-start;
   width: 100%;
   max-width: 600px;
-  padding-right: 52px; /* espaço para o botão fixo à direita */
+  padding-right: 52px;
   margin-bottom: 20px;
 }
 
-/* ===== Categorias ===== */
 .categorias {
   display: flex;
   gap: 10px;
@@ -381,8 +400,7 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.categoria-item-instrument:hover
-{
+.categoria-item-instrument:hover {
   background-color: #191188;
 }
 
@@ -407,7 +425,6 @@
   background-color: #b91c1c;
 }
 
-/* ===== Botão de edição do texto principal ===== */
 .btn-editar-texto {
   position: absolute;
   top: 0;
@@ -437,13 +454,11 @@
   transform: translateY(0);
 }
 
-/* Remove o position relative do main-text já que não precisamos mais do absolute */
 .main-text {
   flex: 1 1 60%;
   max-width: 600px;
 }
 
-/* Ajuste para responsividade */
 @media (max-width: 900px) {
   .top-items {
     flex-direction: column;
@@ -468,7 +483,6 @@
   }
 }
 
-/* ===== Modal de pré-visualização ===== */
 .profile-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -703,8 +717,6 @@
   color: #475569;
 }
 
-
-/* CSS que to criando para os modais */
 .pacote-modal-overlay {
   position: fixed;
   top: 0;
@@ -809,7 +821,6 @@
   box-shadow: 0 6px 20px rgba(0, 130, 180, 0.35);
 }
 
-/* animação */
 @keyframes pacoteFadeUp {
   from {
     opacity: 0;
