@@ -1334,7 +1334,10 @@ def listar_conversa_com_instrumentos(
             .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
             .where(ProfessorInstrumento.id_professor == pessoa.id)
         )
-        instrumentos = [row[0] for row in db.exec(stmt).all()]
+        instrumentos_raw = db.exec(stmt).all()
+        print(f"🔧 DEBUG Instrumentos raw em listar_conversa_com_instrumentos: {instrumentos_raw}")
+        instrumentos = [row[0] if isinstance(row, tuple) else row for row in instrumentos_raw]
+        print(f"🔧 DEBUG Instrumentos processados: {instrumentos}")
 
     return {
         "mensagens": msgs,
@@ -1389,7 +1392,10 @@ def listar_minhas_conversas(
                 .join(ProfessorInstrumento, ProfessorInstrumento.instrumento_id == Instrumento.id)
                 .where(ProfessorInstrumento.id_professor == pessoa.id)
             )
-            instrumentos = [row[0] for row in db.exec(stmt).all()]
+            instrumentos_raw = db.exec(stmt).all()
+            print(f"🔧 DEBUG Instrumentos raw para {pessoa.nome}: {instrumentos_raw}")
+            instrumentos = [row[0] if isinstance(row, tuple) else row for row in instrumentos_raw]
+            print(f"🔧 DEBUG Instrumentos processados: {instrumentos}")
 
         resultado.append({
             "uuid": pessoa_uuid,

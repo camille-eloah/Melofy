@@ -65,6 +65,13 @@ useEffect(() => {
 
       const data = await resp.json();
 
+
+      console.log("📌 RAW do backend (my-conversations):", data);
+      console.log(
+        "📌 RAW do backend:",
+        JSON.stringify(data, null, 2)
+      );
+
       const lista = data.map(c => ({
         uuid: c.uuid,
         nome: c.nome,
@@ -75,6 +82,8 @@ useEffect(() => {
         naoLida: false,
         online: false,
       }));
+
+      console.log("🎸 DEBUG — Instrumentos mapeados no frontend:", lista.map(l => ({ nome: l.nome, instrumentos: l.instrumentos })));
 
       setMensagens(lista);
     } catch (err) {
@@ -375,9 +384,12 @@ useEffect(() => {
                     
                     <div className="conversation-details">
                     <div className="instrument-tags">
-                    {(chat.instrumentos || []).slice(0, 3).map((inst, index) => (
-                      <span key={index} className="instrument-tag">{inst}</span>
-                    ))}
+                    {(chat.instrumentos || []).slice(0, 3).map((inst, index) => {
+                     /*console.log(`🎸 Renderizando instrumento ${index}:`, inst, "tipo:", typeof inst);*/
+                      return (
+                        <span key={index} className="instrument-tag">{inst}</span>
+                      );
+                    })}
                   </div>
                     <p className="message-preview">{chat.mensagem}</p>
                     </div>
