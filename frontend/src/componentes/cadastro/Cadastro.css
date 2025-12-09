@@ -40,6 +40,28 @@
   margin-bottom: 40px;
   font-weight: 700;
 }
+.input-senha {
+  position: relative;
+  width: 100%;
+}
+
+.input-senha input {
+  width: 100%;
+  padding-right: 90px; /* espaço para o botão dentro */
+}
+
+.btn-mostrar-senha {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #00d2ff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
 
 .input-group {
   margin-bottom: 20px;
