@@ -288,3 +288,13 @@
 .schedule-modal-container::-webkit-scrollbar-track {
     background: transparent;
 }
+
+.schedule-resumo-agendamentos {
+    margin-top: 10px;
+}
+
+.schedule-resumo-item {
+    color: #004a66;
+    padding: 5px 0;
+    font-size: 0.95rem;
+}

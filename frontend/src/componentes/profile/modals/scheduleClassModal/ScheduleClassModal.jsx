@@ -16,6 +16,7 @@ const ScheduleClassModal = ({
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [statusMessage, setStatusMessage] = useState("");
     const [selectedPackage, setSelectedPackage] = useState(null);
+    const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
 
     if (!isOpen) return null;
 
@@ -24,18 +25,21 @@ const ScheduleClassModal = ({
 
     // Função para alternar seleção de horário
     const toggleTimeSelection = (time) => {
-        if (!selectedPackage) return;
+        if (!selectedPackage || !selectedDate) return;
 
         const maxHorarios = selectedPackage.pac_quantidade_aulas;
+        const agendamentoKey = `${selectedDate}_${time}`;
 
-        setSelectedTimes((prev) => {
-            if (prev.includes(time)) {
-                // Remove o horário se já estiver selecionado
-                return prev.filter((t) => t !== time);
+        setAgendamentos((prev) => {
+            const exists = prev.some(a => a.date === selectedDate && a.time === time);
+            
+            if (exists) {
+                // Remove o agendamento
+                return prev.filter(a => !(a.date === selectedDate && a.time === time));
             } else {
-                // Adiciona o horário se não atingiu o limite
+                // Adiciona o agendamento se não atingiu o limite
                 if (prev.length < maxHorarios) {
-                    return [...prev, time];
+                    return [...prev, { date: selectedDate, time: time }];
                 }
                 return prev; // Não adiciona se já atingiu o limite
             }
@@ -44,11 +48,16 @@ const ScheduleClassModal = ({
 
     // Calcular quantos horários ainda precisam ser selecionados
     const horariosRestantes = selectedPackage 
-        ? selectedPackage.pac_quantidade_aulas - selectedTimes.length 
+        ? selectedPackage.pac_quantidade_aulas - agendamentos.length 
         : 0;
 
     // Verificar se pode confirmar (todos os horários foram selecionados)
-    const podeConfirmar = selectedPackage && selectedTimes.length === selectedPackage.pac_quantidade_aulas;
+    const podeConfirmar = selectedPackage && agendamentos.length === selectedPackage.pac_quantidade_aulas;
+
+    // Verificar se um horário específico está selecionado para a data atual
+    const isHorarioSelecionado = (time) => {
+        return agendamentos.some(a => a.date === selectedDate && a.time === time);
+    };
 
     // Formatar data para exibição
     const formatarData = (dateString) => {
@@ -61,8 +70,30 @@ const ScheduleClassModal = ({
     };
 
     const abrirConfirmacao = async () => {
-        const horariosOrdenados = selectedTimes.sort();
-        const listaHorarios = horariosOrdenados.map(h => `<li style="text-align: left;">${h}</li>`).join('');
+        // Agrupar agendamentos por data
+        const agendamentosPorData = agendamentos.reduce((acc, ag) => {
+            if (!acc[ag.date]) {
+                acc[ag.date] = [];
+            }
+            acc[ag.date].push(ag.time);
+            return acc;
+        }, {});
+
+        // Criar HTML formatado agrupado por data
+        const listaAgendamentos = Object.entries(agendamentosPorData)
+            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+            .map(([date, times]) => {
+                const horariosOrdenados = times.sort();
+                const listaHorarios = horariosOrdenados.map(h => `<li>${h}</li>`).join('');
+                return `
+                    <div style="margin-bottom: 15px;">
+                        <p style="margin: 5px 0;"><strong>${formatarData(date)}:</strong></p>
+                        <ul style="margin: 5px 0; padding-left: 20px;">
+                            ${listaHorarios}
+                        </ul>
+                    </div>
+                `;
+            }).join('');
 
         const result = await Swal.fire({
             title: 'Confirmar Agendamento',
@@ -70,11 +101,8 @@ const ScheduleClassModal = ({
                 <div style="text-align: left; margin: 20px 0;">
                     <p>Você está prestes a solicitar as seguintes aulas:</p>
                     <p style="margin-top: 15px;"><strong>Pacote:</strong> ${selectedPackage.pac_nome}</p>
-                    <p><strong>Data:</strong> ${formatarData(selectedDate)}</p>
-                    <p><strong>Horários selecionados:</strong></p>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        ${listaHorarios}
-                    </ul>
+                    <p style="margin-top: 10px;"><strong>Horários selecionados:</strong></p>
+                    ${listaAgendamentos}
                     <p style="margin-top: 15px;">Tem certeza que deseja confirmar esses horários?</p>
                 </div>
             `,
@@ -93,8 +121,7 @@ const ScheduleClassModal = ({
 
     const confirmar = () => {
         handleConfirmarAgendamento({
-            date: selectedDate,
-            times: selectedTimes,
+            agendamentos: agendamentos, // Envia array de {date, time}
             pacote: selectedPackage,
         });
 
@@ -124,7 +151,7 @@ const ScheduleClassModal = ({
                                     className={`schedule-horario-btn ${selectedPackage?.pac_id === p.pac_id ? "selected" : ""}`}
                                     onClick={() => {
                                         setSelectedPackage(p);
-                                        setSelectedTimes([]); // Limpa horários ao trocar de pacote
+                                        setAgendamentos([]); // Limpa agendamentos ao trocar de pacote
                                     }}
                                 >
                                     <div className="schedule-package-card">
@@ -149,7 +176,7 @@ const ScheduleClassModal = ({
                         onChange={(value) => {
                             setCalendarDate(value);
                             setSelectedDate(value.toISOString().split("T")[0]);
-                            setSelectedTimes([]); // Limpa horários ao trocar de data
+                            // Não limpa mais os horários ao trocar de data
                         }}
                         value={calendarDate}
                         minDate={new Date()}
@@ -159,13 +186,13 @@ const ScheduleClassModal = ({
                 {selectedDate && selectedPackage && (
                     <div className="schedule-form-group">
                         <label>
-                            Horários disponíveis: 
+                            Horários disponíveis para {formatarData(selectedDate)}:
                             {horariosRestantes > 0 && (
                                 <span className="schedule-feedback">
                                     {" "}(Selecione mais {horariosRestantes} horário{horariosRestantes > 1 ? 's' : ''})
                                 </span>
                             )}
-                            {horariosRestantes === 0 && selectedTimes.length > 0 && (
+                            {horariosRestantes === 0 && agendamentos.length > 0 && (
                                 <span className="schedule-feedback-success">
                                     {" "}✓ Todos os horários selecionados
                                 </span>
@@ -175,12 +202,33 @@ const ScheduleClassModal = ({
                             {horariosDisponiveis.map((h) => (
                                 <button
                                     key={h}
-                                    className={`schedule-horario-btn ${selectedTimes.includes(h) ? "selected" : ""}`}
+                                    className={`schedule-horario-btn ${isHorarioSelecionado(h) ? "selected" : ""}`}
                                     onClick={() => toggleTimeSelection(h)}
-                                    disabled={!selectedTimes.includes(h) && selectedTimes.length >= selectedPackage.pac_quantidade_aulas}
+                                    disabled={!isHorarioSelecionado(h) && agendamentos.length >= selectedPackage.pac_quantidade_aulas}
                                 >
                                     {h}
                                 </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {selectedPackage && agendamentos.length > 0 && (
+                    <div className="schedule-form-group">
+                        <label>Resumo dos horários selecionados ({agendamentos.length}/{selectedPackage.pac_quantidade_aulas}):</label>
+                        <div className="schedule-resumo-agendamentos">
+                            {Object.entries(
+                                agendamentos.reduce((acc, ag) => {
+                                    if (!acc[ag.date]) acc[ag.date] = [];
+                                    acc[ag.date].push(ag.time);
+                                    return acc;
+                                }, {})
+                            )
+                            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+                            .map(([date, times]) => (
+                                <div key={date} className="schedule-resumo-item">
+                                    <strong>{formatarData(date)}:</strong> {times.sort().join(', ')}
+                                </div>
                             ))}
                         </div>
                     </div>
