@@ -137,93 +137,97 @@ export const useDashProfessor = () => {
     try {
       setLoadingSolicitacoes(true);
       
-      // Simulação de dados - substitua pela sua API real
-      const mockSolicitacoes = [
-        {
-          id: 1,
-          aluno: {
-            nome: 'João Silva',
-            foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
-            instrumento: 'Violão',
-            nivel: 'Iniciante'
-          },
-          modalidade: 'presencial',
-          pacote: '4 aulas mensais',
-          valor: 320.00,
-          observacao: 'Preciso de horários no período da manhã, antes do trabalho.',
-          dataSolicitacao: '2024-01-15',
-          horariosSolicitados: ['Segunda 08:00', 'Quarta 09:00'],
-          status: 'pendente'
+      // Buscar solicitações reais da API
+      const response = await fetch('http://localhost:8000/schedule/agendamentos/', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          id: 2,
-          aluno: {
-            nome: 'Maria Santos',
-            foto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop',
-            instrumento: 'Piano',
-            nivel: 'Intermediário'
-          },
-          modalidade: 'remota',
-          pacote: '8 aulas mensais',
-          valor: 640.00,
-          observacao: 'Gostaria de foco em teoria musical e composição.',
-          dataSolicitacao: '2024-01-14',
-          horariosSolicitados: ['Terça 14:00', 'Quinta 15:00'],
-          status: 'pendente'
-        },
-        {
-          id: 3,
-          aluno: {
-            nome: 'Carlos Oliveira',
-            foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
-            instrumento: 'Guitarra',
-            nivel: 'Avançado'
-          },
-          modalidade: 'domicilio',
-          pacote: '4 aulas mensais',
-          valor: 400.00,
-          observacao: 'Moramos no centro, próximo à praça principal.',
-          dataSolicitacao: '2024-01-13',
-          horariosSolicitados: ['Sexta 17:00', 'Sábado 10:00'],
-          status: 'confirmada'
-        },
-        {
-          id: 4,
-          aluno: {
-            nome: 'Ana Costa',
-            foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
-            instrumento: 'Violino',
-            nivel: 'Iniciante'
-          },
-          modalidade: 'presencial',
-          pacote: '2 aulas semanais',
-          valor: 160.00,
-          observacao: '',
-          dataSolicitacao: '2024-01-12',
-          horariosSolicitados: ['Segunda 16:00'],
-          status: 'recusada'
-        },
-        {
-          id: 5,
-          aluno: {
-            nome: 'Pedro Almeida',
-            foto: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop',
-            instrumento: 'Bateria',
-            nivel: 'Intermediário'
-          },
-          modalidade: 'remota',
-          pacote: '12 aulas trimestrais',
-          valor: 960.00,
-          observacao: 'Preciso de horários noturnos, após às 19h.',
-          dataSolicitacao: '2024-01-11',
-          horariosSolicitados: ['Terça 19:00', 'Quinta 20:00'],
-          status: 'cancelada'
-        }
-      ];
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao carregar solicitações');
+      }
+
+      const solicitacoesData = await response.json();
       
-      setSolicitacoes(mockSolicitacoes);
+      // Transformar dados da API para o formato do componente
+      const solicitacoesFormatadas = await Promise.all(solicitacoesData.map(async (sol) => {
+        // Buscar informações do aluno
+        let alunoData = { nome: 'Aluno', profile_picture: null };
+        try {
+          const alunoResponse = await fetch(`http://localhost:8000/users/uuid/${sol.sol_alu_global_uuid}`, {
+            credentials: 'include',
+          });
+          if (alunoResponse.ok) {
+            alunoData = await alunoResponse.json();
+          }
+        } catch (error) {
+          console.error('Erro ao buscar aluno:', error);
+        }
+        
+        // Buscar informações do instrumento
+        let instrumentoData = { nome: 'Instrumento' };
+        try {
+          const instrumentoResponse = await fetch(`http://localhost:8000/instruments/${sol.sol_instr_id}`, {
+            credentials: 'include',
+          });
+          if (instrumentoResponse.ok) {
+            instrumentoData = await instrumentoResponse.json();
+          }
+        } catch (error) {
+          console.error('Erro ao buscar instrumento:', error);
+        }
+        
+        // Buscar informações do pacote
+        let pacoteData = null;
+        if (sol.sol_pac_id) {
+          try {
+            const pacoteResponse = await fetch(`http://localhost:8000/lessons/pacotes/${sol.sol_pac_id}`, {
+              credentials: 'include',
+            });
+            if (pacoteResponse.ok) {
+              pacoteData = await pacoteResponse.json();
+              console.log('Pacote carregado:', pacoteData);
+            } else {
+              console.warn('Erro ao buscar pacote:', sol.sol_pac_id, pacoteResponse.status);
+            }
+          } catch (error) {
+            console.error('Erro ao buscar pacote:', error);
+          }
+        }
+        
+        // Formatar horários agrupados por data
+        const horariosFormatados = sol.horarios.map(h => {
+          const data = new Date(h.horario_data + 'T00:00:00');
+          const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][data.getDay()];
+          return `${diaSemana} ${h.horario_hora}`;
+        });
+        
+        return {
+          id: sol.sol_id,
+          aluno: {
+            nome: alunoData.nome || 'Aluno',
+            foto: alunoData.profile_picture || 'https://via.placeholder.com/100',
+            instrumento: instrumentoData.nome || 'Instrumento',
+            nivel: sol.sol_nivel || 'Não informado'
+          },
+          modalidade: sol.sol_modalidade,
+          pacote: pacoteData?.pac_nome || 'Pacote não disponível',
+          valor: pacoteData?.pac_valor_total ? Number(pacoteData.pac_valor_total) : 0,
+          observacao: sol.sol_mensagem,
+          dataSolicitacao: sol.sol_criado_em,
+          horariosSolicitados: horariosFormatados,
+          status: sol.sol_status.toLowerCase()
+        };
+      }));
+      
+      setSolicitacoes(solicitacoesFormatadas);
+      
     } catch (error) {
       console.error('Erro ao carregar solicitações:', error);
+      setSolicitacoes([]);
     } finally {
       setLoadingSolicitacoes(false);
     }
@@ -232,13 +236,22 @@ export const useDashProfessor = () => {
   // Função para aceitar solicitação
   const aceitarSolicitacao = useCallback(async (solicitacaoId) => {
     try {
-      // Simulação de API - substitua pela sua implementação real
+      const response = await fetch(`http://localhost:8000/schedule/agendamentos/${solicitacaoId}/aceitar`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao aceitar solicitação');
+      }
+      
+      // Atualizar estado local
       setSolicitacoes(prev => prev.map(sol => 
         sol.id === solicitacaoId ? { ...sol, status: 'confirmada' } : sol
       ));
-      
-      // Aqui você faria a chamada para sua API
-      // await api.put(`/solicitacoes/${solicitacaoId}/aceitar`);
       
       Swal.fire({
         title: 'Sucesso!',
@@ -261,13 +274,22 @@ export const useDashProfessor = () => {
   // Função para recusar solicitação
   const recusarSolicitacao = useCallback(async (solicitacaoId) => {
     try {
-      // Simulação de API - substitua pela sua implementação real
+      const response = await fetch(`http://localhost:8000/schedule/agendamentos/${solicitacaoId}/recusar`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao recusar solicitação');
+      }
+      
+      // Atualizar estado local
       setSolicitacoes(prev => prev.map(sol => 
         sol.id === solicitacaoId ? { ...sol, status: 'recusada' } : sol
       ));
-      
-      // Aqui você faria a chamada para sua API
-      // await api.put(`/solicitacoes/${solicitacaoId}/recusar`);
       
       Swal.fire({
         title: 'Sucesso!',
@@ -290,6 +312,19 @@ export const useDashProfessor = () => {
   // Função para cancelar solicitação
   const cancelarSolicitacao = useCallback(async (solicitacaoId) => {
     try {
+      const response = await fetch(`http://localhost:8000/schedule/agendamentos/${solicitacaoId}/cancelar`, {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erro ao cancelar agendamento');
+      }
+      
+      // Atualizar estado local
       setSolicitacoes(prev => prev.map(sol => 
         sol.id === solicitacaoId ? { ...sol, status: 'cancelada' } : sol
       ));
