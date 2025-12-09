@@ -138,11 +138,6 @@ const ScheduleClassModal = ({
                                     disabled={!selectedTimes.includes(h) && selectedTimes.length >= selectedPackage.pac_quantidade_aulas}
                                 >
                                     {h}
-                                    {selectedTimes.includes(h) && (
-                                        <span className="schedule-horario-badge">
-                                            {selectedTimes.indexOf(h) + 1}
-                                        </span>
-                                    )}
                                 </button>
                             ))}
                         </div>
