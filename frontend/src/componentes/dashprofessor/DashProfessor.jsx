@@ -24,8 +24,8 @@ function DashProfessor() {
   const {
     valorHora,
     setValorHora,
-    tipoAula,
-    setTipoAula,
+    tiposAulaSelecionados,
+    toggleTipoAula,
     linkGoogleMeet,
     setLinkGoogleMeet,
     localizacao,
@@ -123,39 +123,52 @@ function DashProfessor() {
                     <FaChalkboardTeacher className="section-icon" />
                   </div>
                   <div className="section-title-wrapper">
-                    <h2 className="section-title">Modalidade de Aula</h2>
+                    <h2 className="section-title">Modalidades de Aula</h2>
                     <p className="section-description">
-                      Selecione como você prefere ministrar suas aulas
+                      Selecione quantas modalidades desejar - você pode oferecer múltiplas opções
                     </p>
                   </div>
                 </div>
                 
                 <div className="input-group">
                   <label className="input-label">
-                    Selecione o tipo de aula
+                    Selecione as modalidades disponíveis
                   </label>
                   <div className="tipo-aula-grid">
                     {tiposAula.map((tipo) => (
-                      <div
-                        key={tipo.id}
-                        className={`tipo-aula-option ${tipoAula === tipo.id ? 'selected' : ''}`}
-                        onClick={() => setTipoAula(tipo.id)}
-                        title={isModalidadeConfigured(tipo.id) ? 'Modalidade já configurada' : ''}
-                      >
-                        <div className="option-icon-wrapper">
-                          {tipo.icon}
-                          {isModalidadeConfigured(tipo.id) && (
-                            <span className="configured-badge" title="Modalidade configurada">✓</span>
-                          )}
-                        </div>
-                        <span className="option-label">{tipo.label}</span>
+                      <div key={tipo.id} className="modal-item-wrapper">
+                        <input
+                          type="checkbox"
+                          id={`modal-${tipo.id}`}
+                          checked={tiposAulaSelecionados.includes(tipo.id)}
+                          onChange={() => toggleTipoAula(tipo.id)}
+                          className="checkbox-input-hidden"
+                          style={{ display: 'none' }}
+                        />
+                        <label 
+                          htmlFor={`modal-${tipo.id}`}
+                          className={`tipo-aula-option-card ${tiposAulaSelecionados.includes(tipo.id) ? 'selected' : ''}`}
+                        >
+                          <div className="option-icon-wrapper">
+                            {tipo.icon}
+                            {isModalidadeConfigured(tipo.id) && (
+                              <span className="configured-badge" title="Modalidade configurada">✓</span>
+                            )}
+                          </div>
+                          <span className="option-label">{tipo.label}</span>
+                          <div className="toggle-switch">
+                            <div className={`switch-track ${tiposAulaSelecionados.includes(tipo.id) ? 'active' : ''}`}>
+                              <div className="switch-thumb"></div>
+                            </div>
+                          </div>
+                        </label>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Condicional: Link Google Meet (para aulas remotas) */}
-                {tipoAula === 'remota' && (
+                {tiposAulaSelecionados.includes('remota') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">
@@ -177,7 +190,7 @@ function DashProfessor() {
                           onChange={(e) => setLinkGoogleMeet(e.target.value)}
                           placeholder="https://meet.google.com/abc-defg-hij"
                           className="simple-input"
-                          required={tipoAula === 'remota'}
+                          required={tiposAulaSelecionados.includes('remota')}
                         />
                       </div>
                       <small className="input-hint">
@@ -188,7 +201,7 @@ function DashProfessor() {
                 )}
 
                 {/* Condicional: Localização (para aulas presenciais) */}
-                {tipoAula === 'presencial' && (
+                {tiposAulaSelecionados.includes('presencial') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">
@@ -294,7 +307,7 @@ function DashProfessor() {
                 )}
 
                 {/* Condicional: Domicílio */}
-                {tipoAula === 'domicilio' && (
+                {tiposAulaSelecionados.includes('domicilio') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">

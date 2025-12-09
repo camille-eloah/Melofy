@@ -608,6 +608,108 @@ input[type="number"]::-webkit-inner-spin-button {
   border: 1px solid #93c5fd;
 }
 
+/* ========== Nova abordagem: Modal Item Wrapper ========== */
+
+.modal-item-wrapper {
+  position: relative;
+}
+
+.checkbox-input-hidden {
+  display: none !important;
+}
+
+.tipo-aula-option-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 140px;
+  position: relative;
+}
+
+.tipo-aula-option-card:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.tipo-aula-option-card.selected {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.tipo-aula-option-card .option-icon-wrapper {
+  color: #64748b;
+  font-size: 1.75rem;
+  transition: all 0.2s ease;
+}
+
+.tipo-aula-option-card.selected .option-icon-wrapper {
+  color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.tipo-aula-option-card .option-label {
+  font-weight: 500;
+  color: #334155;
+  text-align: center;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  margin: 0;
+}
+
+.tipo-aula-option-card.selected .option-label {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* ========== Toggle Switch ========== */
+
+.toggle-switch {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.switch-track {
+  width: 44px;
+  height: 24px;
+  background-color: #cbd5e1;
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  padding: 0 2px;
+}
+
+.switch-track.active {
+  background-color: #3b82f6;
+}
+
+.switch-thumb {
+  width: 20px;
+  height: 20px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  left: 2px;
+  transition: left 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.switch-track.active .switch-thumb {
+  left: 22px;
+}
 
 .simple-input::-webkit-input-placeholder {
   color: #94a3b8;

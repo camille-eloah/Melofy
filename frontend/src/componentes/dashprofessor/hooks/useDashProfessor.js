@@ -10,7 +10,7 @@ import { tipoAulaService } from '../modules/TipoAulaModal/tipoAulaService'
 export const useDashProfessor = () => {
   // Estado de dados
   const [valorHora, setValorHora] = useState('')
-  const [tipoAula, setTipoAula] = useState('')
+  const [tiposAulaSelecionados, setTiposAulaSelecionados] = useState([]) // Array de tipos selecionados
   const [linkGoogleMeet, setLinkGoogleMeet] = useState('')
   const [localizacao, setLocalizacao] = useState({
     cidade: '',
@@ -44,9 +44,9 @@ export const useDashProfessor = () => {
           setValorHora(configs.valor_hora_aula.toString())
         }
 
-        // Carregar tipo de aula principal
-        if (configs.tipos_aula_principal) {
-          setTipoAula(configs.tipos_aula_principal)
+        // Carregar tipos de aula configurados
+        if (configs.tipos_aula_configurados && Array.isArray(configs.tipos_aula_configurados)) {
+          setTiposAulaSelecionados(configs.tipos_aula_configurados)
         }
 
         // Carregar configuração remota (Google Meet)
@@ -82,13 +82,26 @@ export const useDashProfessor = () => {
   }, [])
 
   /**
+   * Alterna seleção de tipo de aula (adiciona/remove do array)
+   */
+  const toggleTipoAula = useCallback((tipo) => {
+    setTiposAulaSelecionados(prev => {
+      if (prev.includes(tipo)) {
+        return prev.filter(t => t !== tipo)
+      } else {
+        return [...prev, tipo]
+      }
+    })
+  }, [])
+
+  /**
    * Salva as configurações do professor
    */
   const handleSave = useCallback(async () => {
     try {
       // Validar dados
-      const validation = tipoAulaService.validarAntesDeSalvar(
-        tipoAula,
+      const validation = tipoAulaService.validarAntesDeSalvarMultiplos(
+        tiposAulaSelecionados,
         valorHora,
         linkGoogleMeet,
         localizacao
@@ -109,8 +122,8 @@ export const useDashProfessor = () => {
       setError(null)
 
       // Formatar e enviar dados
-      const dadosFormatados = tipoAulaService.formatarDadosParaAPI(
-        tipoAula,
+      const dadosFormatados = tipoAulaService.formatarDadosParaAPIMultiplo(
+        tiposAulaSelecionados,
         valorHora,
         linkGoogleMeet,
         localizacao
@@ -141,7 +154,7 @@ export const useDashProfessor = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [tipoAula, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
+  }, [tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
 
   /**
    * Deleta uma configuração de tipo de aula
@@ -165,10 +178,8 @@ export const useDashProfessor = () => {
 
       await configAulaService.deletarConfiguracaoTipo(tipoAulaDeletar)
 
-      // Limpar dados do tipo deletado
-      if (tipoAulaDeletar === tipoAula) {
-        setTipoAula('')
-      }
+      // Remove do array de selecionados
+      setTiposAulaSelecionados(prev => prev.filter(t => t !== tipoAulaDeletar))
 
       if (tipoAulaDeletar === 'remota') {
         setLinkGoogleMeet('')
@@ -202,7 +213,7 @@ export const useDashProfessor = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [tipoAula])
+  }, [])
 
   /**
    * Atualiza um campo de localização
@@ -219,7 +230,7 @@ export const useDashProfessor = () => {
    */
   const handleReset = useCallback(() => {
     setValorHora('')
-    setTipoAula('')
+    setTiposAulaSelecionados([])
     setLinkGoogleMeet('')
     setLocalizacao({
       cidade: '',
@@ -236,8 +247,8 @@ export const useDashProfessor = () => {
     // Estado de dados
     valorHora,
     setValorHora,
-    tipoAula,
-    setTipoAula,
+    tiposAulaSelecionados,
+    toggleTipoAula,
     linkGoogleMeet,
     setLinkGoogleMeet,
     localizacao,

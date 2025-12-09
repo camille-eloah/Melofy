@@ -197,17 +197,19 @@ export const tipoAulaService = {
   },
 
   /**
-   * Formata dados para envio à API (nova abordagem)
+   * Formata dados para envio à API (nova abordagem com múltiplos tipos)
    */
-  formatarDadosParaAPI(tipoAula, valorHora, linkGoogleMeet, localizacao) {
+  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao) {
     const payload = {
       valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
-      tipos_aula_principal: tipoAula,
+      tipos_aula_selecionados: tiposAulaSelecionados,
     }
 
-    if (tipoAula === 'remota' && linkGoogleMeet) {
+    if (tiposAulaSelecionados.includes('remota') && linkGoogleMeet) {
       payload.link_meet = linkGoogleMeet
-    } else if (tipoAula === 'presencial' && localizacao) {
+    }
+    
+    if (tiposAulaSelecionados.includes('presencial') && localizacao) {
       payload.localizacao = {
         cidade: localizacao.cidade.trim(),
         estado: localizacao.estado.trim(),
@@ -216,10 +218,55 @@ export const tipoAulaService = {
         bairro: localizacao.bairro.trim(),
         complemento: localizacao.complemento ? localizacao.complemento.trim() : null
       }
-    } else if (tipoAula === 'domicilio') {
+    }
+
+    if (tiposAulaSelecionados.includes('domicilio')) {
       payload.ativo_domicilio = true
     }
 
     return payload
+  },
+
+  /**
+   * Valida dados completos para múltiplos tipos antes de enviar
+   * @returns {object} { isValid: boolean, errors: string[] }
+   */
+  validarAntesDeSalvarMultiplos(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao) {
+    const errors = []
+
+    // Validar valor da hora
+    if (!valorHora || parseFloat(valorHora) <= 0) {
+      errors.push('Valor da hora deve ser maior que zero')
+    }
+
+    // Validar se pelo menos um tipo foi selecionado
+    if (!tiposAulaSelecionados || tiposAulaSelecionados.length === 0) {
+      errors.push('Selecione pelo menos um tipo de aula')
+    }
+
+    // Validar requisitos específicos para cada tipo selecionado
+    tiposAulaSelecionados.forEach(tipo => {
+      if (tipo === 'remota') {
+        if (!linkGoogleMeet || linkGoogleMeet.trim() === '') {
+          errors.push('Link do Google Meet é obrigatório para aulas remotas')
+        } else if (!this.isValidGoogleMeetLink(linkGoogleMeet)) {
+          errors.push('Link do Google Meet inválido. Deve ser um link válido do meet.google.com')
+        }
+      }
+
+      if (tipo === 'presencial') {
+        const requiredFields = ['cidade', 'estado', 'rua', 'numero', 'bairro']
+        const missingFields = requiredFields.filter(field => !localizacao[field] || localizacao[field].trim() === '')
+        
+        if (missingFields.length > 0) {
+          errors.push(`Campos de localização obrigatórios não preenchidos: ${missingFields.join(', ')}`)
+        }
+      }
+    })
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
   }
 }

@@ -1557,34 +1557,34 @@ def salvar_configuracoes_professor(
     if not isinstance(professor, Professor):
         raise HTTPException(status_code=403, detail="Apenas professores podem configurar aulas")
 
-    # Salvar configuração geral (valor da hora e tipo principal)
+    # Salvar configuração geral (apenas valor da hora)
     ConfigProfessorService.criar_ou_atualizar_config_geral(
         db,
         professor.id,
         valor_hora_aula=dados.valor_hora_aula,
-        tipos_aula_principal=dados.tipos_aula_principal,
     )
 
-    # Salvar configurações específicas por tipo de aula
-    if dados.tipos_aula_principal == "remota" and dados.link_meet:
-        ConfigProfessorService.criar_ou_atualizar_config_remota(
-            db, professor.id, dados.link_meet
-        )
-    elif dados.tipos_aula_principal == "presencial" and dados.localizacao:
-        ConfigProfessorService.criar_ou_atualizar_config_presencial(
-            db,
-            professor.id,
-            cidade=dados.localizacao.cidade,
-            estado=dados.localizacao.estado,
-            rua=dados.localizacao.rua,
-            numero=dados.localizacao.numero,
-            bairro=dados.localizacao.bairro,
-            complemento=dados.localizacao.complemento,
-        )
-    elif dados.tipos_aula_principal == "domicilio":
-        ConfigProfessorService.criar_ou_atualizar_config_domicilio(
-            db, professor.id, ativo=True
-        )
+    # Salvar configurações para cada tipo de aula selecionado
+    for tipo_aula in dados.tipos_aula_selecionados:
+        if tipo_aula == "remota" and dados.link_meet:
+            ConfigProfessorService.criar_ou_atualizar_config_remota(
+                db, professor.id, dados.link_meet
+            )
+        elif tipo_aula == "presencial" and dados.localizacao:
+            ConfigProfessorService.criar_ou_atualizar_config_presencial(
+                db,
+                professor.id,
+                cidade=dados.localizacao.cidade,
+                estado=dados.localizacao.estado,
+                rua=dados.localizacao.rua,
+                numero=dados.localizacao.numero,
+                bairro=dados.localizacao.bairro,
+                complemento=dados.localizacao.complemento,
+            )
+        elif tipo_aula == "domicilio":
+            ConfigProfessorService.criar_ou_atualizar_config_domicilio(
+                db, professor.id, ativo=True
+            )
 
     # Retornar todas as configurações
     configs = ConfigProfessorService.obter_todas_configs(db, professor.id)

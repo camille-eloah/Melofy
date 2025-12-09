@@ -363,7 +363,6 @@ CREATE TABLE tb_config_professor (
     id INT AUTO_INCREMENT PRIMARY KEY,
     prof_id INT NOT NULL UNIQUE,
     valor_hora_aula DECIMAL(10,2) NULL,
-    tipo_aula_principal ENUM('remota','presencial','domicilio') NULL,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

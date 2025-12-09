@@ -117,7 +117,7 @@ class ConfigProfessorCompleta(BaseModel):
 class SalvarConfiguracaoRequest(BaseModel):
     """Schema para salvar configurações completas do professor"""
     valor_hora_aula: Optional[float] = Field(None, gt=0)
-    tipos_aula_principal: str = Field(..., description="Tipo de aula principal selecionado")
+    tipos_aula_selecionados: list[TipoAulaEnum] = Field(..., description="Lista de tipos de aula selecionados")
     
     # Configurações específicas por tipo
     link_meet: Optional[str] = Field(None)
@@ -126,3 +126,4 @@ class SalvarConfiguracaoRequest(BaseModel):
 
     class Config:
         from_attributes = True
+

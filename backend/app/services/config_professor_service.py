@@ -20,7 +20,6 @@ class ConfigProfessorService:
         db: Session,
         prof_id: int,
         valor_hora_aula: float = None,
-        tipos_aula_principal: str = None,
     ) -> ConfigProfessor:
         """Cria ou atualiza a configuração geral do professor"""
         config = db.exec(
@@ -30,14 +29,11 @@ class ConfigProfessorService:
         if config:
             if valor_hora_aula is not None:
                 config.valor_hora_aula = valor_hora_aula
-            if tipos_aula_principal is not None:
-                config.tipo_aula_principal = tipos_aula_principal
             config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigProfessor(
                 prof_id=prof_id,
                 valor_hora_aula=valor_hora_aula,
-                tipo_aula_principal=tipos_aula_principal,
             )
             db.add(config)
 
@@ -159,17 +155,25 @@ class ConfigProfessorService:
     def obter_todas_configs(db: Session, prof_id: int) -> dict:
         """Obtém todas as configurações do professor"""
         config_geral = ConfigProfessorService.obter_config_geral(db, prof_id)
-        
+        config_remota = ConfigProfessorService.obter_config_remota(db, prof_id)
+        config_presencial = ConfigProfessorService.obter_config_presencial(db, prof_id)
+        config_domicilio = ConfigProfessorService.obter_config_domicilio(db, prof_id)
+
+        # Determina quais tipos de aula estão configurados
+        tipos_aula_configurados = []
+        if config_remota:
+            tipos_aula_configurados.append("remota")
+        if config_presencial:
+            tipos_aula_configurados.append("presencial")
+        if config_domicilio:
+            tipos_aula_configurados.append("domicilio")
+
         return {
             "valor_hora_aula": config_geral.valor_hora_aula if config_geral else None,
-            "tipos_aula_principal": config_geral.tipo_aula_principal if config_geral else None,
-            "config_aula_remota": ConfigProfessorService.obter_config_remota(db, prof_id),
-            "config_aula_presencial": ConfigProfessorService.obter_config_presencial(
-                db, prof_id
-            ),
-            "config_aula_domicilio": ConfigProfessorService.obter_config_domicilio(
-                db, prof_id
-            ),
+            "tipos_aula_configurados": tipos_aula_configurados,
+            "config_aula_remota": config_remota,
+            "config_aula_presencial": config_presencial,
+            "config_aula_domicilio": config_domicilio,
         }
 
     @staticmethod
