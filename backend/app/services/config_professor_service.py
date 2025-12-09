@@ -107,7 +107,7 @@ class ConfigProfessorService:
 
     @staticmethod
     def criar_ou_atualizar_config_domicilio(
-        db: Session, prof_id: int, ativo: bool = True
+        db: Session, prof_id: int, ativo: bool = True, raio_km: int = 5, taxa_por_km: float = 0.0
     ) -> ConfigAulaDomicilio:
         """Cria ou atualiza a configuração de aula domicílio"""
         config = db.exec(
@@ -116,9 +116,16 @@ class ConfigProfessorService:
 
         if config:
             config.ativo = ativo
+            config.raio_km = raio_km
+            config.taxa_por_km = taxa_por_km
             config.atualizado_em = datetime.now(timezone.utc)
         else:
-            config = ConfigAulaDomicilio(prof_id=prof_id, ativo=ativo)
+            config = ConfigAulaDomicilio(
+                prof_id=prof_id, 
+                ativo=ativo,
+                raio_km=raio_km,
+                taxa_por_km=taxa_por_km
+            )
             db.add(config)
 
         db.commit()

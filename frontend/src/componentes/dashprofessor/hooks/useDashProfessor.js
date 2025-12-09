@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import Swal from 'sweetalert2'
 import { configAulaService } from '../services/configAulaService'
 import { tipoAulaService } from '../modules/TipoAulaModal/tipoAulaService'
+import { horariosService } from '../services/horariosService'
 
 export const useDashProfessor = () => {
   const [valorHora, setValorHora] = useState('')
@@ -55,80 +56,57 @@ export const useDashProfessor = () => {
       setIsLoading(true)
       setError(null)
       
-      const dummyData = {
-        config_geral: { valor_hora_aula: 80.00 },
-        config_remota: { 
-          ativo: true, 
-          link_meet: 'https://meet.google.com/abc-defg-hij' 
-        },
-        config_presencial: { 
-          ativo: true,
-          cidade: 'São Paulo',
-          estado: 'SP',
-          rua: 'Av. Paulista',
-          numero: '1000',
-          bairro: 'Bela Vista',
-          complemento: 'Sala 203'
-        },
-        config_domicilio: { 
-          ativo: true,
-          raio_km: 5,
-          taxa_por_km: 2.50
-        },
-        horarios_disponiveis: {
-          segunda: { selecionado: true, horarios: ['14:00', '15:00', '16:00'] },
-          terca: { selecionado: true, horarios: ['09:00', '10:00', '14:00'] },
-          quarta: { selecionado: false, horarios: [] },
-          quinta: { selecionado: true, horarios: ['18:00', '19:00'] },
-          sexta: { selecionado: true, horarios: ['16:00', '17:00', '18:00'] },
-          sabado: { selecionado: false, horarios: [] },
-          domingo: { selecionado: false, horarios: [] }
-        }
-      }
+      // Carregar configurações de aula da API real
+      const configs = await configAulaService.obterConfiguracoes()
       
-      setConfigsSalvas(dummyData)
+      setConfigsSalvas(configs)
       
-      if (dummyData.config_geral?.valor_hora_aula) {
-        setValorHora(dummyData.config_geral.valor_hora_aula.toString())
+      if (configs.config_geral?.valor_hora_aula) {
+        setValorHora(configs.config_geral.valor_hora_aula.toString())
       }
 
       const tipos = []
-      if (dummyData.config_remota?.ativo) tipos.push('remota')
-      if (dummyData.config_presencial?.ativo) tipos.push('presencial')
-      if (dummyData.config_domicilio?.ativo) tipos.push('domicilio')
+      if (configs.config_remota?.ativo) tipos.push('remota')
+      if (configs.config_presencial?.ativo) tipos.push('presencial')
+      if (configs.config_domicilio?.ativo) tipos.push('domicilio')
       setTiposAulaSelecionados(tipos)
 
       setStatusModalidades({
-        remota: dummyData.config_remota?.ativo ?? false,
-        presencial: dummyData.config_presencial?.ativo ?? false,
-        domicilio: dummyData.config_domicilio?.ativo ?? false
+        remota: configs.config_remota?.ativo ?? false,
+        presencial: configs.config_presencial?.ativo ?? false,
+        domicilio: configs.config_domicilio?.ativo ?? false
       })
 
-      if (dummyData.config_remota?.link_meet) {
-        setLinkGoogleMeet(dummyData.config_remota.link_meet)
+      if (configs.config_remota?.link_meet) {
+        setLinkGoogleMeet(configs.config_remota.link_meet)
       }
 
-      if (dummyData.config_presencial) {
+      if (configs.config_presencial) {
         setLocalizacao({
-          cidade: dummyData.config_presencial.cidade || '',
-          estado: dummyData.config_presencial.estado || '',
-          rua: dummyData.config_presencial.rua || '',
-          numero: dummyData.config_presencial.numero || '',
-          bairro: dummyData.config_presencial.bairro || '',
-          complemento: dummyData.config_presencial.complemento || ''
+          cidade: configs.config_presencial.cidade || '',
+          estado: configs.config_presencial.estado || '',
+          rua: configs.config_presencial.rua || '',
+          numero: configs.config_presencial.numero || '',
+          bairro: configs.config_presencial.bairro || '',
+          complemento: configs.config_presencial.complemento || ''
         })
       }
       
-      if (dummyData.horarios_disponiveis) {
-        setHorariosDisponiveis(dummyData.horarios_disponiveis)
+      // Carregar horários disponíveis da API real
+      try {
+        const horarios = await horariosService.carregarHorarios()
+        setHorariosDisponiveis(horarios)
+      } catch (horarioError) {
+        console.error('Erro ao carregar horários:', horarioError)
+        // Mantém estado inicial se falhar
       }
       
-      if (dummyData.config_domicilio?.taxa_por_km) {
-        setTaxaPorKm(dummyData.config_domicilio.taxa_por_km.toString())
+      if (configs.config_domicilio?.taxa_por_km) {
+        setTaxaPorKm(configs.config_domicilio.taxa_por_km.toString())
       }
       
-      if (dummyData.config_domicilio?.raio_km) {
-        setRaioAtendimento(dummyData.config_domicilio.raio_km.toString())
+      if (configs.config_domicilio?.raio_km) {
+        setRaioAtendimento(configs.config_domicilio.raio_km.toString())
       }
     } catch (err) {
       console.error('Erro ao carregar configurações:', err)
@@ -224,55 +202,76 @@ export const useDashProfessor = () => {
       setIsSaving(true)
       setError(null)
 
+      // Mapear tipos de aula do frontend para o backend
+      const tiposAulaBackend = tiposAulaSelecionados.map(tipo => {
+        if (tipo === 'remota') return 'remota'
+        if (tipo === 'presencial') return 'presencial'
+        if (tipo === 'domicilio') return 'domicilio'
+        return tipo
+      })
+
       const dadosFormatados = {
-        config_geral: {
-          valor_hora_aula: parseFloat(valorHora)
-        },
-        config_remota: tiposAulaSelecionados.includes('remota') ? {
-          ativo: statusModalidades.remota,
-          link_meet: linkGoogleMeet
-        } : null,
-        config_presencial: tiposAulaSelecionados.includes('presencial') ? {
-          ativo: statusModalidades.presencial,
+        valor_hora_aula: parseFloat(valorHora),
+        tipos_aula_selecionados: tiposAulaBackend,
+        
+        // Campos específicos para aula remota
+        link_meet: tiposAulaSelecionados.includes('remota') ? linkGoogleMeet : null,
+        ativo_remota: tiposAulaSelecionados.includes('remota') ? statusModalidades.remota : null,
+        
+        // Campos específicos para aula presencial
+        localizacao: tiposAulaSelecionados.includes('presencial') ? {
           cidade: localizacao.cidade,
           estado: localizacao.estado,
           rua: localizacao.rua,
           numero: localizacao.numero,
           bairro: localizacao.bairro,
-          complemento: localizacao.complemento
+          complemento: localizacao.complemento || null
         } : null,
-        config_domicilio: tiposAulaSelecionados.includes('domicilio') ? {
-          ativo: statusModalidades.domicilio,
-          raio_km: parseInt(raioAtendimento) || 5,
-          taxa_por_km: taxaPorKm ? parseFloat(taxaPorKm) : 0
-        } : null,
-        horarios_disponiveis: horariosDisponiveis
+        ativo_presencial: tiposAulaSelecionados.includes('presencial') ? statusModalidades.presencial : null,
+        
+        // Campos específicos para aula domicílio
+        ativo_domicilio: tiposAulaSelecionados.includes('domicilio') ? statusModalidades.domicilio : null,
+        raio_km: tiposAulaSelecionados.includes('domicilio') ? parseInt(raioAtendimento) || 5 : null,
+        taxa_por_km: tiposAulaSelecionados.includes('domicilio') ? (taxaPorKm ? parseFloat(taxaPorKm) : 0) : null
       }
 
-      console.log('Dados a serem salvos:', dadosFormatados)
+      console.log('[useDashProfessor] Dados de configuração a serem salvos:', dadosFormatados)
       
+      // Salvar configurações de aula
       await configAulaService.salvarConfiguracao(dadosFormatados)
+
+      // Salvar horários disponíveis separadamente
+      console.log('[useDashProfessor] Horários a serem salvos:', horariosDisponiveis)
+      await horariosService.salvarHorarios(horariosDisponiveis)
 
       Swal.fire({
         title: 'Sucesso',
-        text: 'Configurações salvas com sucesso!',
+        text: 'Configurações e horários salvos com sucesso!',
         icon: 'success',
         confirmButtonText: 'Ok'
       })
     } catch (err) {
-      console.error('Erro ao salvar configurações:', err)
+      console.error('[useDashProfessor] Erro ao salvar:', err)
+      console.error('[useDashProfessor] Stack trace:', err.stack)
       setError(err.message)
 
       let errorMessage = err.message || 'Erro ao salvar configurações'
+      
+      // Verificar se é erro de validação específico
       if (errorMessage.includes('estado') || errorMessage.includes('state')) {
         errorMessage = 'O campo Estado deve ter exatamente 2 letras (ex: RN, SP, RJ)'
+      } else if (errorMessage.includes('horario')) {
+        errorMessage = 'Erro nos horários: ' + errorMessage
+      } else if (errorMessage.includes('dia_semana')) {
+        errorMessage = 'Erro no dia da semana: ' + errorMessage
       }
 
       Swal.fire({
-        title: 'Erro',
-        text: errorMessage,
+        title: 'Erro ao Salvar',
+        html: `<div style="text-align: left; white-space: pre-wrap;">${errorMessage}</div>`,
         icon: 'error',
-        confirmButtonText: 'Ok'
+        confirmButtonText: 'Ok',
+        width: '600px'
       })
     } finally {
       setIsSaving(false)

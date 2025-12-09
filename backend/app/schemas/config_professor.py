@@ -127,6 +127,8 @@ class SalvarConfiguracaoRequest(BaseModel):
     ativo_remota: Optional[bool] = Field(None)
     ativo_presencial: Optional[bool] = Field(None)
     ativo_domicilio: Optional[bool] = Field(None)
+    raio_km: Optional[int] = Field(None, gt=0, description="Raio de atendimento em km para aula domicílio")
+    taxa_por_km: Optional[float] = Field(None, ge=0, description="Taxa cobrada por km de deslocamento")
 
     class Config:
         from_attributes = True
