@@ -20,6 +20,7 @@ const ScheduleClassModal = ({
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [selectedModalidade, setSelectedModalidade] = useState(null);
     const [selectedInstrumento, setSelectedInstrumento] = useState(null);
+    const [observacao, setObservacao] = useState("");
     const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
 
     if (!isOpen) return null;
@@ -129,6 +130,7 @@ const ScheduleClassModal = ({
             pacote: selectedPackage,
             modalidade: selectedModalidade,
             instrumento: selectedInstrumento,
+            observacao: observacao.trim() || null,
         });
 
         setStatusMessage("Solicitação enviada ao professor!");
@@ -276,6 +278,21 @@ const ScheduleClassModal = ({
                         </div>
                     </div>
                 )}
+
+                <div className="schedule-form-group">
+                    <label>Observação (opcional):</label>
+                    <textarea
+                        className="schedule-observacao-textarea"
+                        placeholder="Deixe uma observação para o professor, se desejar..."
+                        value={observacao}
+                        onChange={(e) => setObservacao(e.target.value)}
+                        rows={4}
+                        maxLength={500}
+                    />
+                    <span className="schedule-observacao-counter">
+                        {observacao.length}/500 caracteres
+                    </span>
+                </div>
 
                 <button
                     className="schedule-btn-confirmar"
