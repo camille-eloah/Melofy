@@ -125,14 +125,10 @@ export const useDashProfessor = () => {
    */
   const toggleStatusModalidade = useCallback((tipo, event) => {
     event.stopPropagation() // Evita que o clique propague para o card pai
-    setStatusModalidades(prev => {
-      const novoStatus = !prev[tipo]
-      console.log(`🔄 Toggle ${tipo}: ${prev[tipo]} → ${novoStatus}`)
-      return {
-        ...prev,
-        [tipo]: novoStatus
-      }
-    })
+    setStatusModalidades(prev => ({
+      ...prev,
+      [tipo]: !prev[tipo]
+    }))
   }, [])
 
   /**
@@ -170,10 +166,6 @@ export const useDashProfessor = () => {
         localizacao,
         statusModalidades
       )
-
-      // DEBUG: Log para verificar os dados sendo enviados
-      console.log('📊 Status das modalidades:', statusModalidades)
-      console.log('📤 Dados formatados para envio:', dadosFormatados)
 
       await configAulaService.salvarConfiguracao(dadosFormatados)
 

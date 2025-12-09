@@ -1557,13 +1557,6 @@ def salvar_configuracoes_professor(
     if not isinstance(professor, Professor):
         raise HTTPException(status_code=403, detail="Apenas professores podem configurar aulas")
 
-    # DEBUG: Log dos dados recebidos
-    print(f"🔍 DEBUG - Dados recebidos:")
-    print(f"  tipos_aula_selecionados: {dados.tipos_aula_selecionados}")
-    print(f"  ativo_remota: {dados.ativo_remota}")
-    print(f"  ativo_presencial: {dados.ativo_presencial}")
-    print(f"  ativo_domicilio: {dados.ativo_domicilio}")
-
     # Salvar configuração geral (apenas valor da hora)
     ConfigProfessorService.criar_ou_atualizar_config_geral(
         db,
@@ -1571,13 +1564,40 @@ def salvar_configuracoes_professor(
         valor_hora_aula=dados.valor_hora_aula,
     )
 
+    # Criar/atualizar automaticamente o pacote "Aula Individual"
+    if dados.valor_hora_aula and dados.valor_hora_aula > 0:
+        # Verificar se já existe um pacote "Aula Individual" para este professor
+        pacote_individual = db.exec(
+            select(Pacote).where(
+                Pacote.pac_prof_id == professor.id,
+                Pacote.pac_nome == "Aula Individual"
+            )
+        ).first()
+
+        if pacote_individual:
+            # Atualizar pacote existente
+            pacote_individual.pac_valor_total = dados.valor_hora_aula
+            pacote_individual.pac_valor_hora_aula = dados.valor_hora_aula
+        else:
+            # Criar novo pacote
+            novo_pacote = Pacote(
+                pac_prof_id=professor.id,
+                pac_nome="Aula Individual",
+                pac_quantidade_aulas=1,
+                pac_valor_total=dados.valor_hora_aula,
+                pac_valor_hora_aula=dados.valor_hora_aula,
+                pac_ativo=True
+            )
+            db.add(novo_pacote)
+        
+        db.commit()
+
     # Processar configurações para TODAS as modalidades (não apenas as selecionadas)
     # Isso permite desativar modalidades sem removê-las
     
     # Remota
     if "remota" in dados.tipos_aula_selecionados and dados.link_meet:
         ativo_remota = dados.ativo_remota if dados.ativo_remota is not None else True
-        print(f"  💾 Salvando remota com ativo={ativo_remota}")
         ConfigProfessorService.criar_ou_atualizar_config_remota(
             db, professor.id, dados.link_meet, ativo=ativo_remota
         )
@@ -1586,7 +1606,6 @@ def salvar_configuracoes_professor(
         # ainda assim atualizar o status (caso exista config anterior)
         existing_config = ConfigProfessorService.obter_config_remota(db, professor.id)
         if existing_config:
-            print(f"  💾 Atualizando status remota (não selecionada) com ativo={dados.ativo_remota}")
             ConfigProfessorService.criar_ou_atualizar_config_remota(
                 db, professor.id, existing_config.link_meet, ativo=dados.ativo_remota
             )
@@ -1594,7 +1613,6 @@ def salvar_configuracoes_professor(
     # Presencial
     if "presencial" in dados.tipos_aula_selecionados and dados.localizacao:
         ativo_presencial = dados.ativo_presencial if dados.ativo_presencial is not None else True
-        print(f"  💾 Salvando presencial com ativo={ativo_presencial}")
         ConfigProfessorService.criar_ou_atualizar_config_presencial(
             db,
             professor.id,
@@ -1611,7 +1629,6 @@ def salvar_configuracoes_professor(
         # ainda assim atualizar o status (caso exista config anterior)
         existing_config = ConfigProfessorService.obter_config_presencial(db, professor.id)
         if existing_config:
-            print(f"  💾 Atualizando status presencial (não selecionada) com ativo={dados.ativo_presencial}")
             ConfigProfessorService.criar_ou_atualizar_config_presencial(
                 db,
                 professor.id,
@@ -1627,7 +1644,6 @@ def salvar_configuracoes_professor(
     # Domicílio
     if "domicilio" in dados.tipos_aula_selecionados:
         ativo_domicilio = dados.ativo_domicilio if dados.ativo_domicilio is not None else True
-        print(f"  💾 Salvando domicílio com ativo={ativo_domicilio}")
         ConfigProfessorService.criar_ou_atualizar_config_domicilio(
             db, professor.id, ativo=ativo_domicilio
         )
@@ -1636,7 +1652,6 @@ def salvar_configuracoes_professor(
         # ainda assim atualizar o status (caso exista config anterior)
         existing_config = ConfigProfessorService.obter_config_domicilio(db, professor.id)
         if existing_config:
-            print(f"  💾 Atualizando status domicílio (não selecionada) com ativo={dados.ativo_domicilio}")
             ConfigProfessorService.criar_ou_atualizar_config_domicilio(
                 db, professor.id, ativo=dados.ativo_domicilio
             )
