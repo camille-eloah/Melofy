@@ -149,16 +149,18 @@ function DashProfessor() {
                           htmlFor={`modal-${tipo.id}`}
                           className={`tipo-aula-option-card ${tiposAulaSelecionados.includes(tipo.id) ? 'selected' : ''}`}
                         >
-                          <div className="option-icon-wrapper">
-                            {tipo.icon}
-                            {isModalidadeConfigured(tipo.id) && (
-                              <span className="configured-badge" title="Modalidade configurada">✓</span>
-                            )}
-                          </div>
-                          <span className="option-label">{tipo.label}</span>
-                          <div className="toggle-switch">
-                            <div className={`switch-track ${tiposAulaSelecionados.includes(tipo.id) ? 'active' : ''}`}>
-                              <div className="switch-thumb"></div>
+                          <div className="option-content-wrapper">
+                            <div className="option-icon-wrapper">
+                              {tipo.icon}
+                              {isModalidadeConfigured(tipo.id) && (
+                                <span className="configured-badge" title="Modalidade configurada">✓</span>
+                              )}
+                            </div>
+                            <span className="option-label">{tipo.label}</span>
+                            <div className="toggle-switch">
+                              <div className={`switch-track ${tiposAulaSelecionados.includes(tipo.id) ? 'active' : ''}`}>
+                                <div className="switch-thumb"></div>
+                              </div>
                             </div>
                           </div>
                         </label>
