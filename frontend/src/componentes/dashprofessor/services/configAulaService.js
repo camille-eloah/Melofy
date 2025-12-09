@@ -10,6 +10,8 @@ export const configAulaService = {
    */
   async salvarConfiguracao(configData) {
     try {
+      console.log('[configAulaService] Enviando configurações:', configData)
+      
       const response = await fetch(`${API_BASE_URL}/professor/configuracoes`, {
         method: 'POST',
         headers: {
@@ -19,13 +21,38 @@ export const configAulaService = {
         body: JSON.stringify(configData)
       })
 
+      console.log('[configAulaService] Status da resposta:', response.status)
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error?.detail || JSON.stringify(error) || 'Erro ao salvar configurações')
+        const errorData = await response.json()
+        console.error('[configAulaService] Erro detalhado do backend:', errorData)
+        
+        // Formatar mensagem de erro mais detalhada
+        let errorMessage = 'Erro ao salvar configurações'
+        
+        if (errorData?.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // Erro de validação Pydantic com múltiplos campos
+            errorMessage = errorData.detail.map(err => {
+              const field = err.loc ? err.loc.join('.') : 'campo desconhecido'
+              return `${field}: ${err.msg}`
+            }).join('\n')
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail
+          } else {
+            errorMessage = JSON.stringify(errorData.detail)
+          }
+        }
+        
+        console.error('[configAulaService] Mensagem de erro formatada:', errorMessage)
+        throw new Error(errorMessage)
       }
 
-      return await response.json()
+      const result = await response.json()
+      console.log('[configAulaService] Configurações salvas com sucesso:', result)
+      return result
     } catch (error) {
+      console.error('[configAulaService] Erro capturado:', error)
       throw error
     }
   },

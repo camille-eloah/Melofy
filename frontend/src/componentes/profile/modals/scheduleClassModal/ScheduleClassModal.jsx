@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ScheduleClassModal.css";
 import Calendar from "react-calendar";
 import Swal from "sweetalert2";
+import { horariosService } from "../../../dashprofessor/services/horariosService";
 
 const ScheduleClassModal = ({
     isOpen,
@@ -10,8 +11,10 @@ const ScheduleClassModal = ({
     modalidades = [],
     instrumentos = [],
     handleConfirmarAgendamento,
+    professorId, // ID do professor para buscar horários
 }) => {
-    const horariosDisponiveis = ["09:00", "10:30", "14:00", "16:00", "19:00"];
+    const [horariosDisponiveis, setHorariosDisponiveis] = useState([]);
+    const [horariosCarregados, setHorariosCarregados] = useState(false);
 
     const [calendarDate, setCalendarDate] = useState(null);
     const [selectedDate, setSelectedDate] = useState("");
@@ -22,6 +25,69 @@ const ScheduleClassModal = ({
     const [selectedInstrumento, setSelectedInstrumento] = useState(null);
     const [observacao, setObservacao] = useState("");
     const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
+
+    // Mapa de dias da semana para IDs do frontend
+    const diasSemanaMap = {
+        0: 'domingo',
+        1: 'segunda',
+        2: 'terca',
+        3: 'quarta',
+        4: 'quinta',
+        5: 'sexta',
+        6: 'sabado'
+    };
+
+    // Carregar horários do professor quando o modal abrir
+    useEffect(() => {
+        const carregarHorarios = async () => {
+            if (isOpen && professorId && !horariosCarregados) {
+                try {
+                    console.log('[ScheduleClassModal] Carregando horários do professor:', professorId);
+                    const horariosPorDia = await horariosService.carregarHorariosProfessor(professorId);
+                    console.log('[ScheduleClassModal] Horários recebidos:', horariosPorDia);
+                    
+                    // Se uma data está selecionada, filtrar horários daquele dia
+                    if (selectedDate) {
+                        const date = new Date(selectedDate + 'T00:00:00');
+                        const diaSemana = date.getDay();
+                        const diaId = diasSemanaMap[diaSemana];
+                        const horariosParaDia = horariosPorDia[diaId] || [];
+                        console.log('[ScheduleClassModal] Horários filtrados para', diaId, ':', horariosParaDia);
+                        setHorariosDisponiveis(horariosParaDia);
+                    }
+                    
+                    setHorariosCarregados(true);
+                } catch (error) {
+                    console.error('Erro ao carregar horários do professor:', error);
+                    setHorariosDisponiveis([]); // Lista vazia ao invés de fallback
+                }
+            }
+        };
+
+        carregarHorarios();
+    }, [isOpen, professorId, horariosCarregados]);
+
+    // Atualizar horários quando a data for selecionada
+    useEffect(() => {
+        const atualizarHorariosPorData = async () => {
+            if (selectedDate && professorId) {
+                try {
+                    console.log('[ScheduleClassModal] Atualizando horários para data:', selectedDate);
+                    const horariosPorDia = await horariosService.carregarHorariosProfessor(professorId);
+                    const date = new Date(selectedDate + 'T00:00:00');
+                    const diaSemana = date.getDay();
+                    const diaId = diasSemanaMap[diaSemana];
+                    const horariosParaDia = horariosPorDia[diaId] || [];
+                    console.log('[ScheduleClassModal] Dia da semana:', diaId, 'Horários:', horariosParaDia);
+                    setHorariosDisponiveis(horariosParaDia);
+                } catch (error) {
+                    console.error('Erro ao atualizar horários:', error);
+                }
+            }
+        };
+
+        atualizarHorariosPorData();
+    }, [selectedDate, professorId]);
 
     if (!isOpen) return null;
 

@@ -412,15 +412,31 @@ CREATE TABLE tb_config_aula_presencial (
     CONSTRAINT fk_presencial_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
 );
 
--- Configuração de Aula no Domicílio (sem dados adicionais, apenas confirmação)
+-- Configuração de Aula no Domicílio
 CREATE TABLE tb_config_aula_domicilio (
     id INT AUTO_INCREMENT PRIMARY KEY,
     prof_id INT NOT NULL UNIQUE,
+    raio_km INT NOT NULL DEFAULT 5,
+    taxa_por_km DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     ativo BOOLEAN NOT NULL DEFAULT TRUE,
     criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_domicilio_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
+);
+
+-- Tabela de horários disponíveis do professor
+CREATE TABLE tb_horarios_professor (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    prof_id INT NOT NULL,
+    dia_semana ENUM('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday') NOT NULL,
+    horario TIME NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_horarios_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE,
+    INDEX idx_horarios_prof_dia (prof_id, dia_semana),
+    INDEX idx_horarios_ativo (prof_id, ativo)
 );
 
 -- Mensagens privadas entre professores e alunos
