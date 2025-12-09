@@ -39,6 +39,11 @@ export const useDashProfessor = () => {
   const [error, setError] = useState(null)
   const [configsSalvas, setConfigsSalvas] = useState(null)
 
+  // Estados para solicitações de aula
+  const [solicitacoes, setSolicitacoes] = useState([])
+  const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(true)
+  const [filtroStatus, setFiltroStatus] = useState('todas')
+
   const diasSemana = [
     { id: 'segunda', label: 'Segunda-feira' },
     { id: 'terca', label: 'Terça-feira' },
@@ -122,6 +127,192 @@ export const useDashProfessor = () => {
       setIsLoading(false)
     }
   }, [])
+
+  // Função para carregar solicitações de aula
+  const carregarSolicitacoes = useCallback(async () => {
+    try {
+      setLoadingSolicitacoes(true);
+      
+      // Simulação de dados - substitua pela sua API real
+      const mockSolicitacoes = [
+        {
+          id: 1,
+          aluno: {
+            nome: 'João Silva',
+            foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop',
+            instrumento: 'Violão',
+            nivel: 'Iniciante'
+          },
+          modalidade: 'presencial',
+          pacote: '4 aulas mensais',
+          valor: 320.00,
+          observacao: 'Preciso de horários no período da manhã, antes do trabalho.',
+          dataSolicitacao: '2024-01-15',
+          horariosSolicitados: ['Segunda 08:00', 'Quarta 09:00'],
+          status: 'pendente'
+        },
+        {
+          id: 2,
+          aluno: {
+            nome: 'Maria Santos',
+            foto: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop',
+            instrumento: 'Piano',
+            nivel: 'Intermediário'
+          },
+          modalidade: 'remota',
+          pacote: '8 aulas mensais',
+          valor: 640.00,
+          observacao: 'Gostaria de foco em teoria musical e composição.',
+          dataSolicitacao: '2024-01-14',
+          horariosSolicitados: ['Terça 14:00', 'Quinta 15:00'],
+          status: 'pendente'
+        },
+        {
+          id: 3,
+          aluno: {
+            nome: 'Carlos Oliveira',
+            foto: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
+            instrumento: 'Guitarra',
+            nivel: 'Avançado'
+          },
+          modalidade: 'domicilio',
+          pacote: '4 aulas mensais',
+          valor: 400.00,
+          observacao: 'Moramos no centro, próximo à praça principal.',
+          dataSolicitacao: '2024-01-13',
+          horariosSolicitados: ['Sexta 17:00', 'Sábado 10:00'],
+          status: 'confirmada'
+        },
+        {
+          id: 4,
+          aluno: {
+            nome: 'Ana Costa',
+            foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop',
+            instrumento: 'Violino',
+            nivel: 'Iniciante'
+          },
+          modalidade: 'presencial',
+          pacote: '2 aulas semanais',
+          valor: 160.00,
+          observacao: '',
+          dataSolicitacao: '2024-01-12',
+          horariosSolicitados: ['Segunda 16:00'],
+          status: 'recusada'
+        },
+        {
+          id: 5,
+          aluno: {
+            nome: 'Pedro Almeida',
+            foto: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop',
+            instrumento: 'Bateria',
+            nivel: 'Intermediário'
+          },
+          modalidade: 'remota',
+          pacote: '12 aulas trimestrais',
+          valor: 960.00,
+          observacao: 'Preciso de horários noturnos, após às 19h.',
+          dataSolicitacao: '2024-01-11',
+          horariosSolicitados: ['Terça 19:00', 'Quinta 20:00'],
+          status: 'cancelada'
+        }
+      ];
+      
+      setSolicitacoes(mockSolicitacoes);
+    } catch (error) {
+      console.error('Erro ao carregar solicitações:', error);
+    } finally {
+      setLoadingSolicitacoes(false);
+    }
+  }, []);
+
+  // Função para aceitar solicitação
+  const aceitarSolicitacao = useCallback(async (solicitacaoId) => {
+    try {
+      // Simulação de API - substitua pela sua implementação real
+      setSolicitacoes(prev => prev.map(sol => 
+        sol.id === solicitacaoId ? { ...sol, status: 'confirmada' } : sol
+      ));
+      
+      // Aqui você faria a chamada para sua API
+      // await api.put(`/solicitacoes/${solicitacaoId}/aceitar`);
+      
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Solicitação aceita com sucesso!',
+        icon: 'success',
+        confirmButtonText: 'Ok'
+      });
+    } catch (error) {
+      console.error('Erro ao aceitar solicitação:', error);
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível aceitar a solicitação',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      throw error;
+    }
+  }, []);
+
+  // Função para recusar solicitação
+  const recusarSolicitacao = useCallback(async (solicitacaoId) => {
+    try {
+      // Simulação de API - substitua pela sua implementação real
+      setSolicitacoes(prev => prev.map(sol => 
+        sol.id === solicitacaoId ? { ...sol, status: 'recusada' } : sol
+      ));
+      
+      // Aqui você faria a chamada para sua API
+      // await api.put(`/solicitacoes/${solicitacaoId}/recusar`);
+      
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Solicitação recusada.',
+        icon: 'info',
+        confirmButtonText: 'Ok'
+      });
+    } catch (error) {
+      console.error('Erro ao recusar solicitação:', error);
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível recusar a solicitação',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      throw error;
+    }
+  }, []);
+
+  // Função para cancelar solicitação
+  const cancelarSolicitacao = useCallback(async (solicitacaoId) => {
+    try {
+      setSolicitacoes(prev => prev.map(sol => 
+        sol.id === solicitacaoId ? { ...sol, status: 'cancelada' } : sol
+      ));
+      
+      Swal.fire({
+        title: 'Sucesso!',
+        text: 'Aula cancelada com sucesso.',
+        icon: 'info',
+        confirmButtonText: 'Ok'
+      });
+    } catch (error) {
+      console.error('Erro ao cancelar solicitação:', error);
+      Swal.fire({
+        title: 'Erro',
+        text: 'Não foi possível cancelar a aula',
+        icon: 'error',
+        confirmButtonText: 'Ok'
+      });
+      throw error;
+    }
+  }, []);
+
+  // Filtro de solicitações por status
+  const solicitacoesFiltradas = solicitacoes.filter(solicitacao => {
+    if (filtroStatus === 'todas') return true;
+    return solicitacao.status === filtroStatus;
+  });
 
   const toggleDiaSemana = useCallback((diaId) => {
     setHorariosDisponiveis(prev => ({
@@ -319,6 +510,16 @@ export const useDashProfessor = () => {
     taxaPorKm,
     setTaxaPorKm,
     isLoading,
-    error
+    error,
+    // Novas funções para solicitações
+    solicitacoes,
+    loadingSolicitacoes,
+    filtroStatus,
+    setFiltroStatus,
+    carregarSolicitacoes,
+    aceitarSolicitacao,
+    recusarSolicitacao,
+    cancelarSolicitacao,
+    solicitacoesFiltradas
   }
 }
