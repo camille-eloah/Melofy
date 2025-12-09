@@ -81,6 +81,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isLoadingPacotes, setIsLoadingPacotes] = useState(false);
   const [isEditPackageModalOpen, setIsEditPackageModalOpen] = useState(false);
   const [editingPacote, setEditingPacote] = useState(null);
+  const [modalidades, setModalidades] = useState([]);
   const refreshRatingStats = useCallback(() => {
     if (!usuarioId || !tipoUsuario) {
       setRatingStats({ media: 0, total: 0 });
@@ -468,6 +469,62 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setIntroText(usuario?.texto_intro || defaultIntroText);
     setDescText(usuario?.texto_desc || defaultDescText);
   }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
+
+  useEffect(() => {
+    if (!isProfessor || !usuarioId) {
+      setModalidades([]);
+      return;
+    }
+
+    // Busca as configurações do professor que está sendo visualizado
+    fetch(`${API_BASE_URL}/professor/${usuarioId}/configuracoes`, {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        if (res.status === 404) {
+          // Professor sem configurações ainda
+          setModalidades([]);
+          return null;
+        }
+        throw new Error("config_error");
+      })
+      .then((data) => {
+        if (!data) return;
+        
+        const modalidadesAtivas = [];
+        
+        if (data?.config_remota?.ativo) {
+          modalidadesAtivas.push({
+            id: 'remota',
+            label: 'Aula Remota',
+            icon: '💻'
+          });
+        }
+        
+        if (data?.config_presencial?.ativo) {
+          modalidadesAtivas.push({
+            id: 'presencial',
+            label: 'Aula Presencial',
+            icon: '🏢'
+          });
+        }
+        
+        if (data?.config_domicilio?.ativo) {
+          modalidadesAtivas.push({
+            id: 'domicilio',
+            label: 'Aula Domiciliar',
+            icon: '🏠'
+          });
+        }
+        
+        setModalidades(modalidadesAtivas);
+      })
+      .catch((err) => {
+        console.error("[ProfileUser] Erro ao carregar modalidades:", err);
+        setModalidades([]);
+      });
+  }, [isProfessor, usuarioId]);
 
   useEffect(() => {
     if (!isProfessor) {
@@ -865,6 +922,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
         pacotes={pacotes}
+        modalidades={modalidades}
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}

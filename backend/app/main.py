@@ -1676,6 +1676,21 @@ def obter_configuracoes_professor(
     return configs
 
 
+@router_config_professor.get("/{professor_id}/configuracoes", response_model=ConfigProfessorCompleta)
+def obter_configuracoes_professor_por_id(
+    professor_id: int,
+    db: Session = Depends(get_session),
+):
+    """Obtém as configurações de modalidade de aula de um professor específico (rota pública)"""
+    professor = db.get(Professor, professor_id)
+    
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+
+    configs = ConfigProfessorService.obter_todas_configs(db, professor.id)
+    return configs
+
+
 @router_config_professor.delete("/configuracoes/{tipo_aula}", status_code=204)
 def deletar_configuracao_tipo_aula(
     tipo_aula: str,

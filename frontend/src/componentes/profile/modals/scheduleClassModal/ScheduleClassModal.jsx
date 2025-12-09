@@ -7,6 +7,7 @@ const ScheduleClassModal = ({
     isOpen,
     onClose,
     pacotes = [],
+    modalidades = [],
     handleConfirmarAgendamento,
 }) => {
     const horariosDisponiveis = ["09:00", "10:30", "14:00", "16:00", "19:00"];
@@ -16,6 +17,7 @@ const ScheduleClassModal = ({
     const [selectedTimes, setSelectedTimes] = useState([]);
     const [statusMessage, setStatusMessage] = useState("");
     const [selectedPackage, setSelectedPackage] = useState(null);
+    const [selectedModalidade, setSelectedModalidade] = useState(null);
     const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
 
     if (!isOpen) return null;
@@ -123,6 +125,7 @@ const ScheduleClassModal = ({
         handleConfirmarAgendamento({
             agendamentos: agendamentos, // Envia array de {date, time}
             pacote: selectedPackage,
+            modalidade: selectedModalidade,
         });
 
         setStatusMessage("Solicitação enviada ao professor!");
@@ -139,6 +142,26 @@ const ScheduleClassModal = ({
                 onClick={(e) => e.stopPropagation()}
             >
                 <h3>Solicitar Agendamento</h3>
+
+                {modalidades.length > 0 && (
+                    <div className="schedule-form-group">
+                        <label>Selecione a modalidade de aula:</label>
+                        <div className="schedule-modalidades-grid">
+                            {modalidades.map((mod) => (
+                                <button
+                                    key={mod.id}
+                                    className={`schedule-modalidade-card ${selectedModalidade?.id === mod.id ? "selected" : ""}`}
+                                    onClick={() => setSelectedModalidade(mod)}
+                                >
+                                    <div className="schedule-modalidade-icon">
+                                        {mod.icon}
+                                    </div>
+                                    <span className="schedule-modalidade-label">{mod.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 <div className="schedule-form-group">
                     <label>Selecione um pacote:</label>
