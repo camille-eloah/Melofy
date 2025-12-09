@@ -96,9 +96,10 @@
     width: 100%;
 }
 
-.schedule-horario-btn:hover {
+.schedule-horario-btn:hover:not(.selected):not(:disabled) {
     background: rgba(0, 140, 200, 0.2);
     border-color: rgba(0, 160, 220, 0.6);
+    transform: translateY(-2px);
 }
 
 .schedule-horario-btn.selected {
@@ -106,6 +107,31 @@
     border-color: rgba(0, 150, 210, 0.9);
     color: white;
     box-shadow: 0 6px 18px rgba(0, 170, 230, 0.35);
+}
+
+/* Hover no botão selecionado - escurece o gradiente */
+.schedule-horario-btn.selected:hover {
+    background: linear-gradient(135deg, #009bd9, #007aa3);
+}
+
+.schedule-horario-btn:disabled {
+    background-color: #e2e8f0;
+    color: #94a3b8;
+    border-color: #cbd5e1;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.schedule-feedback {
+    color: #f59e0b;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.schedule-feedback-success {
+    color: #10b981;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .schedule-btn-confirmar {
@@ -234,6 +260,18 @@
     background: rgba(0, 140, 200, 0.18) !important;
 }
 
+/* Dias desabilitados (passado) */
+.react-calendar__tile:disabled {
+    background-color: #e2e8f0 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.react-calendar__tile:disabled:hover {
+    background-color: #e2e8f0 !important;
+}
+
 .react-calendar__tile--now {
     border: 1px solid rgba(0, 160, 220, 0.6);
     background: rgba(0, 160, 220, 0.15);
@@ -246,6 +284,11 @@
     color: #ffffff !important;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(0, 150, 210, 0.45);
+}
+
+/* Hover no dia ativo - escurece o gradiente */
+.react-calendar__tile--active:hover {
+    background: linear-gradient(135deg, #009bd9, #007aa3) !important;
 }
 
 /* Container mais organizado para os pacotes */
@@ -291,6 +334,10 @@
 
 .schedule-resumo-agendamentos {
     margin-top: 10px;
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 12px 16px;
 }
 
 .schedule-resumo-item {
