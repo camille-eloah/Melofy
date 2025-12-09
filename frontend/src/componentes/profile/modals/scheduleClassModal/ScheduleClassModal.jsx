@@ -12,7 +12,7 @@ const ScheduleClassModal = ({
 
     const [calendarDate, setCalendarDate] = useState(null);
     const [selectedDate, setSelectedDate] = useState("");
-    const [selectedTime, setSelectedTime] = useState("");
+    const [selectedTimes, setSelectedTimes] = useState([]);
     const [statusMessage, setStatusMessage] = useState("");
     const [selectedPackage, setSelectedPackage] = useState(null);
 
@@ -21,10 +21,38 @@ const ScheduleClassModal = ({
     console.log("[ScheduleClassModal] Pacotes recebidos:", pacotes);
     console.log("[ScheduleClassModal] Quantidade de pacotes:", pacotes.length);
 
+    // Função para alternar seleção de horário
+    const toggleTimeSelection = (time) => {
+        if (!selectedPackage) return;
+
+        const maxHorarios = selectedPackage.pac_quantidade_aulas;
+
+        setSelectedTimes((prev) => {
+            if (prev.includes(time)) {
+                // Remove o horário se já estiver selecionado
+                return prev.filter((t) => t !== time);
+            } else {
+                // Adiciona o horário se não atingiu o limite
+                if (prev.length < maxHorarios) {
+                    return [...prev, time];
+                }
+                return prev; // Não adiciona se já atingiu o limite
+            }
+        });
+    };
+
+    // Calcular quantos horários ainda precisam ser selecionados
+    const horariosRestantes = selectedPackage 
+        ? selectedPackage.pac_quantidade_aulas - selectedTimes.length 
+        : 0;
+
+    // Verificar se pode confirmar (todos os horários foram selecionados)
+    const podeConfirmar = selectedPackage && selectedTimes.length === selectedPackage.pac_quantidade_aulas;
+
     const confirmar = () => {
         handleConfirmarAgendamento({
             date: selectedDate,
-            time: selectedTime,
+            times: selectedTimes, // Agora envia array de horários
             pacote: selectedPackage,
         });
 
@@ -52,12 +80,15 @@ const ScheduleClassModal = ({
                                 <button
                                     key={p.pac_id}
                                     className={`schedule-horario-btn ${selectedPackage?.pac_id === p.pac_id ? "selected" : ""}`}
-                                    onClick={() => setSelectedPackage(p)}
+                                    onClick={() => {
+                                        setSelectedPackage(p);
+                                        setSelectedTimes([]); // Limpa horários ao trocar de pacote
+                                    }}
                                 >
                                     <div className="schedule-package-card">
                                         <span className="schedule-package-name">{p.pac_nome}</span>
                                         <span className="schedule-package-info">
-                                            {p.pac_quantidade_aulas} aulas — R$ {Number(p.pac_valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            {p.pac_quantidade_aulas} aula{p.pac_quantidade_aulas > 1 ? 's' : ''} — R$ {Number(p.pac_valor_total).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                 </button>
@@ -76,25 +107,42 @@ const ScheduleClassModal = ({
                         onChange={(value) => {
                             setCalendarDate(value);
                             setSelectedDate(value.toISOString().split("T")[0]);
-                            setSelectedTime("");
+                            setSelectedTimes([]); // Limpa horários ao trocar de data
                         }}
                         value={calendarDate}
                         minDate={new Date()}
                     />
                 </div>
 
-                {selectedDate && (
+                {selectedDate && selectedPackage && (
                     <div className="schedule-form-group">
-                        <label>Horários disponíveis:</label>
+                        <label>
+                            Horários disponíveis: 
+                            {horariosRestantes > 0 && (
+                                <span className="schedule-feedback">
+                                    {" "}(Selecione mais {horariosRestantes} horário{horariosRestantes > 1 ? 's' : ''})
+                                </span>
+                            )}
+                            {horariosRestantes === 0 && selectedTimes.length > 0 && (
+                                <span className="schedule-feedback-success">
+                                    {" "}✓ Todos os horários selecionados
+                                </span>
+                            )}
+                        </label>
                         <div className="schedule-horarios-grid">
                             {horariosDisponiveis.map((h) => (
                                 <button
                                     key={h}
-                                    className={`schedule-horario-btn ${selectedTime === h ? "selected" : ""
-                                        }`}
-                                    onClick={() => setSelectedTime(h)}
+                                    className={`schedule-horario-btn ${selectedTimes.includes(h) ? "selected" : ""}`}
+                                    onClick={() => toggleTimeSelection(h)}
+                                    disabled={!selectedTimes.includes(h) && selectedTimes.length >= selectedPackage.pac_quantidade_aulas}
                                 >
                                     {h}
+                                    {selectedTimes.includes(h) && (
+                                        <span className="schedule-horario-badge">
+                                            {selectedTimes.indexOf(h) + 1}
+                                        </span>
+                                    )}
                                 </button>
                             ))}
                         </div>
@@ -103,7 +151,7 @@ const ScheduleClassModal = ({
 
                 <button
                     className="schedule-btn-confirmar"
-                    disabled={!selectedTime || !selectedPackage}
+                    disabled={!podeConfirmar}
                     onClick={confirmar}
                 >
 
