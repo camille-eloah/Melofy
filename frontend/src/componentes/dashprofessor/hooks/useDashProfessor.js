@@ -49,26 +49,27 @@ export const useDashProfessor = () => {
           setValorHora(configs.config_geral.valor_hora_aula.toString())
         }
 
-        // Determinar tipos de aula configurados
+        // Determinar tipos de aula configurados E ATIVOS
+        // Só adiciona se a config existe E está ativa
         const tipos = []
-        if (configs.config_remota) tipos.push('remota')
-        if (configs.config_presencial) tipos.push('presencial')
-        if (configs.config_domicilio) tipos.push('domicilio')
+        if (configs.config_remota?.ativo) tipos.push('remota')
+        if (configs.config_presencial?.ativo) tipos.push('presencial')
+        if (configs.config_domicilio?.ativo) tipos.push('domicilio')
         setTiposAulaSelecionados(tipos)
 
-        // Carregar status das modalidades
+        // Carregar status das modalidades (todas, mesmo desativadas)
         setStatusModalidades({
           remota: configs.config_remota?.ativo ?? false,
           presencial: configs.config_presencial?.ativo ?? false,
           domicilio: configs.config_domicilio?.ativo ?? false
         })
 
-        // Carregar configuração remota (Google Meet)
+        // Carregar configuração remota (Google Meet) - sempre que existir
         if (configs.config_remota?.link_meet) {
           setLinkGoogleMeet(configs.config_remota.link_meet)
         }
 
-        // Carregar configuração presencial (localização)
+        // Carregar configuração presencial (localização) - sempre que existir
         if (configs.config_presencial) {
           setLocalizacao({
             cidade: configs.config_presencial.cidade || '',
