@@ -21,13 +21,11 @@ export const configAulaService = {
 
       if (!response.ok) {
         const error = await response.json()
-        console.error('❌ Erro do backend:', error)
         throw new Error(error?.detail || JSON.stringify(error) || 'Erro ao salvar configurações')
       }
 
       return await response.json()
     } catch (error) {
-      console.error('❌ Erro na requisição:', error)
       throw error
     }
   },

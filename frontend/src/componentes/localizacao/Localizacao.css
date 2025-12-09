@@ -100,17 +100,17 @@
 .info-bloco-endereco h3 svg {
   width: 18px;
   height: 18px;
-  stroke: #0f766e;
+  stroke: #0ea5e9;
 }
 
 .valor-destaque {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #0f766e;
+  color: #0ea5e9;
   text-align: center;
   margin-top: 0.5rem;
   font-family: 'Nunito', sans-serif;
-  background: linear-gradient(135deg, #0f766e, #047857);
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: pulse-glow 2s infinite;
@@ -130,8 +130,8 @@
 
 .total-container {
   margin-top: 1.5rem;
-  background: linear-gradient(135deg, rgba(15, 118, 110, 0.1), rgba(5, 150, 105, 0.1));
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(14, 165, 233, 0.2);
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
@@ -148,7 +148,7 @@
 
 .total-container strong {
   font-size: 1.3rem;
-  background: linear-gradient(135deg, #0f766e, #047857);
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -204,7 +204,7 @@
 
 .control-btn:hover {
   background: #f1f5f9;
-  border-color: #0f766e;
+  border-color: #0ea5e9;
   transform: translateY(-2px);
 }
 
@@ -263,7 +263,7 @@
   width: 35px;
   height: 35px;
   border: 3px solid #e2e8f0;
-  border-top-color: #0f766e;
+  border-top-color: #0ea5e9;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -297,17 +297,17 @@
 }
 
 .legend-color.origem {
-  background: #dc2626;
+  background: #ef4444;
   border-radius: 50%;
 }
 
 .legend-color.destino {
-  background: #0f766e;
+  background: #0ea5e9;
   border-radius: 50%;
 }
 
 .legend-color.rota {
-  background: linear-gradient(90deg, #dc2626, #0f766e);
+  background: linear-gradient(90deg, #ef4444, #0ea5e9);
   width: 20px;
   height: 3px;
   border-radius: 2px;
@@ -420,7 +420,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.85);
+  background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -437,7 +437,7 @@
   width: 90%;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
   animation: slideUp 0.4s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid #e2e8f0;
 }
 
 .location-modal-header {
@@ -449,7 +449,7 @@
   width: 80px;
   height: 80px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #0f766e, #047857);
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -512,15 +512,15 @@
 }
 
 .location-allow-btn {
-  background: linear-gradient(135deg, #095a72, #047478);
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
   color: white;
-  border: 1px solid #0f6f76;
+  border: 1px solid #0ea5e9;
 }
 
 .location-allow-btn:hover {
-  background: linear-gradient(135deg, #0d7994, #058c96);
+  background: linear-gradient(135deg, #38bdf8, #60a5fa);
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(6, 66, 145, 0.3);
+  box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
 }
 
 .location-allow-btn svg {
@@ -559,11 +559,11 @@
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.4);
+    box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.4);
   }
   50% {
     transform: scale(1.05);
-    box-shadow: 0 0 0 10px rgba(15, 118, 110, 0);
+    box-shadow: 0 0 0 10px rgba(14, 165, 233, 0);
   }
 }
 

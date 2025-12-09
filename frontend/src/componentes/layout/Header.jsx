@@ -159,6 +159,12 @@ function Header() {
     }
   }
 
+  // Função para lidar com o clique no botão de logout
+  const handleLogoutClick = (e) => {
+    e.preventDefault()
+    handleLogout()
+  }
+
   return (
     <header className="main-header">
       <div className="header-left">
@@ -345,14 +351,15 @@ function Header() {
           )}
         </div>
 
-        <div className="menu-container">
+        <div className="logout-container">
           <button
-            className={`menu-button ${showMenu ? 'active' : ''}`}
-            onClick={() => setShowMenu(!showMenu)}
+            className="logout-button"
+            onClick={handleLogoutClick}
+            title="Sair da conta"
           >
-            <div className="menu-icon-wrapper">
+            <div className="logout-icon-wrapper">
               <svg
-                className="menu-icon"
+                className="logout-icon"
                 width="22"
                 height="22"
                 viewBox="0 0 24 24"
@@ -362,28 +369,12 @@ function Header() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="18" x2="21" y2="18" />
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </div>
           </button>
-
-          {showMenu && (
-            <>
-              <div
-                className="menu-overlay"
-                onClick={() => setShowMenu(false)}
-              />
-              <div className="menu-modal">
-                <ul className="menu-list">
-                  <li>
-                    <button onClick={handleLogout}>Sair</button>
-                  </li>
-                </ul>
-              </div>
-            </>
-          )}
         </div>
       </nav>
     </header>

@@ -17,7 +17,11 @@ import {
   FaRoad,
   FaHashtag,
   FaBuilding,
-  FaLink
+  FaLink,
+  FaMapMarkedAlt,
+  FaCalendarAlt,
+  FaClock,
+  FaMap
 } from 'react-icons/fa'
 
 function DashProfessor() {
@@ -28,7 +32,6 @@ function DashProfessor() {
     toggleTipoAula,
     toggleStatusModalidade,
     statusModalidades,
-    setStatusModalidades,
     linkGoogleMeet,
     setLinkGoogleMeet,
     localizacao,
@@ -36,22 +39,28 @@ function DashProfessor() {
     isSaving,
     carregarConfiguracoes,
     handleSave,
-    configsSalvas
+    configsSalvas,
+    raioAtendimento,
+    setRaioAtendimento,
+    horariosDisponiveis,
+    toggleDiaSemana,
+    toggleHorario,
+    diasSemana,
+    horariosDoDia,
+    taxaPorKm,
+    setTaxaPorKm
   } = useDashProfessor()
 
-  // Carregar configurações ao montar o componente
   useEffect(() => {
     carregarConfiguracoes()
   }, [carregarConfiguracoes])
 
-  // Opções de tipos de aula
   const tiposAula = [
     { id: 'domicilio', label: 'Aula Domiciliar', icon: <FaHome /> },
     { id: 'presencial', label: 'Aula Presencial', icon: <FaBuilding /> },
     { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
   ]
 
-  // Função para verificar se uma modalidade está configurada
   const isModalidadeConfigured = (tipoAulaId) => {
     if (!configsSalvas) return false
     if (tipoAulaId === 'remota') return !!configsSalvas.config_remota
@@ -70,7 +79,6 @@ function DashProfessor() {
       <Header />
       <div className="dashboard-container">
         <div className="dashboard-wrapper">
-          {/* Header do Dashboard */}
           <div className="dashboard-header">
             <div className="dashboard-header-content">
               <h1 className="dashboard-title">Dashboard do Professor</h1>
@@ -82,7 +90,6 @@ function DashProfessor() {
 
           <div className="dashboard-content">
             <form onSubmit={handleSubmit} className="config-form">
-              {/* Seção: Valor da Hora de Aula */}
               <div className="config-section">
                 <div className="section-header">
                   <div className="section-icon-wrapper">
@@ -119,7 +126,76 @@ function DashProfessor() {
                 </div>
               </div>
 
-              {/* Seção: Tipo de Aula */}
+              <div className="config-section">
+                <div className="section-header">
+                  <div className="section-icon-wrapper">
+                    <FaCalendarAlt className="section-icon" />
+                  </div>
+                  <div className="section-title-wrapper">
+                    <h2 className="section-title">Horários Disponíveis</h2>
+                    <p className="section-description">
+                      Selecione os dias da semana e horários em que você está disponível para ministrar aulas
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="input-group">
+                  <label className="input-label">
+                    Dias da semana disponíveis
+                  </label>
+                  <div className="dias-semana-grid">
+                    {diasSemana.map((dia) => (
+                      <div key={dia.id} className="dia-semana-wrapper">
+                        <input
+                          type="checkbox"
+                          id={`dia-${dia.id}`}
+                          checked={horariosDisponiveis[dia.id]?.selecionado || false}
+                          onChange={() => toggleDiaSemana(dia.id)}
+                          className="checkbox-input-hidden"
+                          style={{ display: 'none' }}
+                        />
+                        <label 
+                          htmlFor={`dia-${dia.id}`}
+                          className={`dia-semana-option ${horariosDisponiveis[dia.id]?.selecionado ? 'selected' : ''}`}
+                        >
+                          <span className="dia-label">{dia.label}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="horarios-container">
+                  {Object.entries(horariosDisponiveis).filter(([_, data]) => data.selecionado).map(([diaId, data]) => (
+                    <div key={diaId} className="horarios-dia-section">
+                      <h3 className="horarios-dia-title">
+                        Horários para {diasSemana.find(d => d.id === diaId)?.label}
+                      </h3>
+                      <div className="horarios-grid">
+                        {horariosDoDia.map((horario) => (
+                          <div key={`${diaId}-${horario}`} className="horario-wrapper">
+                            <input
+                              type="checkbox"
+                              id={`horario-${diaId}-${horario}`}
+                              checked={data.horarios.includes(horario)}
+                              onChange={() => toggleHorario(diaId, horario)}
+                              className="checkbox-input-hidden"
+                              style={{ display: 'none' }}
+                            />
+                            <label 
+                              htmlFor={`horario-${diaId}-${horario}`}
+                              className={`horario-option ${data.horarios.includes(horario) ? 'selected' : ''}`}
+                            >
+                              {horario}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="config-section">
                 <div className="section-header">
                   <div className="section-icon-wrapper">
@@ -179,7 +255,6 @@ function DashProfessor() {
                   </div>
                 </div>
 
-                {/* Condicional: Link Google Meet (para aulas remotas) */}
                 {tiposAulaSelecionados.includes('remota') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -212,7 +287,6 @@ function DashProfessor() {
                   </div>
                 )}
 
-                {/* Condicional: Localização (para aulas presenciais) */}
                 {tiposAulaSelecionados.includes('presencial') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -322,7 +396,6 @@ function DashProfessor() {
                   </div>
                 )}
 
-                {/* Condicional: Domicílio */}
                 {tiposAulaSelecionados.includes('domicilio') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -336,14 +409,84 @@ function DashProfessor() {
                         </p>
                       </div>
                     </div>
+                    
+                    <div className="input-group">
+                      <label className="input-label">
+                        <FaMapMarkedAlt className="input-label-icon" /> Raio de Atendimento (km)
+                      </label>
+                      <div className="raio-input-wrapper">
+                        <input
+                          type="number"
+                          value={raioAtendimento}
+                          onChange={(e) => setRaioAtendimento(e.target.value)}
+                          placeholder="5"
+                          min="1"
+                          max="100"
+                          step="1"
+                          className="simple-input"
+                        />
+                        <span className="input-suffix">km</span>
+                      </div>
+                      <small className="input-hint">
+                        Distância máxima que você está disposto a percorrer para atender alunos
+                      </small>
+                    </div>
+
+                    <div className="input-group">
+                      <label className="input-label">
+                        <FaMoneyBillWave className="input-label-icon" /> Taxa por km de deslocamento (R$)
+                      </label>
+                      <div className="valor-input-wrapper">
+                        <span className="input-prefix">R$</span>
+                        <input
+                          type="number"
+                          value={taxaPorKm}
+                          onChange={(e) => setTaxaPorKm(e.target.value)}
+                          placeholder="2,50"
+                          min="0"
+                          step="0.01"
+                          className="simple-input"
+                        />
+                      </div>
+                      <small className="input-hint">
+                        Valor cobrado por cada quilômetro de deslocamento até o aluno
+                      </small>
+                    </div>
+
+                    <div className="mapa-container">
+                      <div className="conditional-header">
+                        <div className="conditional-icon-wrapper">
+                          <FaMap className="conditional-icon" />
+                        </div>
+                        <div>
+                          <h3 className="conditional-title">Localização para Atendimento</h3>
+                          <p className="conditional-description">
+                            Mapa para visualização da sua área de atendimento (será implementado posteriormente)
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mapa-placeholder">
+                        <div className="mapa-content">
+                          <FaMap className="mapa-icon" />
+                          <p className="mapa-text">Espaço reservado para implementação do mapa</p>
+                          <p className="mapa-subtext">
+                            Aqui será exibido um mapa com sua localização e raio de atendimento
+                          </p>
+                        </div>
+                      </div>
+                      <small className="input-hint">
+                        O mapa será implementado em uma futura atualização do sistema
+                      </small>
+                    </div>
+                    
                     <div className="info-card">
                       <FaInfoCircle className="info-card-icon" />
                       <div className="info-card-content">
                         <h4 className="info-card-title">Informação Importante</h4>
                         <p className="info-card-text">
                           As aulas serão agendadas considerando o deslocamento até o 
-                          domicílio do aluno. Certifique-se de definir uma área de 
-                          atendimento na sua agenda e considerar o tempo de deslocamento.
+                          domicílio do aluno. O sistema mostrará apenas alunos dentro do raio 
+                          de {raioAtendimento}km da sua localização. Será adicionada uma taxa de R${taxaPorKm || '0,00'} por km.
                         </p>
                       </div>
                     </div>
@@ -351,7 +494,6 @@ function DashProfessor() {
                 )}
               </div>
 
-              {/* Botão de Salvar */}
               <div className="form-actions">
                 <button
                   type="submit"
@@ -373,7 +515,6 @@ function DashProfessor() {
               </div>
             </form>
 
-            {/* Informações Adicionais */}
             <div className="info-card-sidebar">
               <div className="info-card-header">
                 <FaInfoCircle className="info-card-header-icon" />
@@ -386,6 +527,14 @@ function DashProfessor() {
                   <div className="info-item-content">
                     <span className="info-item-title">Valor da hora:</span>
                     <span className="info-item-text">Pode ser ajustado a qualquer momento</span>
+                  </div>
+                </div>
+                
+                <div className="info-item">
+                  <div className="info-item-bullet"></div>
+                  <div className="info-item-content">
+                    <span className="info-item-title">Horários:</span>
+                    <span className="info-item-text">Selecione seus horários disponíveis para cada dia</span>
                   </div>
                 </div>
                 
@@ -421,11 +570,10 @@ function DashProfessor() {
                   </div>
                 </div>
 
-                {/* Seção de Modalidades Configuradas */}
                 {configsSalvas && (isModalidadeConfigured('remota') || isModalidadeConfigured('presencial') || isModalidadeConfigured('domicilio')) && (
-                  <div className="info-item-section" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
-                    <span className="info-item-title" style={{ fontSize: '0.875rem', color: '#64748b' }}>Modalidades Configuradas:</span>
-                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <div className="info-item-section">
+                    <span className="info-item-title">Modalidades Configuradas:</span>
+                    <div className="config-badges-container">
                       {isModalidadeConfigured('remota') && (
                         <span className="config-badge" title="Aula Remota configurada">🎥 Remota</span>
                       )}

@@ -9,7 +9,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2048;
+    z-index: 1000;
 }
 
 .schedule-modal-container {
@@ -287,4 +287,148 @@
 
 .schedule-modal-container::-webkit-scrollbar-track {
     background: transparent;
+}
+
+.schedule-resumo-agendamentos {
+    margin-top: 10px;
+}
+
+.schedule-resumo-item {
+    color: #004a66;
+    padding: 5px 0;
+    font-size: 0.95rem;
+}
+
+.schedule-modalidades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.schedule-modalidade-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 120px;
+}
+
+.schedule-modalidade-card:hover {
+    border-color: #3b82f6;
+    background: #f0f9ff;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.schedule-modalidade-card.selected {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.schedule-modalidade-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.schedule-modalidade-card.selected .schedule-modalidade-icon {
+    transform: scale(1.1);
+}
+
+.schedule-modalidade-label {
+    font-weight: 500;
+    color: #334155;
+    text-align: center;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.schedule-modalidade-card.selected .schedule-modalidade-label {
+    color: #0f172a;
+    font-weight: 600;
+}
+
+.schedule-instrumentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.schedule-instrumento-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 60px;
+}
+
+.schedule-instrumento-card:hover {
+    border-color: #8338EC;
+    background: #f9f5ff;
+    box-shadow: 0 3px 10px rgba(131, 56, 236, 0.1);
+}
+
+.schedule-instrumento-card.selected {
+    background: linear-gradient(135deg, #f9f5ff 0%, #faf5ff 100%);
+    border-color: #8338EC;
+    box-shadow: 0 3px 10px rgba(131, 56, 236, 0.15);
+}
+
+.schedule-instrumento-label {
+    font-weight: 500;
+    color: #334155;
+    text-align: center;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.schedule-instrumento-card.selected .schedule-instrumento-label {
+    color: #6b21a8;
+    font-weight: 600;
+}
+
+.schedule-observacao-textarea {
+    width: 100%;
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #0f172a;
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.schedule-observacao-textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.5);
+}
+
+.schedule-observacao-textarea::placeholder {
+    color: #94a3b8;
+}
+
+.schedule-observacao-counter {
+    display: block;
+    text-align: right;
+    color: #64748b;
+    font-size: 0.75rem;
+    margin-top: 0.375rem;
 }

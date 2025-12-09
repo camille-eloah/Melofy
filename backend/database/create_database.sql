@@ -264,16 +264,30 @@ CREATE TABLE tb_pacotes (
 CREATE TABLE tb_solicitacao_agendamento (
     sol_id INT AUTO_INCREMENT PRIMARY KEY,
     sol_prof_id INT NOT NULL,
+    sol_prof_global_uuid CHAR(36) NOT NULL,
     sol_alu_id INT NOT NULL,
+    sol_alu_global_uuid CHAR(36) NOT NULL,
     sol_instr_id INT NOT NULL,
-    sol_horario DATETIME NOT NULL,
-    sol_modalidade VARCHAR(255) NOT NULL,
+    sol_pac_id INT NULL,
+    sol_modalidade ENUM('remota','presencial','domicilio') NOT NULL,
     sol_status ENUM('Pendente','Confirmada','Recusada','Cancelada') NOT NULL DEFAULT 'Pendente',
     sol_mensagem TEXT NULL,
+    sol_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_sol_prof FOREIGN KEY (sol_prof_id) REFERENCES tb_professor(id),
     CONSTRAINT fk_sol_alu FOREIGN KEY (sol_alu_id) REFERENCES tb_aluno(id),
-    CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES tb_instrumento(id)
+    CONSTRAINT fk_sol_inst FOREIGN KEY (sol_instr_id) REFERENCES tb_instrumento(id),
+    CONSTRAINT fk_sol_pac FOREIGN KEY (sol_pac_id) REFERENCES tb_pacotes(pac_id)
+);
+
+-- Tabela para armazenar múltiplos horários de uma solicitação
+CREATE TABLE tb_solicitacao_horarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sol_id INT NOT NULL,
+    horario_data DATE NOT NULL,
+    horario_hora TIME NOT NULL,
+    
+    CONSTRAINT fk_solhorario_sol FOREIGN KEY (sol_id) REFERENCES tb_solicitacao_agendamento(sol_id) ON DELETE CASCADE
 );
 
 CREATE TABLE tb_avaliacoes_aluno (
