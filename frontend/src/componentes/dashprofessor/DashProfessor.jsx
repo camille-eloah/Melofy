@@ -26,6 +26,7 @@ function DashProfessor() {
     setValorHora,
     tiposAulaSelecionados,
     toggleTipoAula,
+    toggleStatusModalidade,
     statusModalidades,
     setStatusModalidades,
     linkGoogleMeet,
@@ -159,7 +160,14 @@ function DashProfessor() {
                               )}
                             </div>
                             <span className="option-label">{tipo.label}</span>
-                            <div className="toggle-switch">
+                            <div 
+                              className="toggle-switch"
+                              onClick={(e) => {
+                                if (tiposAulaSelecionados.includes(tipo.id)) {
+                                  toggleStatusModalidade(tipo.id, e)
+                                }
+                              }}
+                            >
                               <div className={`switch-track ${statusModalidades[tipo.id] ? 'active' : ''}`}>
                                 <div className="switch-thumb"></div>
                               </div>

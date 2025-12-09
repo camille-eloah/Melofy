@@ -91,12 +91,10 @@ export const configAulaService = {
         bairro: localizacao.bairro,
         complemento: localizacao.complemento || null
       } : null,
-      // Status de ativação de cada modalidade
-      status_modalidades: {
-        remota: statusModalidades.remota,
-        presencial: statusModalidades.presencial,
-        domicilio: statusModalidades.domicilio
-      }
+      // Status de ativação de cada modalidade (direto no payload, não aninhado)
+      ativo_remota: statusModalidades?.remota ?? false,
+      ativo_presencial: statusModalidades?.presencial ?? false,
+      ativo_domicilio: statusModalidades?.domicilio ?? false
     }
 
     return payload

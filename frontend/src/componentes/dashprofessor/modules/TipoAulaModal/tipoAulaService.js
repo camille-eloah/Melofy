@@ -205,12 +205,14 @@ export const tipoAulaService = {
       tipos_aula_selecionados: tiposAulaSelecionados,
     }
 
-    if (tiposAulaSelecionados.includes('remota') && linkGoogleMeet) {
+    // Sempre enviar os status de ativação, independente se estão selecionados
+    // Isso permite desativar modalidades sem removê-las
+    if (tiposAulaSelecionados.includes('remota')) {
       payload.link_meet = linkGoogleMeet
-      payload.ativo_remota = statusModalidades?.remota ?? false
     }
+    payload.ativo_remota = statusModalidades?.remota ?? false
     
-    if (tiposAulaSelecionados.includes('presencial') && localizacao) {
+    if (tiposAulaSelecionados.includes('presencial')) {
       payload.localizacao = {
         cidade: localizacao.cidade.trim(),
         estado: localizacao.estado.trim(),
@@ -219,12 +221,10 @@ export const tipoAulaService = {
         bairro: localizacao.bairro.trim(),
         complemento: localizacao.complemento ? localizacao.complemento.trim() : null
       }
-      payload.ativo_presencial = statusModalidades?.presencial ?? false
     }
+    payload.ativo_presencial = statusModalidades?.presencial ?? false
 
-    if (tiposAulaSelecionados.includes('domicilio')) {
-      payload.ativo_domicilio = statusModalidades?.domicilio ?? false
-    }
+    payload.ativo_domicilio = statusModalidades?.domicilio ?? false
 
     return payload
   },

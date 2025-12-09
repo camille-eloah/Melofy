@@ -100,18 +100,38 @@ export const useDashProfessor = () => {
    */
   const toggleTipoAula = useCallback((tipo) => {
     setTiposAulaSelecionados(prev => {
-      if (prev.includes(tipo)) {
+      const isCurrentlySelected = prev.includes(tipo)
+      if (isCurrentlySelected) {
+        // Ao desmarcar, também desativa
+        setStatusModalidades(prevStatus => ({
+          ...prevStatus,
+          [tipo]: false
+        }))
         return prev.filter(t => t !== tipo)
       } else {
+        // Ao marcar, ativa por padrão
+        setStatusModalidades(prevStatus => ({
+          ...prevStatus,
+          [tipo]: true
+        }))
         return [...prev, tipo]
       }
     })
+  }, [])
 
-    // Atualizar status da modalidade
-    setStatusModalidades(prev => ({
-      ...prev,
-      [tipo]: !prev[tipo]
-    }))
+  /**
+   * Alterna apenas o status ativo/inativo de uma modalidade
+   */
+  const toggleStatusModalidade = useCallback((tipo, event) => {
+    event.stopPropagation() // Evita que o clique propague para o card pai
+    setStatusModalidades(prev => {
+      const novoStatus = !prev[tipo]
+      console.log(`🔄 Toggle ${tipo}: ${prev[tipo]} → ${novoStatus}`)
+      return {
+        ...prev,
+        [tipo]: novoStatus
+      }
+    })
   }, [])
 
   /**
@@ -149,6 +169,10 @@ export const useDashProfessor = () => {
         localizacao,
         statusModalidades
       )
+
+      // DEBUG: Log para verificar os dados sendo enviados
+      console.log('📊 Status das modalidades:', statusModalidades)
+      console.log('📤 Dados formatados para envio:', dadosFormatados)
 
       await configAulaService.salvarConfiguracao(dadosFormatados)
 
@@ -270,6 +294,7 @@ export const useDashProfessor = () => {
     setValorHora,
     tiposAulaSelecionados,
     toggleTipoAula,
+    toggleStatusModalidade,
     statusModalidades,
     setStatusModalidades,
     linkGoogleMeet,

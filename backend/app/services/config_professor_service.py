@@ -51,15 +51,18 @@ class ConfigProfessorService:
         ).first()
 
         if config:
+            print(f"    ✏️  Atualizando config remota: ativo={ativo}")
             config.link_meet = link_meet
             config.ativo = ativo
             config.atualizado_em = datetime.now(timezone.utc)
         else:
+            print(f"    ➕ Criando nova config remota: ativo={ativo}")
             config = ConfigAulaRemota(prof_id=prof_id, link_meet=link_meet, ativo=ativo)
             db.add(config)
 
         db.commit()
         db.refresh(config)
+        print(f"    ✅ Config remota salva no DB: ativo={config.ativo}")
         return config
 
     @staticmethod
