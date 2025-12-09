@@ -249,9 +249,13 @@ function DashProfessor() {
                         <input
                           type="text"
                           value={localizacao.estado}
-                          onChange={(e) => handleLocalizacaoChange('estado', e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value.toUpperCase().slice(0, 2)
+                            handleLocalizacaoChange('estado', value)
+                          }}
                           placeholder="Ex: SP, RJ, MG"
                           className="simple-input"
+                          maxLength={2}
                           required
                         />
                       </div>

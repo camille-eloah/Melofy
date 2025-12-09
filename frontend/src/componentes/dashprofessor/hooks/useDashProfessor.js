@@ -190,9 +190,15 @@ export const useDashProfessor = () => {
       console.error('Erro ao salvar configurações:', err)
       setError(err.message)
 
+      // Verificar se é erro de validação
+      let errorMessage = err.message || 'Erro ao salvar configurações'
+      if (errorMessage.includes('estado') || errorMessage.includes('state')) {
+        errorMessage = 'O campo Estado deve ter exatamente 2 letras (ex: RN, SP, RJ)'
+      }
+
       Swal.fire({
         title: 'Erro',
-        text: err.message || 'Erro ao salvar configurações',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'Ok'
       })

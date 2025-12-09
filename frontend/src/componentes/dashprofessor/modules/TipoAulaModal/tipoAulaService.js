@@ -263,6 +263,11 @@ export const tipoAulaService = {
         if (missingFields.length > 0) {
           errors.push(`Campos de localização obrigatórios não preenchidos: ${missingFields.join(', ')}`)
         }
+
+        // Validar estado (deve ter exatamente 2 letras)
+        if (localizacao.estado && localizacao.estado.length !== 2) {
+          errors.push('O campo Estado deve ter exatamente 2 letras (ex: RN, SP, RJ)')
+        }
       }
     })
 
