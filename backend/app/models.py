@@ -201,26 +201,46 @@ class StatusSolicitacao(str, Enum):
     recusada = "Recusada"
     cancelada = "Cancelada"
 
+class ModalidadeAula(str, Enum):
+    remota = "remota"
+    presencial = "presencial"
+    domicilio = "domicilio"
+
 class SolicitacaoAgendamento(SQLModel, table=True):
     __tablename__ = "tb_solicitacao_agendamento"
 
     sol_id: Optional[int] = Field(default=None, primary_key=True)
     
-    # Relacionamentos
+    # IDs e UUIDs
     sol_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    sol_prof_global_uuid: str = Field(nullable=False)
     sol_alu_id: int = Field(foreign_key="tb_aluno.id", nullable=False)
+    sol_alu_global_uuid: str = Field(nullable=False)
     sol_instr_id: int = Field(foreign_key="tb_instrumento.id", nullable=False)
+    sol_pac_id: Optional[int] = Field(default=None, foreign_key="tb_pacotes.pac_id")
     
     # Dados da solicitação
-    sol_horario: datetime
-    sol_modalidade: str
+    sol_modalidade: ModalidadeAula = Field(nullable=False)
     sol_status: StatusSolicitacao = Field(default=StatusSolicitacao.pendente, nullable=False)
     sol_mensagem: Optional[str] = Field(default=None)
+    sol_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
     # Relationships para acesso rápido
     professor: Optional[Professor] = Relationship()
     aluno: Optional[Aluno] = Relationship()
     instrumento: Optional[Instrumento] = Relationship()
+    pacote: Optional["Pacote"] = Relationship()
+
+class SolicitacaoHorario(SQLModel, table=True):
+    __tablename__ = "tb_solicitacao_horarios"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    sol_id: int = Field(foreign_key="tb_solicitacao_agendamento.sol_id", nullable=False)
+    horario_data: date = Field(nullable=False)
+    horario_hora: str = Field(nullable=False)  # TIME stored as string (HH:MM)
+
+    # Relationship
+    solicitacao: Optional[SolicitacaoAgendamento] = Relationship()
 
 # ----------------------------
 # Pacotes de Aulas

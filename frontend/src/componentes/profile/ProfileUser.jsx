@@ -122,18 +122,70 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setAgendamento(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleConfirmarAgendamento = () => {
-    console.log("Dados do agendamento enviados:", agendamento);
+  const handleConfirmarAgendamento = async (dadosSolicitacao) => {
+    console.log("Dados da solicitação recebidos:", dadosSolicitacao);
 
-    Swal.fire({
-      title: "Agendamento enviado!",
-      text: "Quando o back estiver pronto irá salvar.",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "Ok"
-    }).then(() => {
+    try {
+      // Preparar payload para o backend
+      const payload = {
+        agendamentos: dadosSolicitacao.agendamentos,
+        pacote: {
+          pac_id: dadosSolicitacao.pacote.pac_id,
+          pac_nome: dadosSolicitacao.pacote.pac_nome,
+          pac_quantidade_aulas: dadosSolicitacao.pacote.pac_quantidade_aulas,
+          pac_valor_total: dadosSolicitacao.pacote.pac_valor_total,
+        },
+        modalidade: {
+          id: dadosSolicitacao.modalidade.id,
+          label: dadosSolicitacao.modalidade.label,
+        },
+        instrumento: {
+          id: dadosSolicitacao.instrumento.id,
+          nome: dadosSolicitacao.instrumento.nome,
+        },
+        observacao: dadosSolicitacao.observacao,
+        professor_id: usuario.id, // ID do professor
+      };
+
+      console.log("Enviando payload:", payload);
+
+      const response = await fetch("http://localhost:8000/schedule/agendamentos/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Erro ao criar solicitação");
+      }
+
+      const solicitacaoCriada = await response.json();
+      console.log("Solicitação criada com sucesso:", solicitacaoCriada);
+
+      await Swal.fire({
+        title: "Solicitação enviada!",
+        text: "Sua solicitação de agendamento foi enviada ao professor.",
+        icon: "success",
+        confirmButtonColor: "#8338EC",
+        confirmButtonText: "Ok"
+      });
+
       closeScheduleModal();
-    });
+    } catch (error) {
+      console.error("Erro ao criar solicitação:", error);
+      
+      await Swal.fire({
+        title: "Erro",
+        text: error.message || "Não foi possível enviar a solicitação. Tente novamente.",
+        icon: "error",
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Ok"
+      });
+    }
   };
 
   console.log("[ProfileUser] params", {
