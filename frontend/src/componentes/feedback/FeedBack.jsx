@@ -101,7 +101,7 @@ function Feedback() {
                   </div>
                   <div className="feature-text">
                     <h3>Resposta rápida</h3>
-                    <p>Retornamos seu contato em até 24 horas úteis</p>
+                    <p>Retornamos o seu contato o mais rápido possível.</p>
                   </div>
                 </div>
 

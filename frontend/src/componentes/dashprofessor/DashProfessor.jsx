@@ -17,7 +17,8 @@ import {
   FaRoad,
   FaHashtag,
   FaBuilding,
-  FaLink
+  FaLink,
+  FaMapMarkedAlt
 } from 'react-icons/fa'
 
 function DashProfessor() {
@@ -36,22 +37,21 @@ function DashProfessor() {
     isSaving,
     carregarConfiguracoes,
     handleSave,
-    configsSalvas
+    configsSalvas,
+    raioAtendimento,
+    setRaioAtendimento
   } = useDashProfessor()
 
-  // Carregar configurações ao montar o componente
   useEffect(() => {
     carregarConfiguracoes()
   }, [carregarConfiguracoes])
 
-  // Opções de tipos de aula
   const tiposAula = [
     { id: 'domicilio', label: 'Aula Domiciliar', icon: <FaHome /> },
     { id: 'presencial', label: 'Aula Presencial', icon: <FaBuilding /> },
     { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
   ]
 
-  // Função para verificar se uma modalidade está configurada
   const isModalidadeConfigured = (tipoAulaId) => {
     if (!configsSalvas) return false
     if (tipoAulaId === 'remota') return !!configsSalvas.config_remota
@@ -70,7 +70,6 @@ function DashProfessor() {
       <Header />
       <div className="dashboard-container">
         <div className="dashboard-wrapper">
-          {/* Header do Dashboard */}
           <div className="dashboard-header">
             <div className="dashboard-header-content">
               <h1 className="dashboard-title">Dashboard do Professor</h1>
@@ -82,7 +81,6 @@ function DashProfessor() {
 
           <div className="dashboard-content">
             <form onSubmit={handleSubmit} className="config-form">
-              {/* Seção: Valor da Hora de Aula */}
               <div className="config-section">
                 <div className="section-header">
                   <div className="section-icon-wrapper">
@@ -119,7 +117,6 @@ function DashProfessor() {
                 </div>
               </div>
 
-              {/* Seção: Tipo de Aula */}
               <div className="config-section">
                 <div className="section-header">
                   <div className="section-icon-wrapper">
@@ -179,7 +176,6 @@ function DashProfessor() {
                   </div>
                 </div>
 
-                {/* Condicional: Link Google Meet (para aulas remotas) */}
                 {tiposAulaSelecionados.includes('remota') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -212,7 +208,6 @@ function DashProfessor() {
                   </div>
                 )}
 
-                {/* Condicional: Localização (para aulas presenciais) */}
                 {tiposAulaSelecionados.includes('presencial') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -322,7 +317,6 @@ function DashProfessor() {
                   </div>
                 )}
 
-                {/* Condicional: Domicílio */}
                 {tiposAulaSelecionados.includes('domicilio') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
@@ -336,14 +330,37 @@ function DashProfessor() {
                         </p>
                       </div>
                     </div>
+                    
+                    <div className="input-group">
+                      <label className="input-label">
+                        <FaMapMarkedAlt className="input-label-icon" /> Raio de Atendimento (km)
+                      </label>
+                      <div className="raio-input-wrapper">
+                        <input
+                          type="number"
+                          value={raioAtendimento}
+                          onChange={(e) => setRaioAtendimento(e.target.value)}
+                          placeholder="5"
+                          min="1"
+                          max="100"
+                          step="1"
+                          className="simple-input"
+                        />
+                        <span className="input-suffix">km</span>
+                      </div>
+                      <small className="input-hint">
+                        Distância máxima que você está disposto a percorrer para atender alunos
+                      </small>
+                    </div>
+                    
                     <div className="info-card">
                       <FaInfoCircle className="info-card-icon" />
                       <div className="info-card-content">
                         <h4 className="info-card-title">Informação Importante</h4>
                         <p className="info-card-text">
                           As aulas serão agendadas considerando o deslocamento até o 
-                          domicílio do aluno. Certifique-se de definir uma área de 
-                          atendimento na sua agenda e considerar o tempo de deslocamento.
+                          domicílio do aluno. O sistema mostrará apenas alunos dentro do raio 
+                          de {raioAtendimento}km da sua localização.
                         </p>
                       </div>
                     </div>
@@ -351,7 +368,6 @@ function DashProfessor() {
                 )}
               </div>
 
-              {/* Botão de Salvar */}
               <div className="form-actions">
                 <button
                   type="submit"
@@ -373,7 +389,6 @@ function DashProfessor() {
               </div>
             </form>
 
-            {/* Informações Adicionais */}
             <div className="info-card-sidebar">
               <div className="info-card-header">
                 <FaInfoCircle className="info-card-header-icon" />
@@ -421,7 +436,6 @@ function DashProfessor() {
                   </div>
                 </div>
 
-                {/* Seção de Modalidades Configuradas */}
                 {configsSalvas && (isModalidadeConfigured('remota') || isModalidadeConfigured('presencial') || isModalidadeConfigured('domicilio')) && (
                   <div className="info-item-section" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
                     <span className="info-item-title" style={{ fontSize: '0.875rem', color: '#64748b' }}>Modalidades Configuradas:</span>
