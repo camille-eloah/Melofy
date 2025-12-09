@@ -59,6 +59,73 @@
   gap: 2rem;
 }
 
+/* Menu de navegação por abas */
+.dashboard-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  grid-column: 1 / -1;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+
+.tab-button {
+  flex: 1;
+  min-width: max-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #64748b;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-button:hover {
+  background: #ffffff;
+  color: #334155;
+}
+
+.tab-button.active {
+  background: #ffffff;
+  color: #8338EC;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tab-icon {
+  font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-tabs {
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .tab-button span {
+    display: none;
+  }
+
+  .tab-icon {
+    font-size: 1.25rem;
+  }
+}
+
 @media (min-width: 992px) {
   .dashboard-content {
     grid-template-columns: 1fr 350px;
