@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import Swal from 'sweetalert2'
+import { useEffect } from 'react'
 import './DashProfessor.css'
 import Header from "../layout/Header"
 import Footer from '../layout/Footer'
 import ChatButton from '../layout/ButtonChat'
+import { useDashProfessor } from './hooks/useDashProfessor'
 import { 
   FaMoneyBillWave, 
   FaChalkboardTeacher, 
@@ -20,21 +20,26 @@ import {
   FaLink
 } from 'react-icons/fa'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-
 function DashProfessor() {
-  const [valorHora, setValorHora] = useState('')
-  const [tipoAula, setTipoAula] = useState('')
-  const [linkGoogleMeet, setLinkGoogleMeet] = useState('')
-  const [localizacao, setLocalizacao] = useState({
-    cidade: '',
-    estado: '',
-    rua: '',
-    numero: '',
-    bairro: '',
-    complemento: ''
-  })
-  const [loading, setLoading] = useState(false)
+  const {
+    valorHora,
+    setValorHora,
+    tipoAula,
+    setTipoAula,
+    linkGoogleMeet,
+    setLinkGoogleMeet,
+    localizacao,
+    handleLocalizacaoChange,
+    isLoading,
+    isSaving,
+    carregarConfiguracoes,
+    handleSave
+  } = useDashProfessor()
+
+  // Carregar configurações ao montar o componente
+  useEffect(() => {
+    carregarConfiguracoes()
+  }, [carregarConfiguracoes])
 
   // Opções de tipos de aula
   const tiposAula = [
@@ -43,87 +48,9 @@ function DashProfessor() {
     { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
   ]
 
-  const handleLocalizacaoChange = (field, value) => {
-    setLocalizacao(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    
-    if (!valorHora || !tipoAula) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos obrigatórios',
-        text: 'Por favor, preencha o valor da hora e selecione o tipo de aula.',
-        confirmButtonColor: '#2563eb'
-      })
-      return
-    }
-
-    if (tipoAula === 'remota' && !linkGoogleMeet) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Link necessário',
-        text: 'Para aulas remotas, é necessário informar o link do Google Meet.',
-        confirmButtonColor: '#2563eb'
-      })
-      return
-    }
-
-    if (tipoAula === 'presencial') {
-      const { cidade, estado, rua, numero, bairro } = localizacao
-      if (!cidade || !estado || !rua || !numero || !bairro) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Localização incompleta',
-          text: 'Para aulas presenciais, preencha todos os campos obrigatórios da localização.',
-          confirmButtonColor: '#2563eb'
-        })
-        return
-      }
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/professor/configuracoes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          valor_hora: parseFloat(valorHora),
-          tipo_aula: tipoAula,
-          link_meet: linkGoogleMeet,
-          localizacao: tipoAula === 'presencial' ? localizacao : null
-        })
-      })
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Configurações salvas!',
-          text: 'Suas configurações foram atualizadas com sucesso.',
-          confirmButtonColor: '#059669',
-          background: '#ffffff',
-          color: '#111827'
-        })
-      } else {
-        throw new Error('Erro ao salvar configurações')
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Ocorreu um erro ao salvar as configurações. Tente novamente.',
-        confirmButtonColor: '#dc2626'
-      })
-    } finally {
-      setLoading(false)
-    }
+    handleSave()
   }
 
   return (
@@ -387,9 +314,9 @@ function DashProfessor() {
                 <button
                   type="submit"
                   className="save-button"
-                  disabled={loading}
+                  disabled={isSaving}
                 >
-                  {loading ? (
+                  {isSaving ? (
                     <>
                       <span className="loading-spinner"></span>
                       Salvando...

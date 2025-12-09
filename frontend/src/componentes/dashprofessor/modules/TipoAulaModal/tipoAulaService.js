@@ -103,5 +103,66 @@ export const tipoAulaService = {
    */
   requiresAdditionalInfo(tipoAula) {
     return ['remota', 'presencial'].includes(tipoAula)
+  },
+
+  /**
+   * Formata dados para persistência no banco
+   * @param {string} tipoAula - Tipo de aula selecionado
+   * @param {string} valorHora - Valor por hora
+   * @param {string} linkGoogleMeet - Link do Google Meet (se remota)
+   * @param {object} localizacao - Localização (se presencial)
+   * @returns {object} Dados formatados para API
+   */
+  formatarParaPersistencia(tipoAula, valorHora, linkGoogleMeet, localizacao) {
+    const payload = {
+      valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
+      tipo_aula_principal: tipoAula,
+    }
+
+    if (tipoAula === 'remota' && linkGoogleMeet) {
+      payload.link_meet = linkGoogleMeet
+    } else if (tipoAula === 'presencial' && localizacao) {
+      payload.localizacao = {
+        cidade: localizacao.cidade.trim(),
+        estado: localizacao.estado.trim(),
+        rua: localizacao.rua.trim(),
+        numero: localizacao.numero.trim(),
+        bairro: localizacao.bairro.trim(),
+        complemento: localizacao.complemento ? localizacao.complemento.trim() : null
+      }
+    } else if (tipoAula === 'domicilio') {
+      payload.ativo_domicilio = true
+    }
+
+    return payload
+  },
+
+  /**
+   * Valida dados completos antes de enviar
+   * @returns {object} { isValid: boolean, errors: string[] }
+   */
+  validarAntesDeSalvar(tipoAula, valorHora, linkGoogleMeet, localizacao) {
+    const errors = []
+
+    // Validar valor da hora
+    if (!valorHora || parseFloat(valorHora) <= 0) {
+      errors.push('Valor da hora deve ser maior que zero')
+    }
+
+    // Validar tipo de aula
+    if (!tipoAula || !this.isTipoAulaValid(tipoAula)) {
+      errors.push('Tipo de aula inválido')
+    }
+
+    // Validar requisitos específicos
+    const reqs = this.validateTipoAulaRequirements(tipoAula, linkGoogleMeet, localizacao)
+    if (!reqs.isValid) {
+      errors.push(...reqs.errors)
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    }
   }
 }
