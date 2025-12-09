@@ -309,18 +309,24 @@ const ScheduleClassModal = ({
                                 </span>
                             )}
                         </label>
-                        <div className="schedule-horarios-grid">
-                            {horariosDisponiveis.map((h) => (
-                                <button
-                                    key={h}
-                                    className={`schedule-horario-btn ${isHorarioSelecionado(h) ? "selected" : ""}`}
-                                    onClick={() => toggleTimeSelection(h)}
-                                    disabled={!isHorarioSelecionado(h) && agendamentos.length >= selectedPackage.pac_quantidade_aulas}
-                                >
-                                    {h}
-                                </button>
-                            ))}
-                        </div>
+                        {horariosDisponiveis.length > 0 ? (
+                            <div className="schedule-horarios-grid">
+                                {horariosDisponiveis.map((h) => (
+                                    <button
+                                        key={h}
+                                        className={`schedule-horario-btn ${isHorarioSelecionado(h) ? "selected" : ""}`}
+                                        onClick={() => toggleTimeSelection(h)}
+                                        disabled={!isHorarioSelecionado(h) && agendamentos.length >= selectedPackage.pac_quantidade_aulas}
+                                    >
+                                        {h}
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="schedule-no-packages">
+                                📅 Nenhum horário disponível para este dia
+                            </p>
+                        )}
                     </div>
                 )}
 
