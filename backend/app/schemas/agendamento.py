@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 
 class HorarioAgendamento(BaseModel):
@@ -15,8 +15,8 @@ class HorarioAgendamento(BaseModel):
             hour, minute = v.split(':')
             h, m = int(hour), int(minute)
             if not (0 <= h <= 23 and 0 <= m <= 59):
-                raise ValueError
-        except:
+                raise ValueError('Formato de hora inválido. Use HH:MM')
+        except (ValueError, AttributeError):
             raise ValueError('Formato de hora inválido. Use HH:MM')
         return v
 
@@ -63,6 +63,16 @@ class SolicitacaoHorarioRead(BaseModel):
     id: int
     horario_data: date
     horario_hora: str
+
+    @field_validator('horario_hora', mode='before')
+    def convert_timedelta_to_str(cls, v):
+        """Converte timedelta do MySQL para string HH:MM"""
+        if isinstance(v, timedelta):
+            total_seconds = int(v.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            return f"{hours:02d}:{minutes:02d}"
+        return v
 
     class Config:
         from_attributes = True

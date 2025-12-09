@@ -196,10 +196,10 @@ class Aula(SQLModel, table=True):
 # ----------------------------
 
 class StatusSolicitacao(str, Enum):
-    pendente = "Pendente"
-    confirmada = "Confirmada"
-    recusada = "Recusada"
-    cancelada = "Cancelada"
+    Pendente = "Pendente"
+    Confirmada = "Confirmada"
+    Recusada = "Recusada"
+    Cancelada = "Cancelada"
 
 class ModalidadeAula(str, Enum):
     remota = "remota"
@@ -221,7 +221,7 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     
     # Dados da solicitação
     sol_modalidade: ModalidadeAula = Field(nullable=False)
-    sol_status: StatusSolicitacao = Field(default=StatusSolicitacao.pendente, nullable=False)
+    sol_status: StatusSolicitacao = Field(default=StatusSolicitacao.Pendente, nullable=False)
     sol_mensagem: Optional[str] = Field(default=None)
     sol_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
