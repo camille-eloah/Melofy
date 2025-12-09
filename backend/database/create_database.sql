@@ -358,6 +358,57 @@ CREATE TABLE tb_professor_tag (
     FOREIGN KEY (tag_id) REFERENCES tb_tags(id) ON DELETE CASCADE
 );
 
+-- Configurações do Professor
+CREATE TABLE tb_config_professor (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    prof_id INT NOT NULL UNIQUE,
+    valor_hora_aula DECIMAL(10,2) NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_config_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
+);
+
+-- Configuração de Aula Remota (Google Meet)
+CREATE TABLE tb_config_aula_remota (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    prof_id INT NOT NULL UNIQUE,
+    link_meet VARCHAR(255) NOT NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_remota_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
+);
+
+-- Configuração de Aula Presencial (Local)
+CREATE TABLE tb_config_aula_presencial (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    prof_id INT NOT NULL UNIQUE,
+    cidade VARCHAR(255) NOT NULL,
+    estado VARCHAR(2) NOT NULL,
+    rua VARCHAR(255) NOT NULL,
+    numero VARCHAR(20) NOT NULL,
+    bairro VARCHAR(255) NOT NULL,
+    complemento VARCHAR(255) NULL,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_presencial_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
+);
+
+-- Configuração de Aula no Domicílio (sem dados adicionais, apenas confirmação)
+CREATE TABLE tb_config_aula_domicilio (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    prof_id INT NOT NULL UNIQUE,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_domicilio_prof FOREIGN KEY (prof_id) REFERENCES tb_professor(id) ON DELETE CASCADE
+);
+
 -- Mensagens privadas entre professores e alunos
 CREATE TABLE tb_mensagens (
     id INT AUTO_INCREMENT PRIMARY KEY,

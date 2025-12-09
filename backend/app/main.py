@@ -72,6 +72,21 @@ from app.schemas.instrumentos import (
 from app.schemas.tags import TagRead, TagCreate, TagsSyncRequest
 from app.schemas.ratings import RatingCreate, RatingRead, RatingUpdate
 from app.schemas.pacotes import PacoteCreate, PacoteUpdate, PacoteRead
+from app.schemas.config_professor import (
+    ConfigProfessorRead,
+    ConfigAulaRemotaRead,
+    ConfigAulaPresencialRead,
+    ConfigAulaDomicilioRead,
+    ConfigProfessorCompleta,
+    SalvarConfiguracaoRequest,
+)
+from app.services.config_professor_service import ConfigProfessorService
+from app.models import (
+    ConfigProfessor,
+    ConfigAulaRemota,
+    ConfigAulaPresencial,
+    ConfigAulaDomicilio,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -181,6 +196,11 @@ router_tags = APIRouter(
 router_messages = APIRouter(
     prefix="/messages",
     tags=["messages"]
+)
+
+router_config_professor = APIRouter(
+    prefix="/professor",
+    tags=["configuracoes-professor"]
 )
 
 
@@ -1521,6 +1541,96 @@ def listar_minhas_conversas(
     return resultado
 
 
+# ----------------------------
+# 13. Configurações do Professor
+# ----------------------------
+
+@router_config_professor.post("/configuracoes", response_model=ConfigProfessorCompleta, status_code=201)
+def salvar_configuracoes_professor(
+    dados: SalvarConfiguracaoRequest,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Salva as configurações de modalidade de aula do professor"""
+    _, professor = _get_current_user(request, db)
+
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem configurar aulas")
+
+    # Salvar configuração geral (apenas valor da hora)
+    ConfigProfessorService.criar_ou_atualizar_config_geral(
+        db,
+        professor.id,
+        valor_hora_aula=dados.valor_hora_aula,
+    )
+
+    # Salvar configurações para cada tipo de aula selecionado
+    for tipo_aula in dados.tipos_aula_selecionados:
+        if tipo_aula == "remota" and dados.link_meet:
+            ConfigProfessorService.criar_ou_atualizar_config_remota(
+                db, professor.id, dados.link_meet
+            )
+        elif tipo_aula == "presencial" and dados.localizacao:
+            ConfigProfessorService.criar_ou_atualizar_config_presencial(
+                db,
+                professor.id,
+                cidade=dados.localizacao.cidade,
+                estado=dados.localizacao.estado,
+                rua=dados.localizacao.rua,
+                numero=dados.localizacao.numero,
+                bairro=dados.localizacao.bairro,
+                complemento=dados.localizacao.complemento,
+            )
+        elif tipo_aula == "domicilio":
+            ConfigProfessorService.criar_ou_atualizar_config_domicilio(
+                db, professor.id, ativo=True
+            )
+
+    # Retornar todas as configurações
+    configs = ConfigProfessorService.obter_todas_configs(db, professor.id)
+    return configs
+
+
+@router_config_professor.get("/configuracoes", response_model=ConfigProfessorCompleta)
+def obter_configuracoes_professor(
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Obtém as configurações de modalidade de aula do professor autenticado"""
+    _, professor = _get_current_user(request, db)
+
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem acessar configurações")
+
+    configs = ConfigProfessorService.obter_todas_configs(db, professor.id)
+    return configs
+
+
+@router_config_professor.delete("/configuracoes/{tipo_aula}", status_code=204)
+def deletar_configuracao_tipo_aula(
+    tipo_aula: str,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Deleta a configuração de um tipo específico de aula"""
+    _, professor = _get_current_user(request, db)
+
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem deletar configurações")
+
+    sucesso = False
+    if tipo_aula == "remota":
+        sucesso = ConfigProfessorService.deletar_config_remota(db, professor.id)
+    elif tipo_aula == "presencial":
+        sucesso = ConfigProfessorService.deletar_config_presencial(db, professor.id)
+    elif tipo_aula == "domicilio":
+        sucesso = ConfigProfessorService.deletar_config_domicilio(db, professor.id)
+    else:
+        raise HTTPException(status_code=400, detail="Tipo de aula inválido")
+
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Configuração não encontrada")
+
 
 app.include_router(router_user)
 app.include_router(router_auth)
@@ -1532,4 +1642,5 @@ app.include_router(router_ratings)
 app.include_router(router_feedback)
 app.include_router(router_tags)
 app.include_router(router_messages)
+app.include_router(router_config_professor)
 

@@ -1,9 +1,9 @@
-import { useState } from 'react'
-import Swal from 'sweetalert2'
+import { useEffect } from 'react'
 import './DashProfessor.css'
 import Header from "../layout/Header"
 import Footer from '../layout/Footer'
 import ChatButton from '../layout/ButtonChat'
+import { useDashProfessor } from './hooks/useDashProfessor'
 import { 
   FaMoneyBillWave, 
   FaChalkboardTeacher, 
@@ -20,21 +20,28 @@ import {
   FaLink
 } from 'react-icons/fa'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-
 function DashProfessor() {
-  const [valorHora, setValorHora] = useState('')
-  const [tipoAula, setTipoAula] = useState('')
-  const [linkGoogleMeet, setLinkGoogleMeet] = useState('')
-  const [localizacao, setLocalizacao] = useState({
-    cidade: '',
-    estado: '',
-    rua: '',
-    numero: '',
-    bairro: '',
-    complemento: ''
-  })
-  const [loading, setLoading] = useState(false)
+  const {
+    valorHora,
+    setValorHora,
+    tiposAulaSelecionados,
+    toggleTipoAula,
+    statusModalidades,
+    setStatusModalidades,
+    linkGoogleMeet,
+    setLinkGoogleMeet,
+    localizacao,
+    handleLocalizacaoChange,
+    isSaving,
+    carregarConfiguracoes,
+    handleSave,
+    configsSalvas
+  } = useDashProfessor()
+
+  // Carregar configurações ao montar o componente
+  useEffect(() => {
+    carregarConfiguracoes()
+  }, [carregarConfiguracoes])
 
   // Opções de tipos de aula
   const tiposAula = [
@@ -43,87 +50,18 @@ function DashProfessor() {
     { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
   ]
 
-  const handleLocalizacaoChange = (field, value) => {
-    setLocalizacao(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  // Função para verificar se uma modalidade está configurada
+  const isModalidadeConfigured = (tipoAulaId) => {
+    if (!configsSalvas) return false
+    if (tipoAulaId === 'remota') return !!configsSalvas.config_aula_remota
+    if (tipoAulaId === 'presencial') return !!configsSalvas.config_aula_presencial
+    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_aula_domicilio
+    return false
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    
-    if (!valorHora || !tipoAula) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Campos obrigatórios',
-        text: 'Por favor, preencha o valor da hora e selecione o tipo de aula.',
-        confirmButtonColor: '#2563eb'
-      })
-      return
-    }
-
-    if (tipoAula === 'remota' && !linkGoogleMeet) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Link necessário',
-        text: 'Para aulas remotas, é necessário informar o link do Google Meet.',
-        confirmButtonColor: '#2563eb'
-      })
-      return
-    }
-
-    if (tipoAula === 'presencial') {
-      const { cidade, estado, rua, numero, bairro } = localizacao
-      if (!cidade || !estado || !rua || !numero || !bairro) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Localização incompleta',
-          text: 'Para aulas presenciais, preencha todos os campos obrigatórios da localização.',
-          confirmButtonColor: '#2563eb'
-        })
-        return
-      }
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/professor/configuracoes`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          valor_hora: parseFloat(valorHora),
-          tipo_aula: tipoAula,
-          link_meet: linkGoogleMeet,
-          localizacao: tipoAula === 'presencial' ? localizacao : null
-        })
-      })
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Configurações salvas!',
-          text: 'Suas configurações foram atualizadas com sucesso.',
-          confirmButtonColor: '#059669',
-          background: '#ffffff',
-          color: '#111827'
-        })
-      } else {
-        throw new Error('Erro ao salvar configurações')
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Erro',
-        text: 'Ocorreu um erro ao salvar as configurações. Tente novamente.',
-        confirmButtonColor: '#dc2626'
-      })
-    } finally {
-      setLoading(false)
-    }
+    handleSave()
   }
 
   return (
@@ -187,35 +125,54 @@ function DashProfessor() {
                     <FaChalkboardTeacher className="section-icon" />
                   </div>
                   <div className="section-title-wrapper">
-                    <h2 className="section-title">Modalidade de Aula</h2>
+                    <h2 className="section-title">Modalidades de Aula</h2>
                     <p className="section-description">
-                      Selecione como você prefere ministrar suas aulas
+                      Selecione quantas modalidades desejar - você pode oferecer múltiplas opções
                     </p>
                   </div>
                 </div>
                 
                 <div className="input-group">
                   <label className="input-label">
-                    Selecione o tipo de aula
+                    Selecione as modalidades disponíveis
                   </label>
                   <div className="tipo-aula-grid">
                     {tiposAula.map((tipo) => (
-                      <div
-                        key={tipo.id}
-                        className={`tipo-aula-option ${tipoAula === tipo.id ? 'selected' : ''}`}
-                        onClick={() => setTipoAula(tipo.id)}
-                      >
-                        <div className="option-icon-wrapper">
-                          {tipo.icon}
-                        </div>
-                        <span className="option-label">{tipo.label}</span>
+                      <div key={tipo.id} className="modal-item-wrapper">
+                        <input
+                          type="checkbox"
+                          id={`modal-${tipo.id}`}
+                          checked={tiposAulaSelecionados.includes(tipo.id)}
+                          onChange={() => toggleTipoAula(tipo.id)}
+                          className="checkbox-input-hidden"
+                          style={{ display: 'none' }}
+                        />
+                        <label 
+                          htmlFor={`modal-${tipo.id}`}
+                          className={`tipo-aula-option-card ${tiposAulaSelecionados.includes(tipo.id) ? 'selected' : ''}`}
+                        >
+                          <div className="option-content-wrapper">
+                            <div className="option-icon-wrapper">
+                              {tipo.icon}
+                              {isModalidadeConfigured(tipo.id) && (
+                                <span className="configured-badge" title="Modalidade configurada">✓</span>
+                              )}
+                            </div>
+                            <span className="option-label">{tipo.label}</span>
+                            <div className="toggle-switch">
+                              <div className={`switch-track ${statusModalidades[tipo.id] ? 'active' : ''}`}>
+                                <div className="switch-thumb"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Condicional: Link Google Meet (para aulas remotas) */}
-                {tipoAula === 'remota' && (
+                {tiposAulaSelecionados.includes('remota') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">
@@ -237,7 +194,7 @@ function DashProfessor() {
                           onChange={(e) => setLinkGoogleMeet(e.target.value)}
                           placeholder="https://meet.google.com/abc-defg-hij"
                           className="simple-input"
-                          required={tipoAula === 'remota'}
+                          required={tiposAulaSelecionados.includes('remota')}
                         />
                       </div>
                       <small className="input-hint">
@@ -248,7 +205,7 @@ function DashProfessor() {
                 )}
 
                 {/* Condicional: Localização (para aulas presenciais) */}
-                {tipoAula === 'presencial' && (
+                {tiposAulaSelecionados.includes('presencial') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">
@@ -354,7 +311,7 @@ function DashProfessor() {
                 )}
 
                 {/* Condicional: Domicílio */}
-                {tipoAula === 'domicilio' && (
+                {tiposAulaSelecionados.includes('domicilio') && (
                   <div className="conditional-section">
                     <div className="conditional-header">
                       <div className="conditional-icon-wrapper">
@@ -387,9 +344,9 @@ function DashProfessor() {
                 <button
                   type="submit"
                   className="save-button"
-                  disabled={loading}
+                  disabled={isSaving}
                 >
-                  {loading ? (
+                  {isSaving ? (
                     <>
                       <span className="loading-spinner"></span>
                       Salvando...
@@ -451,6 +408,24 @@ function DashProfessor() {
                     <span className="info-item-text">Considere o tempo de deslocamento no seu planejamento</span>
                   </div>
                 </div>
+
+                {/* Seção de Modalidades Configuradas */}
+                {configsSalvas && (isModalidadeConfigured('remota') || isModalidadeConfigured('presencial') || isModalidadeConfigured('domicilio')) && (
+                  <div className="info-item-section" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <span className="info-item-title" style={{ fontSize: '0.875rem', color: '#64748b' }}>Modalidades Configuradas:</span>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {isModalidadeConfigured('remota') && (
+                        <span className="config-badge" title="Aula Remota configurada">🎥 Remota</span>
+                      )}
+                      {isModalidadeConfigured('presencial') && (
+                        <span className="config-badge" title="Aula Presencial configurada">📍 Presencial</span>
+                      )}
+                      {isModalidadeConfigured('domicilio') && (
+                        <span className="config-badge" title="Aula Domiciliar configurada">🏠 Domicílio</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
