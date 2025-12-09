@@ -1,4 +1,3 @@
-/* === BACKDROP === */
 .edit-profile-info-backdrop {
   position: fixed;
   top: 0;
@@ -14,7 +13,7 @@
   animation: fadeIn 0.25s ease;
 }
 
-/* === CONTAINER === */
+
 .edit-profile-info-container {
   width: 400px;
   max-width: 92%;
@@ -27,7 +26,7 @@
   animation: slideUp 0.3s ease;
 }
 
-/* === HEADER === */
+
 .edit-profile-info-header {
   display: flex;
   justify-content: space-between;
@@ -57,14 +56,14 @@
   transform: scale(1.2);
 }
 
-/* === BODY === */
+
 .edit-profile-info-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-/* GRUPOS */
+
 .edit-profile-info-input-group {
   display: flex;
   flex-direction: column;
@@ -77,7 +76,7 @@
   font-weight: 600;
 }
 
-/* INPUTS / TEXTAREA */
+
 .edit-profile-info-input-group input,
 .edit-profile-info-input-group textarea {
   width: 100%;
@@ -121,7 +120,7 @@
   border-radius: 18px;
 }
 
-/* === FOTO PREVIEW === */
+
 .edit-profile-info-preview {
   width: 64px;
   height: 64px;
@@ -151,7 +150,7 @@
   border-color: #94a3b8;
 }
 
-/* === BOTÕES === */
+
 
 .btn-cancel-edit-profile,
 .btn-upload-edit-profile {
@@ -164,7 +163,7 @@
   border: none;
 }
 
-/* Primary (btn-upload) */
+
 .btn-upload-edit-profile {
   background: linear-gradient(135deg, #00baff, #0087cc);
   color: #ffffff;
@@ -177,7 +176,7 @@
   box-shadow: 0 9px 28px rgba(0, 150, 210, 0.45);
 }
 
-/* Secondary (btn-select-file & cancelar) */
+
 .btn-cancel-edit-profile {
   background: rgba(200, 200, 200, 0.2);
   border: 1px solid rgba(0, 130, 180, 0.35);
@@ -191,14 +190,14 @@
   box-shadow: 0 6px 20px rgba(0, 130, 180, 0.35);
 }
 
-/* === FOOTER === */
+
 .edit-profile-info-footer {
   display: flex;
   gap: 12px;
   margin-top: 16px;
 }
 
-/* === ANIMAÇÕES === */
+
 @keyframes slideUp {
   from {
     opacity: 0;
