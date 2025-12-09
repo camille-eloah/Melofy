@@ -44,6 +44,10 @@ export const useDashProfessor = () => {
   const [loadingSolicitacoes, setLoadingSolicitacoes] = useState(true)
   const [filtroStatus, setFiltroStatus] = useState('todas')
 
+  // Estados para pacotes
+  const [pacotes, setPacotes] = useState([])
+  const [isLoadingPacotes, setIsLoadingPacotes] = useState(false)
+
   const diasSemana = [
     { id: 'segunda', label: 'Segunda-feira' },
     { id: 'terca', label: 'Terça-feira' },
@@ -314,6 +318,215 @@ export const useDashProfessor = () => {
     return solicitacao.status === filtroStatus;
   });
 
+  // Função para carregar pacotes do professor
+  const carregarPacotes = useCallback(async () => {
+    setIsLoadingPacotes(true)
+    try {
+      const response = await fetch(`${configAulaService.API_BASE_URL}/lessons/pacotes/`, {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const contentType = response.headers.get('content-type')
+        if (contentType && contentType.includes('application/json')) {
+          const data = await response.json()
+          setPacotes(Array.isArray(data) ? data : [])
+          console.log('✅ Pacotes carregados:', data)
+        } else {
+          console.error('❌ Resposta não é JSON:', contentType)
+          setPacotes([])
+        }
+      } else {
+        console.error('⚠️ Erro ao carregar pacotes:', response.status)
+        setPacotes([])
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar pacotes:', error)
+      setPacotes([])
+    } finally {
+      setIsLoadingPacotes(false)
+    }
+  }, [])
+
+  // Função para deletar pacote
+  const handleDeletePackage = useCallback(async (pac) => {
+    const confirmDelete = await Swal.fire({
+      title: 'Deletar Pacote?',
+      text: `Você tem certeza que deseja deletar "${pac.pac_nome}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, deletar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d33',
+    })
+
+    if (confirmDelete.isConfirmed) {
+      try {
+        const resp = await fetch(`${configAulaService.API_BASE_URL}/lessons/pacotes/${pac.pac_id}`, {
+          method: 'DELETE',
+          credentials: 'include',
+        })
+
+        if (resp.ok) {
+          await Swal.fire('Deletado!', 'Pacote removido com sucesso.', 'success')
+          await carregarPacotes()
+        } else if (resp.status === 400) {
+          // Pacote tem solicitações vinculadas
+          const errorData = await resp.json()
+          await Swal.fire({
+            title: 'Não é possível deletar',
+            text: errorData.detail || 'Este pacote possui solicitações de aula vinculadas.',
+            icon: 'warning',
+            confirmButtonText: 'Entendi'
+          })
+        } else {
+          throw new Error('Erro ao deletar')
+        }
+      } catch (error) {
+        console.error('Erro ao deletar pacote:', error)
+        Swal.fire('Erro!', 'Falha ao deletar pacote.', 'error')
+      }
+    }
+  }, [carregarPacotes])
+
+  // Função para editar pacote
+  const handleEditPackage = useCallback(async (pac) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Editar Pacote',
+      html: `
+        <div style="text-align: left;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nome do Pacote</label>
+          <input id="pac_nome" class="swal2-input" value="${pac.pac_nome}" style="width: 90%; margin: 0 0 1rem 0;">
+          
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Quantidade de Aulas</label>
+          <input id="pac_quantidade_aulas" type="number" class="swal2-input" value="${pac.pac_quantidade_aulas}" style="width: 90%; margin: 0 0 1rem 0;">
+          
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Valor Total (R$)</label>
+          <input id="pac_valor_total" type="number" step="0.01" class="swal2-input" value="${pac.pac_valor_total}" style="width: 90%; margin: 0;">
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Salvar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const nome = document.getElementById('pac_nome').value
+        const quantidade = document.getElementById('pac_quantidade_aulas').value
+        const valor = document.getElementById('pac_valor_total').value
+
+        if (!nome || !quantidade || !valor) {
+          Swal.showValidationMessage('Todos os campos são obrigatórios')
+          return false
+        }
+
+        if (quantidade <= 0) {
+          Swal.showValidationMessage('Quantidade deve ser maior que zero')
+          return false
+        }
+
+        if (valor <= 0) {
+          Swal.showValidationMessage('Valor deve ser maior que zero')
+          return false
+        }
+
+        return {
+          pac_nome: nome,
+          pac_quantidade_aulas: parseInt(quantidade),
+          pac_valor_total: parseFloat(valor)
+        }
+      }
+    })
+
+    if (formValues) {
+      try {
+        const resp = await fetch(`${configAulaService.API_BASE_URL}/lessons/pacotes/${pac.pac_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(formValues)
+        })
+
+        if (resp.ok) {
+          await Swal.fire('Atualizado!', 'Pacote atualizado com sucesso.', 'success')
+          await carregarPacotes()
+        } else {
+          throw new Error('Erro ao atualizar')
+        }
+      } catch (error) {
+        Swal.fire('Erro!', 'Falha ao atualizar pacote.', 'error')
+      }
+    }
+  }, [carregarPacotes])
+
+  // Função para criar novo pacote
+  const handleCreatePackage = useCallback(async () => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Criar Novo Pacote',
+      html: `
+        <div style="text-align: left;">
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Nome do Pacote</label>
+          <input id="pac_nome" class="swal2-input" placeholder="Ex: Pacote 4 aulas" style="width: 90%; margin: 0 0 1rem 0;">
+          
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Quantidade de Aulas</label>
+          <input id="pac_quantidade_aulas" type="number" class="swal2-input" placeholder="Ex: 4" style="width: 90%; margin: 0 0 1rem 0;">
+          
+          <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Valor Total (R$)</label>
+          <input id="pac_valor_total" type="number" step="0.01" class="swal2-input" placeholder="Ex: 300.00" style="width: 90%; margin: 0;">
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Criar',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const nome = document.getElementById('pac_nome').value
+        const quantidade = document.getElementById('pac_quantidade_aulas').value
+        const valor = document.getElementById('pac_valor_total').value
+
+        if (!nome || !quantidade || !valor) {
+          Swal.showValidationMessage('Todos os campos são obrigatórios')
+          return false
+        }
+
+        if (quantidade <= 0) {
+          Swal.showValidationMessage('Quantidade deve ser maior que zero')
+          return false
+        }
+
+        if (valor <= 0) {
+          Swal.showValidationMessage('Valor deve ser maior que zero')
+          return false
+        }
+
+        return {
+          pac_nome: nome,
+          pac_quantidade_aulas: parseInt(quantidade),
+          pac_valor_total: parseFloat(valor)
+        }
+      }
+    })
+
+    if (formValues) {
+      try {
+        const resp = await fetch(`${configAulaService.API_BASE_URL}/lessons/pacotes/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(formValues)
+        })
+
+        if (resp.ok) {
+          await Swal.fire('Criado!', 'Pacote criado com sucesso.', 'success')
+          await carregarPacotes()
+        } else {
+          throw new Error('Erro ao criar')
+        }
+      } catch (error) {
+        Swal.fire('Erro!', 'Falha ao criar pacote.', 'error')
+      }
+    }
+  }, [carregarPacotes])
+
   const toggleDiaSemana = useCallback((diaId) => {
     setHorariosDisponiveis(prev => ({
       ...prev,
@@ -520,6 +733,13 @@ export const useDashProfessor = () => {
     aceitarSolicitacao,
     recusarSolicitacao,
     cancelarSolicitacao,
-    solicitacoesFiltradas
+    solicitacoesFiltradas,
+    // Funções e estados para pacotes
+    pacotes,
+    isLoadingPacotes,
+    carregarPacotes,
+    handleDeletePackage,
+    handleEditPackage,
+    handleCreatePackage
   }
 }

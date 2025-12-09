@@ -452,3 +452,58 @@ CREATE TABLE tb_mensagens (
     INDEX idx_mensagens_remetente (remetente_uuid, created_at),
     INDEX idx_mensagens_destinatario (destinatario_uuid, created_at)
 );
+
+-- Tipos de notificações
+CREATE TABLE tb_tipo_notificacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    codigo VARCHAR(50) NOT NULL UNIQUE,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT NULL
+);
+
+INSERT INTO tb_tipo_notificacao (codigo, nome, descricao) VALUES
+    ('welcome', 'Boas-vindas', 'Notificação de boas-vindas ao sistema'),
+    ('music', 'Música', 'Notificações relacionadas a músicas e playlists'),
+    ('friend', 'Amizade', 'Notificações sobre novos seguidores ou conexões'),
+    ('event', 'Evento', 'Notificações sobre eventos próximos'),
+    ('class_request', 'Solicitação de Aula', 'Nova solicitação de agendamento de aula'),
+    ('class_confirmed', 'Aula Confirmada', 'Professor confirmou a solicitação de aula'),
+    ('class_refused', 'Aula Recusada', 'Professor recusou a solicitação de aula'),
+    ('class_cancelled', 'Aula Cancelada', 'Aula foi cancelada'),
+    ('payment_pending', 'Pagamento Pendente', 'Pagamento aguardando confirmação'),
+    ('payment_confirmed', 'Pagamento Confirmado', 'Pagamento foi confirmado'),
+    ('new_message', 'Nova Mensagem', 'Nova mensagem privada recebida'),
+    ('new_rating', 'Nova Avaliação', 'Você recebeu uma nova avaliação'),
+    ('system', 'Sistema', 'Notificações do sistema');
+
+-- Notificações
+CREATE TABLE tb_notificacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    destinatario_uuid CHAR(36) NOT NULL,
+    tipo_notificacao_id INT NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    mensagem TEXT NOT NULL,
+    lida BOOLEAN NOT NULL DEFAULT FALSE,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    lido_em DATETIME NULL,
+    
+    -- Campos opcionais para vincular a outros recursos
+    solicitacao_id INT NULL,
+    aula_id INT NULL,
+    pagamento_id INT NULL,
+    mensagem_id INT NULL,
+    avaliacao_id INT NULL,
+    
+    -- Metadata em JSON para informações extras
+    metadata JSON NULL,
+    
+    CONSTRAINT fk_notif_tipo FOREIGN KEY (tipo_notificacao_id) REFERENCES tb_tipo_notificacao(id),
+    CONSTRAINT fk_notif_solicitacao FOREIGN KEY (solicitacao_id) REFERENCES tb_solicitacao_agendamento(sol_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notif_aula FOREIGN KEY (aula_id) REFERENCES tb_aula(aul_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notif_pagamento FOREIGN KEY (pagamento_id) REFERENCES tb_pagamento(pag_id) ON DELETE CASCADE,
+    CONSTRAINT fk_notif_mensagem FOREIGN KEY (mensagem_id) REFERENCES tb_mensagens(id) ON DELETE CASCADE,
+    
+    INDEX idx_notif_destinatario (destinatario_uuid, criado_em DESC),
+    INDEX idx_notif_lida (destinatario_uuid, lida, criado_em DESC),
+    INDEX idx_notif_tipo (tipo_notificacao_id)
+);
