@@ -243,6 +243,32 @@ class SolicitacaoHorario(SQLModel, table=True):
     solicitacao: Optional[SolicitacaoAgendamento] = Relationship()
 
 # ----------------------------
+# Horários Disponíveis do Professor
+# ----------------------------
+
+class DiaSemana(str, Enum):
+    Monday = "Monday"
+    Tuesday = "Tuesday"
+    Wednesday = "Wednesday"
+    Thursday = "Thursday"
+    Friday = "Friday"
+    Saturday = "Saturday"
+    Sunday = "Sunday"
+
+class HorarioProfessor(SQLModel, table=True):
+    __tablename__ = "tb_horarios_professor"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
+    dia_semana: DiaSemana = Field(nullable=False)
+    horario: str = Field(nullable=False)  # TIME stored as string (HH:MM)
+    ativo: bool = Field(default=True, nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    # Relationship
+    professor: Optional[Professor] = Relationship()
+
+# ----------------------------
 # Pacotes de Aulas
 # ----------------------------
 
@@ -410,6 +436,8 @@ class ConfigAulaDomicilio(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    raio_km: int = Field(default=5, nullable=False)  # Raio de atendimento em km
+    taxa_por_km: float = Field(default=0.0, sa_column=Column(Numeric(10, 2), nullable=False))  # Taxa por km
     ativo: bool = Field(default=True, nullable=False)
     criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)

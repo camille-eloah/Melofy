@@ -979,6 +979,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}
+        professorId={usuarioIdState}
       />
 
       <CreatePackageModal

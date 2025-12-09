@@ -10,6 +10,15 @@ from jose import JWTError
 from sqlmodel import Session, select
 from pydantic import BaseModel
 
+def timedelta_to_str(td):
+    """Converte timedelta para string no formato HH:MM"""
+    if isinstance(td, timedelta):
+        total_seconds = int(td.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        return f"{hours:02d}:{minutes:02d}"
+    return td
+
 from app.core.config import get_settings
 from app.core.security import (
     _hash_password,
@@ -85,6 +94,13 @@ from app.schemas.agendamento import (
     SolicitacaoAgendamentoRead,
     SolicitacaoHorarioRead,
 )
+from app.schemas.horarios_professor import (
+    HorarioProfessorCreate,
+    HorarioProfessorRead,
+    HorariosProfessorBulkCreate,
+    HorariosDisponiveisResponse,
+    HorariosPorDiaRead,
+)
 from app.services.config_professor_service import ConfigProfessorService
 from app.models import (
     ConfigProfessor,
@@ -94,6 +110,8 @@ from app.models import (
     SolicitacaoAgendamento,
     SolicitacaoHorario,
     ModalidadeAula,
+    HorarioProfessor,
+    DiaSemana,
 )
 
 
@@ -1686,10 +1704,17 @@ def salvar_configuracoes_professor(
     db: Session = Depends(get_session),
 ):
     """Salva as configurações de modalidade de aula do professor"""
+    logger.debug(f"[salvar_configuracoes] Dados recebidos: {dados.model_dump()}")
+    
     _, professor = _get_current_user(request, db)
 
     if not isinstance(professor, Professor):
+        logger.error(f"[salvar_configuracoes] Usuário não é professor: {type(professor)}")
         raise HTTPException(status_code=403, detail="Apenas professores podem configurar aulas")
+
+    logger.debug(f"[salvar_configuracoes] Professor ID: {professor.id}")
+    logger.debug(f"[salvar_configuracoes] Tipos de aula selecionados: {dados.tipos_aula_selecionados}")
+    logger.debug(f"[salvar_configuracoes] Valor hora: {dados.valor_hora_aula}")
 
     # Salvar configuração geral (apenas valor da hora)
     ConfigProfessorService.criar_ou_atualizar_config_geral(
@@ -1697,6 +1722,7 @@ def salvar_configuracoes_professor(
         professor.id,
         valor_hora_aula=dados.valor_hora_aula,
     )
+    logger.debug(f"[salvar_configuracoes] Config geral salva")
 
     # Criar/atualizar automaticamente o pacote "Aula Individual"
     if dados.valor_hora_aula and dados.valor_hora_aula > 0:
@@ -1778,8 +1804,13 @@ def salvar_configuracoes_professor(
     # Domicílio
     if "domicilio" in dados.tipos_aula_selecionados:
         ativo_domicilio = dados.ativo_domicilio if dados.ativo_domicilio is not None else True
+        raio_km = dados.raio_km if dados.raio_km is not None else 5
+        taxa_por_km = dados.taxa_por_km if dados.taxa_por_km is not None else 0.0
+        
+        logger.debug(f"[salvar_configuracoes] Salvando domicílio - raio: {raio_km}km, taxa: R${taxa_por_km}/km")
+        
         ConfigProfessorService.criar_ou_atualizar_config_domicilio(
-            db, professor.id, ativo=ativo_domicilio
+            db, professor.id, ativo=ativo_domicilio, raio_km=raio_km, taxa_por_km=taxa_por_km
         )
     elif dados.ativo_domicilio is not None:
         # Se ativo_domicilio foi enviado mas a modalidade não está selecionada,
@@ -1849,6 +1880,159 @@ def deletar_configuracao_tipo_aula(
 
     if not sucesso:
         raise HTTPException(status_code=404, detail="Configuração não encontrada")
+
+
+# ----------------------------
+# 14. Horários Disponíveis do Professor
+# ----------------------------
+
+@router_config_professor.post("/horarios", response_model=List[HorarioProfessorRead], status_code=201)
+def salvar_horarios_professor(
+    dados: HorariosProfessorBulkCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """
+    Salva os horários disponíveis do professor.
+    Remove todos os horários antigos e cria novos.
+    """
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem configurar horários")
+    
+    # 1. Remover todos os horários antigos do professor
+    stmt_delete = select(HorarioProfessor).where(HorarioProfessor.prof_id == professor.id)
+    horarios_antigos = db.exec(stmt_delete).all()
+    for horario in horarios_antigos:
+        db.delete(horario)
+    
+    # 2. Criar novos horários
+    novos_horarios = []
+    for horario_data in dados.horarios:
+        # Validar dia da semana
+        try:
+            dia_enum = DiaSemana(horario_data.dia_semana)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Dia da semana inválido: {horario_data.dia_semana}"
+            )
+        
+        novo_horario = HorarioProfessor(
+            prof_id=professor.id,
+            dia_semana=dia_enum,
+            horario=horario_data.horario,
+            ativo=True,
+        )
+        db.add(novo_horario)
+        novos_horarios.append(novo_horario)
+    
+    db.commit()
+    
+    # Refresh para obter IDs
+    for h in novos_horarios:
+        db.refresh(h)
+    
+    logger.debug(f"Horários salvos para professor {professor.id}: {len(novos_horarios)} horários")
+    
+    return [
+        HorarioProfessorRead(
+            id=h.id,
+            prof_id=h.prof_id,
+            dia_semana=h.dia_semana.value,
+            horario=h.horario,
+            ativo=h.ativo,
+            criado_em=h.criado_em,
+        )
+        for h in novos_horarios
+    ]
+
+
+@router_config_professor.get("/horarios", response_model=HorariosDisponiveisResponse)
+def obter_horarios_professor(
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Retorna todos os horários disponíveis do professor autenticado"""
+    _, professor = _get_current_user(request, db)
+    
+    if not isinstance(professor, Professor):
+        raise HTTPException(status_code=403, detail="Apenas professores podem visualizar seus horários")
+    
+    # Buscar todos os horários ativos do professor
+    stmt = select(HorarioProfessor).where(
+        HorarioProfessor.prof_id == professor.id,
+        HorarioProfessor.ativo == True
+    ).order_by(HorarioProfessor.dia_semana, HorarioProfessor.horario)
+    
+    horarios = db.exec(stmt).all()
+    
+    # Agrupar por dia da semana
+    horarios_por_dia = {}
+    for horario in horarios:
+        dia = horario.dia_semana.value
+        if dia not in horarios_por_dia:
+            horarios_por_dia[dia] = []
+        horarios_por_dia[dia].append(timedelta_to_str(horario.horario))
+    
+    # Ordenar dias da semana
+    ordem_dias = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    horarios_organizados = [
+        HorariosPorDiaRead(dia_semana=dia, horarios=horarios_por_dia.get(dia, []))
+        for dia in ordem_dias
+        if dia in horarios_por_dia
+    ]
+    
+    return HorariosDisponiveisResponse(
+        professor_id=professor.id,
+        horarios_por_dia=horarios_organizados,
+        total_horarios=len(horarios),
+    )
+
+
+@router_config_professor.get("/{professor_id}/horarios", response_model=HorariosDisponiveisResponse)
+def obter_horarios_professor_publico(
+    professor_id: int,
+    db: Session = Depends(get_session),
+):
+    """
+    Retorna os horários disponíveis de um professor específico (endpoint público).
+    Para ser usado por alunos ao solicitar agendamento.
+    """
+    professor = db.get(Professor, professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    
+    # Buscar todos os horários ativos do professor
+    stmt = select(HorarioProfessor).where(
+        HorarioProfessor.prof_id == professor_id,
+        HorarioProfessor.ativo == True
+    ).order_by(HorarioProfessor.dia_semana, HorarioProfessor.horario)
+    
+    horarios = db.exec(stmt).all()
+    
+    # Agrupar por dia da semana
+    horarios_por_dia = {}
+    for horario in horarios:
+        dia = horario.dia_semana.value
+        if dia not in horarios_por_dia:
+            horarios_por_dia[dia] = []
+        horarios_por_dia[dia].append(timedelta_to_str(horario.horario))
+    
+    # Ordenar dias da semana
+    ordem_dias = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    horarios_organizados = [
+        HorariosPorDiaRead(dia_semana=dia, horarios=horarios_por_dia.get(dia, []))
+        for dia in ordem_dias
+        if dia in horarios_por_dia
+    ]
+    
+    return HorariosDisponiveisResponse(
+        professor_id=professor_id,
+        horarios_por_dia=horarios_organizados,
+        total_horarios=len(horarios),
+    )
 
 
 app.include_router(router_user)
