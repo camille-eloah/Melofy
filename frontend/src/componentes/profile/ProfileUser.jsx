@@ -143,6 +143,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           id: dadosSolicitacao.instrumento.id,
           nome: dadosSolicitacao.instrumento.nome,
         },
+        nivel: dadosSolicitacao.nivel, // Adiciona nível
         observacao: dadosSolicitacao.observacao,
         professor_id: usuario.id, // ID do professor
       };

@@ -24,6 +24,7 @@ const ScheduleClassModal = ({
     const [selectedModalidade, setSelectedModalidade] = useState(null);
     const [selectedInstrumento, setSelectedInstrumento] = useState(null);
     const [observacao, setObservacao] = useState("");
+    const [selectedNivel, setSelectedNivel] = useState(""); // Novo estado para nível
     const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
 
     // Mapa de dias da semana para IDs do frontend
@@ -196,6 +197,7 @@ const ScheduleClassModal = ({
             pacote: selectedPackage,
             modalidade: selectedModalidade,
             instrumento: selectedInstrumento,
+            nivel: selectedNivel || null, // Adiciona nível
             observacao: observacao.trim() || null,
         });
 
@@ -250,6 +252,20 @@ const ScheduleClassModal = ({
                         </div>
                     </div>
                 )}
+
+                <div className="schedule-form-group">
+                    <label>Nível de conhecimento:</label>
+                    <select 
+                        className="schedule-nivel-select"
+                        value={selectedNivel}
+                        onChange={(e) => setSelectedNivel(e.target.value)}
+                    >
+                        <option value="">Selecione um nível</option>
+                        <option value="Básico">Básico</option>
+                        <option value="Intermediário">Intermediário</option>
+                        <option value="Avançado">Avançado</option>
+                    </select>
+                </div>
 
                 <div className="schedule-form-group">
                     <label>Selecione um pacote:</label>

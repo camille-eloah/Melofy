@@ -206,6 +206,11 @@ class ModalidadeAula(str, Enum):
     presencial = "presencial"
     domicilio = "domicilio"
 
+class NivelConhecimento(str, Enum):
+    Basico = "Basico"
+    Intermediario = "Intermediario"
+    Avancado = "Avancado"
+
 class SolicitacaoAgendamento(SQLModel, table=True):
     __tablename__ = "tb_solicitacao_agendamento"
 
@@ -221,6 +226,7 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     
     # Dados da solicitação
     sol_modalidade: ModalidadeAula = Field(nullable=False)
+    sol_nivel: Optional[NivelConhecimento] = Field(default=None)
     sol_status: StatusSolicitacao = Field(default=StatusSolicitacao.Pendente, nullable=False)
     sol_mensagem: Optional[str] = Field(default=None)
     sol_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)

@@ -110,6 +110,7 @@ from app.models import (
     SolicitacaoAgendamento,
     SolicitacaoHorario,
     ModalidadeAula,
+    NivelConhecimento,
     HorarioProfessor,
     DiaSemana,
 )
@@ -1076,6 +1077,14 @@ def criar_solicitacao_agendamento(
     if not modalidade_enum:
         raise HTTPException(status_code=400, detail="Modalidade inválida")
     
+    # Mapear nível de conhecimento (remover acentos para o banco)
+    nivel_map = {
+        "Básico": NivelConhecimento.Basico,
+        "Intermediário": NivelConhecimento.Intermediario,
+        "Avançado": NivelConhecimento.Avancado,
+    }
+    nivel_enum = nivel_map.get(solicitacao.nivel) if solicitacao.nivel else None
+    
     # 6. Criar solicitação de agendamento
     nova_solicitacao = SolicitacaoAgendamento(
         sol_prof_id=professor.id,
@@ -1085,6 +1094,7 @@ def criar_solicitacao_agendamento(
         sol_instr_id=instrumento.id,
         sol_pac_id=pacote.pac_id,
         sol_modalidade=modalidade_enum,
+        sol_nivel=nivel_enum,
         sol_mensagem=solicitacao.observacao,
     )
     
@@ -1123,6 +1133,7 @@ def criar_solicitacao_agendamento(
         sol_instr_id=nova_solicitacao.sol_instr_id,
         sol_pac_id=nova_solicitacao.sol_pac_id,
         sol_modalidade=nova_solicitacao.sol_modalidade.value,
+        sol_nivel=nova_solicitacao.sol_nivel.value if nova_solicitacao.sol_nivel else None,
         sol_status=nova_solicitacao.sol_status.value,
         sol_mensagem=nova_solicitacao.sol_mensagem,
         sol_criado_em=nova_solicitacao.sol_criado_em,

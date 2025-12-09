@@ -269,8 +269,9 @@ CREATE TABLE tb_solicitacao_agendamento (
     sol_alu_global_uuid CHAR(36) NOT NULL,
     sol_instr_id INT NOT NULL,
     sol_pac_id INT NULL,
-    sol_modalidade ENUM('remota','presencial','domicilio') NOT NULL,
-    sol_status ENUM('Pendente','Confirmada','Recusada','Cancelada') NOT NULL DEFAULT 'Pendente',
+    sol_modalidade ENUM('remota', 'presencial', 'domicilio') NOT NULL,
+    sol_nivel ENUM('Basico','Intermediario','Avancado') NULL,
+    sol_status ENUM('Pendente', 'Confirmada', 'Recusada', 'Cancelada') NOT NULL DEFAULT 'Pendente',
     sol_mensagem TEXT NULL,
     sol_criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
