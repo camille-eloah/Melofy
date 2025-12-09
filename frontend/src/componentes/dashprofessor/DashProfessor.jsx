@@ -30,10 +30,10 @@ function DashProfessor() {
     setLinkGoogleMeet,
     localizacao,
     handleLocalizacaoChange,
-    isLoading,
     isSaving,
     carregarConfiguracoes,
-    handleSave
+    handleSave,
+    configsSalvas
   } = useDashProfessor()
 
   // Carregar configurações ao montar o componente
@@ -47,6 +47,15 @@ function DashProfessor() {
     { id: 'presencial', label: 'Aula Presencial', icon: <FaBuilding /> },
     { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
   ]
+
+  // Função para verificar se uma modalidade está configurada
+  const isModalidadeConfigured = (tipoAulaId) => {
+    if (!configsSalvas) return false
+    if (tipoAulaId === 'remota') return !!configsSalvas.config_aula_remota
+    if (tipoAulaId === 'presencial') return !!configsSalvas.config_aula_presencial
+    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_aula_domicilio
+    return false
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -131,9 +140,13 @@ function DashProfessor() {
                         key={tipo.id}
                         className={`tipo-aula-option ${tipoAula === tipo.id ? 'selected' : ''}`}
                         onClick={() => setTipoAula(tipo.id)}
+                        title={isModalidadeConfigured(tipo.id) ? 'Modalidade já configurada' : ''}
                       >
                         <div className="option-icon-wrapper">
                           {tipo.icon}
+                          {isModalidadeConfigured(tipo.id) && (
+                            <span className="configured-badge" title="Modalidade configurada">✓</span>
+                          )}
                         </div>
                         <span className="option-label">{tipo.label}</span>
                       </div>
@@ -378,6 +391,24 @@ function DashProfessor() {
                     <span className="info-item-text">Considere o tempo de deslocamento no seu planejamento</span>
                   </div>
                 </div>
+
+                {/* Seção de Modalidades Configuradas */}
+                {configsSalvas && (isModalidadeConfigured('remota') || isModalidadeConfigured('presencial') || isModalidadeConfigured('domicilio')) && (
+                  <div className="info-item-section" style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e5e7eb' }}>
+                    <span className="info-item-title" style={{ fontSize: '0.875rem', color: '#64748b' }}>Modalidades Configuradas:</span>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {isModalidadeConfigured('remota') && (
+                        <span className="config-badge" title="Aula Remota configurada">🎥 Remota</span>
+                      )}
+                      {isModalidadeConfigured('presencial') && (
+                        <span className="config-badge" title="Aula Presencial configurada">📍 Presencial</span>
+                      )}
+                      {isModalidadeConfigured('domicilio') && (
+                        <span className="config-badge" title="Aula Domiciliar configurada">🏠 Domicílio</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

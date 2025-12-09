@@ -1562,15 +1562,15 @@ def salvar_configuracoes_professor(
         db,
         professor.id,
         valor_hora_aula=dados.valor_hora_aula,
-        tipo_aula_principal=dados.tipo_aula_principal,
+        tipos_aula_principal=dados.tipos_aula_principal,
     )
 
     # Salvar configurações específicas por tipo de aula
-    if dados.tipo_aula_principal == "remota" and dados.link_meet:
+    if dados.tipos_aula_principal == "remota" and dados.link_meet:
         ConfigProfessorService.criar_ou_atualizar_config_remota(
             db, professor.id, dados.link_meet
         )
-    elif dados.tipo_aula_principal == "presencial" and dados.localizacao:
+    elif dados.tipos_aula_principal == "presencial" and dados.localizacao:
         ConfigProfessorService.criar_ou_atualizar_config_presencial(
             db,
             professor.id,
@@ -1581,9 +1581,9 @@ def salvar_configuracoes_professor(
             bairro=dados.localizacao.bairro,
             complemento=dados.localizacao.complemento,
         )
-    elif dados.tipo_aula_principal == "domicilio":
+    elif dados.tipos_aula_principal == "domicilio":
         ConfigProfessorService.criar_ou_atualizar_config_domicilio(
-            db, professor.id, ativo=dados.ativo_domicilio
+            db, professor.id, ativo=True
         )
 
     # Retornar todas as configurações

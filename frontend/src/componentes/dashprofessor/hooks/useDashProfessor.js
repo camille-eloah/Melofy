@@ -25,6 +25,7 @@ export const useDashProfessor = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [configsSalvas, setConfigsSalvas] = useState(null)
 
   /**
    * Carrega configurações existentes do professor
@@ -35,6 +36,7 @@ export const useDashProfessor = () => {
       setError(null)
       
       const configs = await configAulaService.obterConfiguracoes()
+      setConfigsSalvas(configs)
       
       if (configs) {
         // Carregar valor da hora
@@ -43,8 +45,8 @@ export const useDashProfessor = () => {
         }
 
         // Carregar tipo de aula principal
-        if (configs.tipo_aula_principal) {
-          setTipoAula(configs.tipo_aula_principal)
+        if (configs.tipos_aula_principal) {
+          setTipoAula(configs.tipos_aula_principal)
         }
 
         // Carregar configuração remota (Google Meet)
@@ -107,7 +109,7 @@ export const useDashProfessor = () => {
       setError(null)
 
       // Formatar e enviar dados
-      const dadosFormatados = tipoAulaService.formatarParaPersistencia(
+      const dadosFormatados = tipoAulaService.formatarDadosParaAPI(
         tipoAula,
         valorHora,
         linkGoogleMeet,
@@ -115,6 +117,9 @@ export const useDashProfessor = () => {
       )
 
       await configAulaService.salvarConfiguracao(dadosFormatados)
+
+      // Recarregar as configurações após salvar
+      await carregarConfiguracoes()
 
       // Sucesso
       Swal.fire({
@@ -136,7 +141,7 @@ export const useDashProfessor = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [tipoAula, valorHora, linkGoogleMeet, localizacao])
+  }, [tipoAula, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
 
   /**
    * Deleta uma configuração de tipo de aula
@@ -237,6 +242,7 @@ export const useDashProfessor = () => {
     setLinkGoogleMeet,
     localizacao,
     handleLocalizacaoChange,
+    configsSalvas,
 
     // Estado de controle
     isLoading,

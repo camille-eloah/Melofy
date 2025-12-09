@@ -348,7 +348,7 @@ class ConfigProfessor(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
     valor_hora_aula: Optional[float] = Field(default=None, sa_column=Column(Numeric(10, 2), nullable=True))
-    tipo_aula_principal: Optional[str] = Field(default=None, nullable=True)  # 'remota', 'presencial', 'domicilio'
+    tipo_aula_principal: Optional[str] = Field(default=None, nullable=True)  # ENUM: 'remota', 'presencial', 'domicilio'
     criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 

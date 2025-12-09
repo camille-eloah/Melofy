@@ -89,7 +89,7 @@ class ConfigAulaDomicilioRead(ConfigAulaDomicilioCreate):
 class ConfigProfessorCreate(BaseModel):
     """Schema para criar/atualizar config geral do professor"""
     valor_hora_aula: Optional[float] = Field(None, gt=0)
-    tipo_aula_principal: Optional[TipoAulaEnum] = Field(None)
+    tipos_aula: list[TipoAulaEnum] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
@@ -117,12 +117,12 @@ class ConfigProfessorCompleta(BaseModel):
 class SalvarConfiguracaoRequest(BaseModel):
     """Schema para salvar configurações completas do professor"""
     valor_hora_aula: Optional[float] = Field(None, gt=0)
-    tipo_aula_principal: Optional[TipoAulaEnum] = Field(None)
+    tipos_aula_principal: str = Field(..., description="Tipo de aula principal selecionado")
     
     # Configurações específicas por tipo
     link_meet: Optional[str] = Field(None)
     localizacao: Optional[LocalizacaoSchema] = Field(None)
-    ativo_domicilio: bool = Field(default=False)
+    ativo_domicilio: Optional[bool] = Field(None)
 
     class Config:
         from_attributes = True

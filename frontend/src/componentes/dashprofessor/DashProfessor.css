@@ -254,6 +254,24 @@
   color: #64748b;
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
+  position: relative;
+}
+
+.configured-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: #10b981;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
 }
 
 .tipo-aula-option.selected .option-icon-wrapper {
@@ -577,6 +595,19 @@ input[type="number"]::-webkit-inner-spin-button {
   color: #94a3b8;
   opacity: 1;
 }
+
+/* Estilos para badges de configuração */
+.config-badge {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid #93c5fd;
+}
+
 
 .simple-input::-webkit-input-placeholder {
   color: #94a3b8;

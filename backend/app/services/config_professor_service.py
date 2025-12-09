@@ -3,7 +3,7 @@ Service para gerenciar configurações do professor
 """
 
 from sqlmodel import Session, select
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models import (
     ConfigProfessor,
     ConfigAulaRemota,
@@ -20,7 +20,7 @@ class ConfigProfessorService:
         db: Session,
         prof_id: int,
         valor_hora_aula: float = None,
-        tipo_aula_principal: str = None,
+        tipos_aula_principal: str = None,
     ) -> ConfigProfessor:
         """Cria ou atualiza a configuração geral do professor"""
         config = db.exec(
@@ -30,14 +30,14 @@ class ConfigProfessorService:
         if config:
             if valor_hora_aula is not None:
                 config.valor_hora_aula = valor_hora_aula
-            if tipo_aula_principal is not None:
-                config.tipo_aula_principal = tipo_aula_principal
-            config.atualizado_em = datetime.utcnow()
+            if tipos_aula_principal is not None:
+                config.tipo_aula_principal = tipos_aula_principal
+            config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigProfessor(
                 prof_id=prof_id,
                 valor_hora_aula=valor_hora_aula,
-                tipo_aula_principal=tipo_aula_principal,
+                tipo_aula_principal=tipos_aula_principal,
             )
             db.add(config)
 
@@ -56,7 +56,7 @@ class ConfigProfessorService:
 
         if config:
             config.link_meet = link_meet
-            config.atualizado_em = datetime.utcnow()
+            config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigAulaRemota(prof_id=prof_id, link_meet=link_meet)
             db.add(config)
@@ -88,7 +88,7 @@ class ConfigProfessorService:
             config.numero = numero
             config.bairro = bairro
             config.complemento = complemento
-            config.atualizado_em = datetime.utcnow()
+            config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigAulaPresencial(
                 prof_id=prof_id,
@@ -116,7 +116,7 @@ class ConfigProfessorService:
 
         if config:
             config.ativo = ativo
-            config.atualizado_em = datetime.utcnow()
+            config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigAulaDomicilio(prof_id=prof_id, ativo=ativo)
             db.add(config)
@@ -158,13 +158,16 @@ class ConfigProfessorService:
     @staticmethod
     def obter_todas_configs(db: Session, prof_id: int) -> dict:
         """Obtém todas as configurações do professor"""
+        config_geral = ConfigProfessorService.obter_config_geral(db, prof_id)
+        
         return {
-            "config_geral": ConfigProfessorService.obter_config_geral(db, prof_id),
-            "config_remota": ConfigProfessorService.obter_config_remota(db, prof_id),
-            "config_presencial": ConfigProfessorService.obter_config_presencial(
+            "valor_hora_aula": config_geral.valor_hora_aula if config_geral else None,
+            "tipos_aula_principal": config_geral.tipo_aula_principal if config_geral else None,
+            "config_aula_remota": ConfigProfessorService.obter_config_remota(db, prof_id),
+            "config_aula_presencial": ConfigProfessorService.obter_config_presencial(
                 db, prof_id
             ),
-            "config_domicilio": ConfigProfessorService.obter_config_domicilio(
+            "config_aula_domicilio": ConfigProfessorService.obter_config_domicilio(
                 db, prof_id
             ),
         }

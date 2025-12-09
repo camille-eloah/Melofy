@@ -81,7 +81,7 @@ export const configAulaService = {
   formatarDadosParaAPI(tipoAula, valorHora, linkGoogleMeet, localizacao) {
     const payload = {
       valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
-      tipo_aula_principal: tipoAula,
+      tipos_aula_principal: tipoAula,
     }
 
     if (tipoAula === 'remota') {

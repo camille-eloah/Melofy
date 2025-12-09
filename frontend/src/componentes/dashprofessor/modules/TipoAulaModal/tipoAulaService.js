@@ -31,6 +31,36 @@ export const tipoAulaService = {
   },
 
   /**
+   * Verifica se uma modalidade está configurada
+   */
+  isModalidadeConfigured(tipoAula, configs) {
+    if (!configs) return false
+    
+    if (tipoAula === 'remota') {
+      return !!configs.config_aula_remota
+    } else if (tipoAula === 'presencial') {
+      return !!configs.config_aula_presencial
+    } else if (tipoAula === 'domicilio') {
+      return !!configs.config_aula_domicilio
+    }
+    return false
+  },
+
+  /**
+   * Obtém as modalidades já configuradas
+   */
+  getModalidadesConfiguradas(configs) {
+    const modalidades = []
+    if (!configs) return modalidades
+    
+    if (configs.config_aula_remota) modalidades.push('remota')
+    if (configs.config_aula_presencial) modalidades.push('presencial')
+    if (configs.config_aula_domicilio) modalidades.push('domicilio')
+    
+    return modalidades
+  },
+
+  /**
    * Valida se o tipo de aula é válido
    */
   isTipoAulaValid(tipoAula) {
@@ -164,5 +194,32 @@ export const tipoAulaService = {
       isValid: errors.length === 0,
       errors
     }
+  },
+
+  /**
+   * Formata dados para envio à API (nova abordagem)
+   */
+  formatarDadosParaAPI(tipoAula, valorHora, linkGoogleMeet, localizacao) {
+    const payload = {
+      valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
+      tipos_aula_principal: tipoAula,
+    }
+
+    if (tipoAula === 'remota' && linkGoogleMeet) {
+      payload.link_meet = linkGoogleMeet
+    } else if (tipoAula === 'presencial' && localizacao) {
+      payload.localizacao = {
+        cidade: localizacao.cidade.trim(),
+        estado: localizacao.estado.trim(),
+        rua: localizacao.rua.trim(),
+        numero: localizacao.numero.trim(),
+        bairro: localizacao.bairro.trim(),
+        complemento: localizacao.complemento ? localizacao.complemento.trim() : null
+      }
+    } else if (tipoAula === 'domicilio') {
+      payload.ativo_domicilio = true
+    }
+
+    return payload
   }
 }
