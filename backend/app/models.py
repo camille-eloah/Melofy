@@ -360,6 +360,7 @@ class ConfigAulaRemota(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
     link_meet: str = Field(nullable=False)
+    ativo: bool = Field(default=True, nullable=False)
     criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 
@@ -377,6 +378,7 @@ class ConfigAulaPresencial(SQLModel, table=True):
     numero: str = Field(nullable=False)
     bairro: str = Field(nullable=False)
     complemento: Optional[str] = Field(default=None, nullable=True)  # Ex: "Sala 203, Bloco B"
+    ativo: bool = Field(default=True, nullable=False)
     criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
 

@@ -43,7 +43,7 @@ class ConfigProfessorService:
 
     @staticmethod
     def criar_ou_atualizar_config_remota(
-        db: Session, prof_id: int, link_meet: str
+        db: Session, prof_id: int, link_meet: str, ativo: bool = True
     ) -> ConfigAulaRemota:
         """Cria ou atualiza a configuração de aula remota"""
         config = db.exec(
@@ -52,9 +52,10 @@ class ConfigProfessorService:
 
         if config:
             config.link_meet = link_meet
+            config.ativo = ativo
             config.atualizado_em = datetime.now(timezone.utc)
         else:
-            config = ConfigAulaRemota(prof_id=prof_id, link_meet=link_meet)
+            config = ConfigAulaRemota(prof_id=prof_id, link_meet=link_meet, ativo=ativo)
             db.add(config)
 
         db.commit()
@@ -71,6 +72,7 @@ class ConfigProfessorService:
         numero: str,
         bairro: str,
         complemento: str = None,
+        ativo: bool = True,
     ) -> ConfigAulaPresencial:
         """Cria ou atualiza a configuração de aula presencial"""
         config = db.exec(
@@ -84,6 +86,7 @@ class ConfigProfessorService:
             config.numero = numero
             config.bairro = bairro
             config.complemento = complemento
+            config.ativo = ativo
             config.atualizado_em = datetime.now(timezone.utc)
         else:
             config = ConfigAulaPresencial(
@@ -94,6 +97,7 @@ class ConfigProfessorService:
                 numero=numero,
                 bairro=bairro,
                 complemento=complemento,
+                ativo=ativo,
             )
             db.add(config)
 

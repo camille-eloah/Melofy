@@ -30,10 +30,11 @@ class LocalizacaoSchema(BaseModel):
 class ConfigAulaRemotaCreate(BaseModel):
     """Schema para criar/atualizar config de aula remota"""
     link_meet: str = Field(..., min_length=10)
+    ativo: bool = Field(default=True)
 
     @validator('link_meet')
     def validate_meet_link(cls, v):
-        if not ('meet.google.com' in v or 'meet.google.com' in v):
+        if 'meet.google.com' not in v:
             raise ValueError('Link deve ser do Google Meet')
         return v
 
@@ -57,6 +58,7 @@ class ConfigAulaPresencialCreate(BaseModel):
     numero: str = Field(..., min_length=1)
     bairro: str = Field(..., min_length=1)
     complemento: Optional[str] = Field(None)
+    ativo: bool = Field(default=True)
 
     class Config:
         from_attributes = True

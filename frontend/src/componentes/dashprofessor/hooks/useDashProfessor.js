@@ -11,6 +11,11 @@ export const useDashProfessor = () => {
   // Estado de dados
   const [valorHora, setValorHora] = useState('')
   const [tiposAulaSelecionados, setTiposAulaSelecionados] = useState([]) // Array de tipos selecionados
+  const [statusModalidades, setStatusModalidades] = useState({
+    remota: false,
+    presencial: false,
+    domicilio: false
+  })
   const [linkGoogleMeet, setLinkGoogleMeet] = useState('')
   const [localizacao, setLocalizacao] = useState({
     cidade: '',
@@ -48,6 +53,13 @@ export const useDashProfessor = () => {
         if (configs.tipos_aula_configurados && Array.isArray(configs.tipos_aula_configurados)) {
           setTiposAulaSelecionados(configs.tipos_aula_configurados)
         }
+
+        // Carregar status das modalidades
+        setStatusModalidades({
+          remota: configs.config_aula_remota?.ativo ?? false,
+          presencial: configs.config_aula_presencial?.ativo ?? false,
+          domicilio: configs.config_aula_domicilio?.ativo ?? false
+        })
 
         // Carregar configuração remota (Google Meet)
         if (configs.config_aula_remota?.link_meet) {
@@ -92,6 +104,12 @@ export const useDashProfessor = () => {
         return [...prev, tipo]
       }
     })
+
+    // Atualizar status da modalidade
+    setStatusModalidades(prev => ({
+      ...prev,
+      [tipo]: !prev[tipo]
+    }))
   }, [])
 
   /**
@@ -249,6 +267,8 @@ export const useDashProfessor = () => {
     setValorHora,
     tiposAulaSelecionados,
     toggleTipoAula,
+    statusModalidades,
+    setStatusModalidades,
     linkGoogleMeet,
     setLinkGoogleMeet,
     localizacao,
