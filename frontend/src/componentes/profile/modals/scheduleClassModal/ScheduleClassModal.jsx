@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./ScheduleClassModal.css";
 import Calendar from "react-calendar";
+import Swal from "sweetalert2";
 
 const ScheduleClassModal = ({
     isOpen,
@@ -49,10 +50,51 @@ const ScheduleClassModal = ({
     // Verificar se pode confirmar (todos os horários foram selecionados)
     const podeConfirmar = selectedPackage && selectedTimes.length === selectedPackage.pac_quantidade_aulas;
 
+    // Formatar data para exibição
+    const formatarData = (dateString) => {
+        const date = new Date(dateString + 'T00:00:00');
+        return date.toLocaleDateString('pt-BR', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric' 
+        });
+    };
+
+    const abrirConfirmacao = async () => {
+        const horariosOrdenados = selectedTimes.sort();
+        const listaHorarios = horariosOrdenados.map(h => `<li style="text-align: left;">${h}</li>`).join('');
+
+        const result = await Swal.fire({
+            title: 'Confirmar Agendamento',
+            html: `
+                <div style="text-align: left; margin: 20px 0;">
+                    <p>Você está prestes a solicitar as seguintes aulas:</p>
+                    <p style="margin-top: 15px;"><strong>Pacote:</strong> ${selectedPackage.pac_nome}</p>
+                    <p><strong>Data:</strong> ${formatarData(selectedDate)}</p>
+                    <p><strong>Horários selecionados:</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        ${listaHorarios}
+                    </ul>
+                    <p style="margin-top: 15px;">Tem certeza que deseja confirmar esses horários?</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sim, confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#8338EC',
+            cancelButtonColor: '#6c757d',
+        });
+
+        if (result.isConfirmed) {
+            confirmar();
+        }
+    };
+
     const confirmar = () => {
         handleConfirmarAgendamento({
             date: selectedDate,
-            times: selectedTimes, // Agora envia array de horários
+            times: selectedTimes,
             pacote: selectedPackage,
         });
 
@@ -147,7 +189,7 @@ const ScheduleClassModal = ({
                 <button
                     className="schedule-btn-confirmar"
                     disabled={!podeConfirmar}
-                    onClick={confirmar}
+                    onClick={abrirConfirmacao}
                 >
 
                     Enviar solicitação
