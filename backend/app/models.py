@@ -339,6 +339,64 @@ class Feedback(SQLModel, table=True):
 
 
 # ----------------------------
+# Configurações do Professor
+# ----------------------------
+
+class ConfigProfessor(SQLModel, table=True):
+    __tablename__ = "tb_config_professor"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    valor_hora_aula: Optional[float] = Field(default=None, sa_column=Column(Numeric(10, 2), nullable=True))
+    tipo_aula_principal: Optional[str] = Field(default=None, nullable=True)  # 'remota', 'presencial', 'domicilio'
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaRemota(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_remota"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    link_meet: str = Field(nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaPresencial(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_presencial"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    cidade: str = Field(nullable=False)
+    estado: str = Field(nullable=False)  # Ex: "SP", "RJ"
+    rua: str = Field(nullable=False)
+    numero: str = Field(nullable=False)
+    bairro: str = Field(nullable=False)
+    complemento: Optional[str] = Field(default=None, nullable=True)  # Ex: "Sala 203, Bloco B"
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaDomicilio(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_domicilio"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    ativo: bool = Field(default=True, nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+# ----------------------------
 # Mensagens privadas
 # ----------------------------
 class Message(SQLModel, table=True):
