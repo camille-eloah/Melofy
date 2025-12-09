@@ -4,33 +4,17 @@ import Header from "../layout/Header"
 import Footer from '../layout/Footer'
 import ChatButton from '../layout/ButtonChat'
 import { useDashProfessor } from './hooks/useDashProfessor'
+import ValoresAula from './modules/ValoresAula/ValoresAula'
+import ModalidadesAula from './modules/ModalidadesAula/ModalidadesAula'
+import HorariosDisponiveis from './modules/HorariosDisponiveis/HorariosDisponiveis'
+import SolicitacoesAula from './modules/SolicitacoesAula/SolicitacoesAula'
 import { 
-  FaMoneyBillWave, 
-  FaChalkboardTeacher, 
-  FaVideo, 
-  FaMapMarkerAlt, 
-  FaHome,
   FaSave,
   FaInfoCircle,
-  FaCity,
-  FaMapPin,
-  FaRoad,
-  FaHashtag,
-  FaBuilding,
-  FaLink,
-  FaMapMarkedAlt,
-  FaCalendarAlt,
-  FaClock,
-  FaMap,
-  FaCheck,
-  FaTimes,
-  FaUser,
-  FaMusic,
-  FaCalendarCheck,
-  FaCommentDots,
-  FaMoneyBill,
-  FaFilter,
-  FaSync
+  FaBoxOpen,
+  FaEdit,
+  FaTrash,
+  FaPlus
 } from 'react-icons/fa'
 
 function DashProfessor() {
@@ -66,19 +50,20 @@ function DashProfessor() {
     aceitarSolicitacao,
     recusarSolicitacao,
     cancelarSolicitacao,
-    solicitacoesFiltradas
+    solicitacoesFiltradas,
+    pacotes,
+    isLoadingPacotes,
+    carregarPacotes,
+    handleDeletePackage,
+    handleEditPackage,
+    handleCreatePackage
   } = useDashProfessor()
 
   useEffect(() => {
     carregarConfiguracoes()
     carregarSolicitacoes()
-  }, [carregarConfiguracoes, carregarSolicitacoes])
-
-  const tiposAula = [
-    { id: 'domicilio', label: 'Aula Domiciliar', icon: <FaHome /> },
-    { id: 'presencial', label: 'Aula Presencial', icon: <FaBuilding /> },
-    { id: 'remota', label: 'Aula Remota', icon: <FaVideo /> }
-  ]
+    carregarPacotes()
+  }, [carregarConfiguracoes, carregarSolicitacoes, carregarPacotes])
 
   const isModalidadeConfigured = (tipoAulaId) => {
     if (!configsSalvas) return false
@@ -109,628 +94,127 @@ function DashProfessor() {
 
           <div className="dashboard-content">
             <form onSubmit={handleSubmit} className="config-form">
+              <ValoresAula 
+                valorHora={valorHora}
+                setValorHora={setValorHora}
+              />
+
+              {/* Seção de Pacotes de Aulas */}
               <div className="config-section">
                 <div className="section-header">
                   <div className="section-icon-wrapper">
-                    <FaMoneyBillWave className="section-icon" />
+                    <FaBoxOpen className="section-icon" />
                   </div>
                   <div className="section-title-wrapper">
-                    <h2 className="section-title">Valor da Hora de Aula</h2>
+                    <h2 className="section-title">Pacotes de Aulas</h2>
                     <p className="section-description">
-                      Defina o valor por hora das suas aulas particulares
+                      Crie pacotes com quantidades e valores personalizados
                     </p>
                   </div>
-                </div>
-                
-                <div className="input-group">
-                  <label className="input-label">
-                    Valor por hora (R$)
-                  </label>
-                  <div className="valor-input-wrapper">
-                    <span className="input-prefix">R$</span>
-                    <input
-                      type="number"
-                      value={valorHora}
-                      onChange={(e) => setValorHora(e.target.value)}
-                      placeholder="0,00"
-                      min="0"
-                      step="0.01"
-                      className="simple-input"
-                      required
-                    />
-                  </div>
-                  <small className="input-hint">
-                    Exemplo: 80,00 (oitenta reais por hora)
-                  </small>
-                </div>
-              </div>
-
-              <div className="config-section">
-                <div className="section-header">
-                  <div className="section-icon-wrapper">
-                    <FaCalendarAlt className="section-icon" />
-                  </div>
-                  <div className="section-title-wrapper">
-                    <h2 className="section-title">Horários Disponíveis</h2>
-                    <p className="section-description">
-                      Selecione os dias da semana e horários em que você está disponível para ministrar aulas
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="input-group">
-                  <label className="input-label">
-                    Dias da semana disponíveis
-                  </label>
-                  <div className="dias-semana-grid">
-                    {diasSemana.map((dia) => (
-                      <div key={dia.id} className="dia-semana-wrapper">
-                        <input
-                          type="checkbox"
-                          id={`dia-${dia.id}`}
-                          checked={horariosDisponiveis[dia.id]?.selecionado || false}
-                          onChange={() => toggleDiaSemana(dia.id)}
-                          className="checkbox-input-hidden"
-                          style={{ display: 'none' }}
-                        />
-                        <label 
-                          htmlFor={`dia-${dia.id}`}
-                          className={`dia-semana-option ${horariosDisponiveis[dia.id]?.selecionado ? 'selected' : ''}`}
-                        >
-                          <span className="dia-label">{dia.label}</span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="horarios-container">
-                  {Object.entries(horariosDisponiveis).filter(([_, data]) => data.selecionado).map(([diaId, data]) => (
-                    <div key={diaId} className="horarios-dia-section">
-                      <h3 className="horarios-dia-title">
-                        Horários para {diasSemana.find(d => d.id === diaId)?.label}
-                      </h3>
-                      <div className="horarios-grid">
-                        {horariosDoDia.map((horario) => (
-                          <div key={`${diaId}-${horario}`} className="horario-wrapper">
-                            <input
-                              type="checkbox"
-                              id={`horario-${diaId}-${horario}`}
-                              checked={data.horarios.includes(horario)}
-                              onChange={() => toggleHorario(diaId, horario)}
-                              className="checkbox-input-hidden"
-                              style={{ display: 'none' }}
-                            />
-                            <label 
-                              htmlFor={`horario-${diaId}-${horario}`}
-                              className={`horario-option ${data.horarios.includes(horario) ? 'selected' : ''}`}
-                            >
-                              {horario}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="config-section">
-                <div className="section-header">
-                  <div className="section-icon-wrapper">
-                    <FaChalkboardTeacher className="section-icon" />
-                  </div>
-                  <div className="section-title-wrapper">
-                    <h2 className="section-title">Modalidades de Aula</h2>
-                    <p className="section-description">
-                      Selecione quantas modalidades desejar - você pode oferecer múltiplas opções
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="input-group">
-                  <label className="input-label">
-                    Selecione as modalidades disponíveis
-                  </label>
-                  <div className="tipo-aula-grid">
-                    {tiposAula.map((tipo) => (
-                      <div key={tipo.id} className="modal-item-wrapper">
-                        <input
-                          type="checkbox"
-                          id={`modal-${tipo.id}`}
-                          checked={tiposAulaSelecionados.includes(tipo.id)}
-                          onChange={() => toggleTipoAula(tipo.id)}
-                          className="checkbox-input-hidden"
-                          style={{ display: 'none' }}
-                        />
-                        <label 
-                          htmlFor={`modal-${tipo.id}`}
-                          className={`tipo-aula-option-card ${tiposAulaSelecionados.includes(tipo.id) ? 'selected' : ''}`}
-                        >
-                          <div className="option-content-wrapper">
-                            <div className="option-icon-wrapper">
-                              {tipo.icon}
-                              {isModalidadeConfigured(tipo.id) && (
-                                <span className="configured-badge" title="Modalidade configurada">✓</span>
-                              )}
-                            </div>
-                            <span className="option-label">{tipo.label}</span>
-                            <div 
-                              className="toggle-switch"
-                              onClick={(e) => {
-                                if (tiposAulaSelecionados.includes(tipo.id)) {
-                                  toggleStatusModalidade(tipo.id, e)
-                                }
-                              }}
-                            >
-                              <div className={`switch-track ${statusModalidades[tipo.id] ? 'active' : ''}`}>
-                                <div className="switch-thumb"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {tiposAulaSelecionados.includes('remota') && (
-                  <div className="conditional-section">
-                    <div className="conditional-header">
-                      <div className="conditional-icon-wrapper">
-                        <FaVideo className="conditional-icon" />
-                      </div>
-                      <div>
-                        <h3 className="conditional-title">Link da Sala Virtual</h3>
-                        <p className="conditional-description">
-                          Insira o link do Google Meet para suas aulas remotas
-                        </p>
-                      </div>
-                    </div>
-                    <div className="input-group">
-                      <div className="link-input-wrapper">
-                        <FaLink className="input-icon" />
-                        <input
-                          type="url"
-                          value={linkGoogleMeet}
-                          onChange={(e) => setLinkGoogleMeet(e.target.value)}
-                          placeholder="https://meet.google.com/abc-defg-hij"
-                          className="simple-input"
-                          required={tiposAulaSelecionados.includes('remota')}
-                        />
-                      </div>
-                      <small className="input-hint">
-                        Este link será compartilhado com seus alunos antes das aulas
-                      </small>
-                    </div>
-                  </div>
-                )}
-
-                {tiposAulaSelecionados.includes('presencial') && (
-                  <div className="conditional-section">
-                    <div className="conditional-header">
-                      <div className="conditional-icon-wrapper">
-                        <FaMapMarkerAlt className="conditional-icon" />
-                      </div>
-                      <div>
-                        <h3 className="conditional-title">Local da Aula</h3>
-                        <p className="conditional-description">
-                          Informe onde serão realizadas as aulas presenciais
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="localizacao-grid">
-                      <div className="input-group">
-                        <label className="input-label">
-                          <FaCity className="input-label-icon" /> Cidade
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.cidade}
-                          onChange={(e) => handleLocalizacaoChange('cidade', e.target.value)}
-                          placeholder="Digite a cidade"
-                          className="simple-input"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">
-                          <FaMapPin className="input-label-icon" /> Estado
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.estado}
-                          onChange={(e) => {
-                            const value = e.target.value.toUpperCase().slice(0, 2)
-                            handleLocalizacaoChange('estado', value)
-                          }}
-                          placeholder="Ex: SP, RJ, MG"
-                          className="simple-input"
-                          maxLength={2}
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">
-                          <FaRoad className="input-label-icon" /> Rua/Avenida
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.rua}
-                          onChange={(e) => handleLocalizacaoChange('rua', e.target.value)}
-                          placeholder="Nome da rua ou avenida"
-                          className="simple-input"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">
-                          <FaHashtag className="input-label-icon" /> Número
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.numero}
-                          onChange={(e) => handleLocalizacaoChange('numero', e.target.value)}
-                          placeholder="Número do local"
-                          className="simple-input"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group">
-                        <label className="input-label">
-                          <FaMapPin className="input-label-icon" /> Bairro
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.bairro}
-                          onChange={(e) => handleLocalizacaoChange('bairro', e.target.value)}
-                          placeholder="Bairro do local"
-                          className="simple-input"
-                          required
-                        />
-                      </div>
-
-                      <div className="input-group full-width">
-                        <label className="input-label">
-                          Complemento (opcional)
-                        </label>
-                        <input
-                          type="text"
-                          value={localizacao.complemento}
-                          onChange={(e) => handleLocalizacaoChange('complemento', e.target.value)}
-                          placeholder="Ex: Sala 203, Bloco B, Andar 2"
-                          className="simple-input"
-                        />
-                      </div>
-                    </div>
-                    
-                    <small className="input-hint">
-                      Certifique-se de que o local seja adequado para aulas de música
-                    </small>
-                  </div>
-                )}
-
-                {tiposAulaSelecionados.includes('domicilio') && (
-                  <div className="conditional-section">
-                    <div className="conditional-header">
-                      <div className="conditional-icon-wrapper">
-                        <FaHome className="conditional-icon" />
-                      </div>
-                      <div>
-                        <h3 className="conditional-title">Aulas no Domicílio</h3>
-                        <p className="conditional-description">
-                          Você irá até a residência do aluno para ministrar as aulas
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="input-group">
-                      <label className="input-label">
-                        <FaMapMarkedAlt className="input-label-icon" /> Raio de Atendimento (km)
-                      </label>
-                      <div className="raio-input-wrapper">
-                        <input
-                          type="number"
-                          value={raioAtendimento}
-                          onChange={(e) => setRaioAtendimento(e.target.value)}
-                          placeholder="5"
-                          min="1"
-                          max="100"
-                          step="1"
-                          className="simple-input"
-                        />
-                        <span className="input-suffix">km</span>
-                      </div>
-                      <small className="input-hint">
-                        Distância máxima que você está disposto a percorrer para atender alunos
-                      </small>
-                    </div>
-
-                    <div className="input-group">
-                      <label className="input-label">
-                        <FaMoneyBillWave className="input-label-icon" /> Taxa por km de deslocamento (R$)
-                      </label>
-                      <div className="valor-input-wrapper">
-                        <span className="input-prefix">R$</span>
-                        <input
-                          type="number"
-                          value={taxaPorKm}
-                          onChange={(e) => setTaxaPorKm(e.target.value)}
-                          placeholder="2,50"
-                          min="0"
-                          step="0.01"
-                          className="simple-input"
-                        />
-                      </div>
-                      <small className="input-hint">
-                        Valor cobrado por cada quilômetro de deslocamento até o aluno
-                      </small>
-                    </div>
-
-                    <div className="mapa-container">
-                      <div className="conditional-header">
-                        <div className="conditional-icon-wrapper">
-                          <FaMap className="conditional-icon" />
-                        </div>
-                        <div>
-                          <h3 className="conditional-title">Localização para Atendimento</h3>
-                          <p className="conditional-description">
-                            Mapa para visualização da sua área de atendimento (será implementado posteriormente)
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mapa-placeholder">
-                        <div className="mapa-content">
-                          <FaMap className="mapa-icon" />
-                          <p className="mapa-text">Espaço reservado para implementação do mapa</p>
-                          <p className="mapa-subtext">
-                            Aqui será exibido um mapa com sua localização e raio de atendimento
-                          </p>
-                        </div>
-                      </div>
-                      <small className="input-hint">
-                        O mapa será implementado em uma futura atualização do sistema
-                      </small>
-                    </div>
-                    
-                    <div className="info-card">
-                      <FaInfoCircle className="info-card-icon" />
-                      <div className="info-card-content">
-                        <h4 className="info-card-title">Informação Importante</h4>
-                        <p className="info-card-text">
-                          As aulas serão agendadas considerando o deslocamento até o 
-                          domicílio do aluno. O sistema mostrará apenas alunos dentro do raio 
-                          de {raioAtendimento}km da sua localização. Será adicionada uma taxa de R${taxaPorKm || '0,00'} por km.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="config-section">
-                <div className="section-header">
-                  <div className="section-icon-wrapper">
-                    <FaCalendarCheck className="section-icon" />
-                  </div>
-                  <div className="section-title-wrapper">
-                    <h2 className="section-title">Solicitações de Aula</h2>
-                    <p className="section-description">
-                      Gerencie as solicitações de aula recebidas dos alunos
-                    </p>
-                  </div>
-                </div>
-
-                <div className="filtros-solicitacoes">
-                  <div className="filtros-header">
-                    <FaFilter className="filtro-icon" />
-                    <span className="filtro-label">Filtrar por status:</span>
-                  </div>
-                  <div className="filtros-buttons">
-                    <button
-                      type="button"
-                      className={`filtro-button ${filtroStatus === 'todas' ? 'active' : ''}`}
-                      onClick={() => setFiltroStatus('todas')}
-                    >
-                      Todas ({solicitacoes.length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`filtro-button ${filtroStatus === 'pendente' ? 'active' : ''}`}
-                      onClick={() => setFiltroStatus('pendente')}
-                    >
-                      Pendentes ({solicitacoes.filter(s => s.status === 'pendente').length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`filtro-button ${filtroStatus === 'confirmada' ? 'active' : ''}`}
-                      onClick={() => setFiltroStatus('confirmada')}
-                    >
-                      Confirmadas ({solicitacoes.filter(s => s.status === 'confirmada').length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`filtro-button ${filtroStatus === 'recusada' ? 'active' : ''}`}
-                      onClick={() => setFiltroStatus('recusada')}
-                    >
-                      Recusadas ({solicitacoes.filter(s => s.status === 'recusada').length})
-                    </button>
-                    <button
-                      type="button"
-                      className={`filtro-button ${filtroStatus === 'cancelada' ? 'active' : ''}`}
-                      onClick={() => setFiltroStatus('cancelada')}
-                    >
-                      Canceladas ({solicitacoes.filter(s => s.status === 'cancelada').length})
-                    </button>
-                  </div>
-                  <button
+                  <button 
                     type="button"
-                    className="refresh-button"
-                    onClick={carregarSolicitacoes}
-                    disabled={loadingSolicitacoes}
+                    className="btn-criar-pacote" 
+                    onClick={handleCreatePackage}
+                    title="Criar novo pacote"
                   >
-                    <FaSync className={`refresh-icon ${loadingSolicitacoes ? 'spin' : ''}`} />
-                    Atualizar
+                    <FaPlus /> Criar Pacote
                   </button>
                 </div>
 
-                <div className="solicitacoes-container">
-                  {loadingSolicitacoes ? (
-                    <div className="loading-solicitacoes">
-                      <div className="loading-spinner"></div>
-                      <p>Carregando solicitações...</p>
+                <div className="config-section-content">
+                  {isLoadingPacotes ? (
+                    <div className="loading-pacotes">
+                      <p>Carregando pacotes...</p>
                     </div>
-                  ) : solicitacoesFiltradas.length === 0 ? (
-                    <div className="empty-solicitacoes">
-                      <FaCalendarCheck className="empty-icon" />
-                      <p className="empty-title">Nenhuma solicitação encontrada</p>
-                      <p className="empty-subtitle">
-                        {filtroStatus === 'todas' 
-                          ? 'Você não possui solicitações de aula no momento.'
-                          : `Não há solicitações com status "${filtroStatus}".`}
-                      </p>
+                  ) : pacotes.length === 0 ? (
+                    <div className="sem-pacotes">
+                      <p>Você ainda não criou nenhum pacote de aulas.</p>
+                      <p>Crie pacotes com diferentes quantidades de aulas e valores especiais!</p>
                     </div>
                   ) : (
-                    <div className="solicitacoes-grid">
-                      {solicitacoesFiltradas.map((solicitacao) => (
-                        <div 
-                          key={solicitacao.id} 
-                          className={`solicitacao-card ${solicitacao.status}`}
-                        >
-                          <div className="solicitacao-header">
-                            <div className="aluno-info">
-                              <img 
-                                src={solicitacao.aluno.foto} 
-                                alt={solicitacao.aluno.nome}
-                                className="aluno-foto"
-                                onError={(e) => {
-                                  e.target.src = 'https://via.placeholder.com/100';
-                                  e.target.onerror = null;
-                                }}
-                              />
-                              <div className="aluno-detalhes">
-                                <h3 className="aluno-nome">{solicitacao.aluno.nome}</h3>
-                                <div className="aluno-metadata">
-                                  <span className="metadata-item">
-                                    <FaUser className="metadata-icon" />
-                                    {solicitacao.aluno.nivel}
-                                  </span>
-                                  <span className="metadata-item">
-                                    <FaMusic className="metadata-icon" />
-                                    {solicitacao.aluno.instrumento}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="solicitacao-status">
-                              <span className={`status-badge ${solicitacao.status}`}>
-                                {solicitacao.status === 'pendente' && '⏳ Pendente'}
-                                {solicitacao.status === 'confirmada' && '✅ Confirmada'}
-                                {solicitacao.status === 'recusada' && '❌ Recusada'}
-                                {solicitacao.status === 'cancelada' && '🚫 Cancelada'}
-                              </span>
-                              <span className="data-solicitacao">
-                                {new Date(solicitacao.dataSolicitacao).toLocaleDateString('pt-BR')}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="solicitacao-body">
-                            <div className="solicitacao-detalhes">
-                              <div className="detalhe-item">
-                                <FaMapMarkerAlt className="detalhe-icon" />
-                                <div>
-                                  <span className="detalhe-label">Modalidade:</span>
-                                  <span className="detalhe-value">
-                                    {solicitacao.modalidade === 'presencial' && '📍 Presencial'}
-                                    {solicitacao.modalidade === 'remota' && '🎥 Online'}
-                                    {solicitacao.modalidade === 'domicilio' && '🏠 Domicílio'}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="detalhe-item">
-                                <FaCalendarCheck className="detalhe-icon" />
-                                <div>
-                                  <span className="detalhe-label">Horários solicitados:</span>
-                                  <span className="detalhe-value">
-                                    {solicitacao.horariosSolicitados.join(', ')}
-                                  </span>
-                                </div>
-                              </div>
-                              
-                              <div className="detalhe-item">
-                                <FaMoneyBill className="detalhe-icon" />
-                                <div>
-                                  <span className="detalhe-label">Pacote/Valor:</span>
-                                  <span className="detalhe-value">
-                                    {solicitacao.pacote} - R$ {solicitacao.valor.toFixed(2)}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {solicitacao.observacao && (
-                              <div className="observacao-container">
-                                <FaCommentDots className="observacao-icon" />
-                                <div className="observacao-content">
-                                  <span className="observacao-label">Observação do aluno:</span>
-                                  <p className="observacao-text">{solicitacao.observacao}</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="solicitacao-actions">
-                            {solicitacao.status === 'pendente' ? (
-                              <>
-                                <button
+                    <div className="pacotes-grid">
+                      {pacotes.map((pac) => {
+                        const valorPorAula = (pac.pac_valor_total / pac.pac_quantidade_aulas).toFixed(2)
+                        return (
+                          <div key={pac.pac_id} className="pacote-card">
+                            <div className="pacote-header">
+                              <h3>{pac.pac_nome}</h3>
+                              <div className="pacote-actions">
+                                <button 
                                   type="button"
-                                  className="action-button accept-button"
-                                  onClick={() => aceitarSolicitacao(solicitacao.id)}
+                                  className="btn-action btn-edit" 
+                                  onClick={() => handleEditPackage(pac)}
+                                  title="Editar pacote"
                                 >
-                                  <FaCheck className="action-icon" />
-                                  Aceitar Solicitação
+                                  <FaEdit />
                                 </button>
-                                <button
+                                <button 
                                   type="button"
-                                  className="action-button reject-button"
-                                  onClick={() => recusarSolicitacao(solicitacao.id)}
+                                  className="btn-action btn-delete" 
+                                  onClick={() => handleDeletePackage(pac)}
+                                  title="Deletar pacote"
                                 >
-                                  <FaTimes className="action-icon" />
-                                  Recusar
+                                  <FaTrash />
                                 </button>
-                              </>
-                            ) : solicitacao.status === 'confirmada' ? (
-                              <button
-                                type="button"
-                                className="action-button cancel-button"
-                                onClick={() => cancelarSolicitacao(solicitacao.id)}
-                              >
-                                <FaTimes className="action-icon" />
-                                Cancelar Aula
-                              </button>
-                            ) : (
-                              <div className="actions-disabled">
-                                <span className="actions-message">
-                                  {solicitacao.status === 'recusada' 
-                                    ? 'Solicitação recusada' 
-                                    : 'Solicitação cancelada'}
-                                </span>
                               </div>
-                            )}
+                            </div>
+                            <div className="pacote-info">
+                              <div className="info-row">
+                                <span className="info-label">Quantidade de Aulas:</span>
+                                <span className="info-value">{pac.pac_quantidade_aulas} aulas</span>
+                              </div>
+                              <div className="info-row">
+                                <span className="info-label">Valor Total:</span>
+                                <span className="info-value destaque">R$ {Number.parseFloat(pac.pac_valor_total).toFixed(2)}</span>
+                              </div>
+                              <div className="info-row">
+                                <span className="info-label">Valor por Aula:</span>
+                                <span className="info-value">R$ {valorPorAula}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   )}
                 </div>
               </div>
+
+              <HorariosDisponiveis
+                horariosDisponiveis={horariosDisponiveis}
+                toggleDiaSemana={toggleDiaSemana}
+                toggleHorario={toggleHorario}
+                diasSemana={diasSemana}
+                horariosDoDia={horariosDoDia}
+              />
+
+              <ModalidadesAula
+                tiposAulaSelecionados={tiposAulaSelecionados}
+                toggleTipoAula={toggleTipoAula}
+                statusModalidades={statusModalidades}
+                toggleStatusModalidade={toggleStatusModalidade}
+                isModalidadeConfigured={isModalidadeConfigured}
+                linkGoogleMeet={linkGoogleMeet}
+                setLinkGoogleMeet={setLinkGoogleMeet}
+                localizacao={localizacao}
+                handleLocalizacaoChange={handleLocalizacaoChange}
+                raioAtendimento={raioAtendimento}
+                setRaioAtendimento={setRaioAtendimento}
+                taxaPorKm={taxaPorKm}
+                setTaxaPorKm={setTaxaPorKm}
+              />
+
+              <SolicitacoesAula
+                solicitacoes={solicitacoes}
+                loadingSolicitacoes={loadingSolicitacoes}
+                filtroStatus={filtroStatus}
+                setFiltroStatus={setFiltroStatus}
+                carregarSolicitacoes={carregarSolicitacoes}
+                aceitarSolicitacao={aceitarSolicitacao}
+                recusarSolicitacao={recusarSolicitacao}
+                cancelarSolicitacao={cancelarSolicitacao}
+                solicitacoesFiltradas={solicitacoesFiltradas}
+              />
 
               <div className="form-actions">
                 <button
