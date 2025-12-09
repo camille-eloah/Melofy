@@ -53,9 +53,9 @@ function DashProfessor() {
   // Função para verificar se uma modalidade está configurada
   const isModalidadeConfigured = (tipoAulaId) => {
     if (!configsSalvas) return false
-    if (tipoAulaId === 'remota') return !!configsSalvas.config_aula_remota
-    if (tipoAulaId === 'presencial') return !!configsSalvas.config_aula_presencial
-    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_aula_domicilio
+    if (tipoAulaId === 'remota') return !!configsSalvas.config_remota
+    if (tipoAulaId === 'presencial') return !!configsSalvas.config_presencial
+    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_domicilio
     return false
   }
 

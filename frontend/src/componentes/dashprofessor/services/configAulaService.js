@@ -76,6 +76,33 @@ export const configAulaService = {
   },
 
   /**
+   * Formata os dados para enviar ao backend (múltiplos tipos de aula)
+   */
+  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, statusModalidades) {
+    const payload = {
+      valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
+      tipos_aula_selecionados: tiposAulaSelecionados,
+      link_meet: tiposAulaSelecionados.includes('remota') ? linkGoogleMeet : null,
+      localizacao: tiposAulaSelecionados.includes('presencial') ? {
+        cidade: localizacao.cidade,
+        estado: localizacao.estado,
+        rua: localizacao.rua,
+        numero: localizacao.numero,
+        bairro: localizacao.bairro,
+        complemento: localizacao.complemento || null
+      } : null,
+      // Status de ativação de cada modalidade
+      status_modalidades: {
+        remota: statusModalidades.remota,
+        presencial: statusModalidades.presencial,
+        domicilio: statusModalidades.domicilio
+      }
+    }
+
+    return payload
+  },
+
+  /**
    * Formata os dados para enviar ao backend
    */
   formatarDadosParaAPI(tipoAula, valorHora, linkGoogleMeet, localizacao) {

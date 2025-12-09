@@ -199,7 +199,7 @@ export const tipoAulaService = {
   /**
    * Formata dados para envio à API (nova abordagem com múltiplos tipos)
    */
-  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao) {
+  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, statusModalidades) {
     const payload = {
       valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
       tipos_aula_selecionados: tiposAulaSelecionados,
@@ -207,6 +207,7 @@ export const tipoAulaService = {
 
     if (tiposAulaSelecionados.includes('remota') && linkGoogleMeet) {
       payload.link_meet = linkGoogleMeet
+      payload.ativo_remota = statusModalidades?.remota ?? false
     }
     
     if (tiposAulaSelecionados.includes('presencial') && localizacao) {
@@ -218,10 +219,11 @@ export const tipoAulaService = {
         bairro: localizacao.bairro.trim(),
         complemento: localizacao.complemento ? localizacao.complemento.trim() : null
       }
+      payload.ativo_presencial = statusModalidades?.presencial ?? false
     }
 
     if (tiposAulaSelecionados.includes('domicilio')) {
-      payload.ativo_domicilio = true
+      payload.ativo_domicilio = statusModalidades?.domicilio ?? false
     }
 
     return payload

@@ -124,6 +124,8 @@ class SalvarConfiguracaoRequest(BaseModel):
     # Configurações específicas por tipo
     link_meet: Optional[str] = Field(None)
     localizacao: Optional[LocalizacaoSchema] = Field(None)
+    ativo_remota: Optional[bool] = Field(None)
+    ativo_presencial: Optional[bool] = Field(None)
     ativo_domicilio: Optional[bool] = Field(None)
 
     class Config:

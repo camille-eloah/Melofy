@@ -45,36 +45,38 @@ export const useDashProfessor = () => {
       
       if (configs) {
         // Carregar valor da hora
-        if (configs.valor_hora_aula) {
-          setValorHora(configs.valor_hora_aula.toString())
+        if (configs.config_geral?.valor_hora_aula) {
+          setValorHora(configs.config_geral.valor_hora_aula.toString())
         }
 
-        // Carregar tipos de aula configurados
-        if (configs.tipos_aula_configurados && Array.isArray(configs.tipos_aula_configurados)) {
-          setTiposAulaSelecionados(configs.tipos_aula_configurados)
-        }
+        // Determinar tipos de aula configurados
+        const tipos = []
+        if (configs.config_remota) tipos.push('remota')
+        if (configs.config_presencial) tipos.push('presencial')
+        if (configs.config_domicilio) tipos.push('domicilio')
+        setTiposAulaSelecionados(tipos)
 
         // Carregar status das modalidades
         setStatusModalidades({
-          remota: configs.config_aula_remota?.ativo ?? false,
-          presencial: configs.config_aula_presencial?.ativo ?? false,
-          domicilio: configs.config_aula_domicilio?.ativo ?? false
+          remota: configs.config_remota?.ativo ?? false,
+          presencial: configs.config_presencial?.ativo ?? false,
+          domicilio: configs.config_domicilio?.ativo ?? false
         })
 
         // Carregar configuração remota (Google Meet)
-        if (configs.config_aula_remota?.link_meet) {
-          setLinkGoogleMeet(configs.config_aula_remota.link_meet)
+        if (configs.config_remota?.link_meet) {
+          setLinkGoogleMeet(configs.config_remota.link_meet)
         }
 
         // Carregar configuração presencial (localização)
-        if (configs.config_aula_presencial) {
+        if (configs.config_presencial) {
           setLocalizacao({
-            cidade: configs.config_aula_presencial.cidade || '',
-            estado: configs.config_aula_presencial.estado || '',
-            rua: configs.config_aula_presencial.rua || '',
-            numero: configs.config_aula_presencial.numero || '',
-            bairro: configs.config_aula_presencial.bairro || '',
-            complemento: configs.config_aula_presencial.complemento || ''
+            cidade: configs.config_presencial.cidade || '',
+            estado: configs.config_presencial.estado || '',
+            rua: configs.config_presencial.rua || '',
+            numero: configs.config_presencial.numero || '',
+            bairro: configs.config_presencial.bairro || '',
+            complemento: configs.config_presencial.complemento || ''
           })
         }
       }
@@ -144,7 +146,8 @@ export const useDashProfessor = () => {
         tiposAulaSelecionados,
         valorHora,
         linkGoogleMeet,
-        localizacao
+        localizacao,
+        statusModalidades
       )
 
       await configAulaService.salvarConfiguracao(dadosFormatados)
@@ -172,7 +175,7 @@ export const useDashProfessor = () => {
     } finally {
       setIsSaving(false)
     }
-  }, [tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
+  }, [tiposAulaSelecionados, statusModalidades, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
 
   /**
    * Deleta uma configuração de tipo de aula
