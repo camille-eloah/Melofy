@@ -370,10 +370,20 @@ export const useDashProfessor = () => {
         if (resp.ok) {
           await Swal.fire('Deletado!', 'Pacote removido com sucesso.', 'success')
           await carregarPacotes()
+        } else if (resp.status === 400) {
+          // Pacote tem solicitações vinculadas
+          const errorData = await resp.json()
+          await Swal.fire({
+            title: 'Não é possível deletar',
+            text: errorData.detail || 'Este pacote possui solicitações de aula vinculadas.',
+            icon: 'warning',
+            confirmButtonText: 'Entendi'
+          })
         } else {
           throw new Error('Erro ao deletar')
         }
       } catch (error) {
+        console.error('Erro ao deletar pacote:', error)
         Swal.fire('Erro!', 'Falha ao deletar pacote.', 'error')
       }
     }

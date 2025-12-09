@@ -697,7 +697,7 @@ def excluir_pacote(
     request: Request,
     db: Session = Depends(get_session),
 ):
-    """Deleta um pacote"""
+    """Deleta um pacote se não houver solicitações vinculadas"""
     _, professor = _get_current_user(request, db)
     
     if not isinstance(professor, Professor):
@@ -709,6 +709,18 @@ def excluir_pacote(
     
     if pacote.pac_prof_id != professor.id:
         raise HTTPException(status_code=403, detail="Você não tem permissão para deletar este pacote")
+    
+    # Verificar se há solicitações vinculadas a este pacote
+    from sqlmodel import select
+    solicitacoes_vinculadas = db.exec(
+        select(SolicitacaoAgendamento).where(SolicitacaoAgendamento.sol_pac_id == pacote_id)
+    ).first()
+    
+    if solicitacoes_vinculadas:
+        raise HTTPException(
+            status_code=400, 
+            detail="Não é possível deletar este pacote pois existem solicitações de aula vinculadas a ele. Cancele ou conclua as solicitações primeiro."
+        )
     
     db.delete(pacote)
     db.commit()
