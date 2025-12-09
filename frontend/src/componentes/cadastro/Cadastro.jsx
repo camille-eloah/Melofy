@@ -8,7 +8,6 @@ import { FaFacebook, FaInstagram } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
-// Validação de CPF e Senha
 function validarCPF(cpf) {
   cpf = cpf.replace(/\D/g, '');
 
@@ -250,8 +249,6 @@ if (!confirmarSenha) {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-
-          {/* SENHA */}
           <div className="input-group senha-group">
             <div className="label-row">
               <label>Senha</label>
@@ -265,7 +262,7 @@ if (!confirmarSenha) {
               onChange={(e) => setSenha(e.target.value)}
               
             />
-            {/* BOTÃO MOSTRAR/OCULTAR SENHA */}
+        
             <button
                 type="button"
                 className="btn-mostrar-senha"
@@ -276,7 +273,7 @@ if (!confirmarSenha) {
             </div>
           </div>
 
-          {/* CONFIRMAR SENHA */}
+          
           <div className="input-group senha-group">
             <div className="label-row">
               <label>Confirmar Senha</label>
@@ -288,7 +285,7 @@ if (!confirmarSenha) {
               placeholder="Repita a senha"
               value={confirmarSenha}
               onChange={(e) => setConfirmarSenha(e.target.value)}/>
-            {/* BOTÃO MOSTRAR/OCULTAR SENHA */}
+      
             <button
                 type="button"
                 className="btn-mostrar-senha"
@@ -299,17 +296,17 @@ if (!confirmarSenha) {
             </div>
           </div>
 
-          {/* BOTÃO */}
+          
           <button type="submit" disabled={carregando}>
             {carregando ? 'Cadastrando...' : 'CADASTRAR'}
           </button>
 
-          {/* LINK LOGIN */}
+          
           <div className="cadastro-link">
             Já tem uma conta? <a href="/login">Faça Login</a>
           </div>
 
-          {/* SOCIAL LOGIN */}
+
           <div className="social-section">
             <p className="social-title">Ou cadastre-se com</p>
 
@@ -345,7 +342,6 @@ if (!confirmarSenha) {
         </form>
       </div>
 
-      {/* LADO DIREITO */}
       <div className="right-content">
         <div className="text-content">
           <h1>Crie sua conta</h1>
