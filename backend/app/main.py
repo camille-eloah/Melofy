@@ -1557,6 +1557,13 @@ def salvar_configuracoes_professor(
     if not isinstance(professor, Professor):
         raise HTTPException(status_code=403, detail="Apenas professores podem configurar aulas")
 
+    # DEBUG: Log dos dados recebidos
+    print(f"🔍 DEBUG - Dados recebidos:")
+    print(f"  tipos_aula_selecionados: {dados.tipos_aula_selecionados}")
+    print(f"  ativo_remota: {dados.ativo_remota}")
+    print(f"  ativo_presencial: {dados.ativo_presencial}")
+    print(f"  ativo_domicilio: {dados.ativo_domicilio}")
+
     # Salvar configuração geral (apenas valor da hora)
     ConfigProfessorService.criar_ou_atualizar_config_geral(
         db,
@@ -1564,26 +1571,74 @@ def salvar_configuracoes_professor(
         valor_hora_aula=dados.valor_hora_aula,
     )
 
-    # Salvar configurações para cada tipo de aula selecionado
-    for tipo_aula in dados.tipos_aula_selecionados:
-        if tipo_aula == "remota" and dados.link_meet:
+    # Processar configurações para TODAS as modalidades (não apenas as selecionadas)
+    # Isso permite desativar modalidades sem removê-las
+    
+    # Remota
+    if "remota" in dados.tipos_aula_selecionados and dados.link_meet:
+        ativo_remota = dados.ativo_remota if dados.ativo_remota is not None else True
+        print(f"  💾 Salvando remota com ativo={ativo_remota}")
+        ConfigProfessorService.criar_ou_atualizar_config_remota(
+            db, professor.id, dados.link_meet, ativo=ativo_remota
+        )
+    elif dados.ativo_remota is not None:
+        # Se ativo_remota foi enviado mas a modalidade não está selecionada,
+        # ainda assim atualizar o status (caso exista config anterior)
+        existing_config = ConfigProfessorService.obter_config_remota(db, professor.id)
+        if existing_config:
+            print(f"  💾 Atualizando status remota (não selecionada) com ativo={dados.ativo_remota}")
             ConfigProfessorService.criar_ou_atualizar_config_remota(
-                db, professor.id, dados.link_meet
+                db, professor.id, existing_config.link_meet, ativo=dados.ativo_remota
             )
-        elif tipo_aula == "presencial" and dados.localizacao:
+    
+    # Presencial
+    if "presencial" in dados.tipos_aula_selecionados and dados.localizacao:
+        ativo_presencial = dados.ativo_presencial if dados.ativo_presencial is not None else True
+        print(f"  💾 Salvando presencial com ativo={ativo_presencial}")
+        ConfigProfessorService.criar_ou_atualizar_config_presencial(
+            db,
+            professor.id,
+            cidade=dados.localizacao.cidade,
+            estado=dados.localizacao.estado,
+            rua=dados.localizacao.rua,
+            numero=dados.localizacao.numero,
+            bairro=dados.localizacao.bairro,
+            complemento=dados.localizacao.complemento,
+            ativo=ativo_presencial,
+        )
+    elif dados.ativo_presencial is not None:
+        # Se ativo_presencial foi enviado mas a modalidade não está selecionada,
+        # ainda assim atualizar o status (caso exista config anterior)
+        existing_config = ConfigProfessorService.obter_config_presencial(db, professor.id)
+        if existing_config:
+            print(f"  💾 Atualizando status presencial (não selecionada) com ativo={dados.ativo_presencial}")
             ConfigProfessorService.criar_ou_atualizar_config_presencial(
                 db,
                 professor.id,
-                cidade=dados.localizacao.cidade,
-                estado=dados.localizacao.estado,
-                rua=dados.localizacao.rua,
-                numero=dados.localizacao.numero,
-                bairro=dados.localizacao.bairro,
-                complemento=dados.localizacao.complemento,
+                cidade=existing_config.cidade,
+                estado=existing_config.estado,
+                rua=existing_config.rua,
+                numero=existing_config.numero,
+                bairro=existing_config.bairro,
+                complemento=existing_config.complemento,
+                ativo=dados.ativo_presencial,
             )
-        elif tipo_aula == "domicilio":
+    
+    # Domicílio
+    if "domicilio" in dados.tipos_aula_selecionados:
+        ativo_domicilio = dados.ativo_domicilio if dados.ativo_domicilio is not None else True
+        print(f"  💾 Salvando domicílio com ativo={ativo_domicilio}")
+        ConfigProfessorService.criar_ou_atualizar_config_domicilio(
+            db, professor.id, ativo=ativo_domicilio
+        )
+    elif dados.ativo_domicilio is not None:
+        # Se ativo_domicilio foi enviado mas a modalidade não está selecionada,
+        # ainda assim atualizar o status (caso exista config anterior)
+        existing_config = ConfigProfessorService.obter_config_domicilio(db, professor.id)
+        if existing_config:
+            print(f"  💾 Atualizando status domicílio (não selecionada) com ativo={dados.ativo_domicilio}")
             ConfigProfessorService.criar_ou_atualizar_config_domicilio(
-                db, professor.id, ativo=True
+                db, professor.id, ativo=dados.ativo_domicilio
             )
 
     # Retornar todas as configurações

@@ -26,6 +26,7 @@ function DashProfessor() {
     setValorHora,
     tiposAulaSelecionados,
     toggleTipoAula,
+    toggleStatusModalidade,
     statusModalidades,
     setStatusModalidades,
     linkGoogleMeet,
@@ -53,9 +54,9 @@ function DashProfessor() {
   // Função para verificar se uma modalidade está configurada
   const isModalidadeConfigured = (tipoAulaId) => {
     if (!configsSalvas) return false
-    if (tipoAulaId === 'remota') return !!configsSalvas.config_aula_remota
-    if (tipoAulaId === 'presencial') return !!configsSalvas.config_aula_presencial
-    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_aula_domicilio
+    if (tipoAulaId === 'remota') return !!configsSalvas.config_remota
+    if (tipoAulaId === 'presencial') return !!configsSalvas.config_presencial
+    if (tipoAulaId === 'domicilio') return !!configsSalvas.config_domicilio
     return false
   }
 
@@ -159,7 +160,14 @@ function DashProfessor() {
                               )}
                             </div>
                             <span className="option-label">{tipo.label}</span>
-                            <div className="toggle-switch">
+                            <div 
+                              className="toggle-switch"
+                              onClick={(e) => {
+                                if (tiposAulaSelecionados.includes(tipo.id)) {
+                                  toggleStatusModalidade(tipo.id, e)
+                                }
+                              }}
+                            >
                               <div className={`switch-track ${statusModalidades[tipo.id] ? 'active' : ''}`}>
                                 <div className="switch-thumb"></div>
                               </div>
@@ -241,9 +249,13 @@ function DashProfessor() {
                         <input
                           type="text"
                           value={localizacao.estado}
-                          onChange={(e) => handleLocalizacaoChange('estado', e.target.value)}
+                          onChange={(e) => {
+                            const value = e.target.value.toUpperCase().slice(0, 2)
+                            handleLocalizacaoChange('estado', value)
+                          }}
                           placeholder="Ex: SP, RJ, MG"
                           className="simple-input"
+                          maxLength={2}
                           required
                         />
                       </div>

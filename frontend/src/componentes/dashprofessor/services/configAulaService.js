@@ -21,11 +21,13 @@ export const configAulaService = {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error?.detail || 'Erro ao salvar configurações')
+        console.error('❌ Erro do backend:', error)
+        throw new Error(error?.detail || JSON.stringify(error) || 'Erro ao salvar configurações')
       }
 
       return await response.json()
     } catch (error) {
+      console.error('❌ Erro na requisição:', error)
       throw error
     }
   },
@@ -73,6 +75,31 @@ export const configAulaService = {
     } catch (error) {
       throw error
     }
+  },
+
+  /**
+   * Formata os dados para enviar ao backend (múltiplos tipos de aula)
+   */
+  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, statusModalidades) {
+    const payload = {
+      valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
+      tipos_aula_selecionados: tiposAulaSelecionados,
+      link_meet: tiposAulaSelecionados.includes('remota') ? linkGoogleMeet : null,
+      localizacao: tiposAulaSelecionados.includes('presencial') ? {
+        cidade: localizacao.cidade,
+        estado: localizacao.estado,
+        rua: localizacao.rua,
+        numero: localizacao.numero,
+        bairro: localizacao.bairro,
+        complemento: localizacao.complemento || null
+      } : null,
+      // Status de ativação de cada modalidade (direto no payload, não aninhado)
+      ativo_remota: statusModalidades?.remota ?? false,
+      ativo_presencial: statusModalidades?.presencial ?? false,
+      ativo_domicilio: statusModalidades?.domicilio ?? false
+    }
+
+    return payload
   },
 
   /**

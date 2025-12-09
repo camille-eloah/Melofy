@@ -199,17 +199,20 @@ export const tipoAulaService = {
   /**
    * Formata dados para envio à API (nova abordagem com múltiplos tipos)
    */
-  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao) {
+  formatarDadosParaAPIMultiplo(tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, statusModalidades) {
     const payload = {
       valor_hora_aula: valorHora ? parseFloat(valorHora) : null,
       tipos_aula_selecionados: tiposAulaSelecionados,
     }
 
-    if (tiposAulaSelecionados.includes('remota') && linkGoogleMeet) {
+    // Sempre enviar os status de ativação, independente se estão selecionados
+    // Isso permite desativar modalidades sem removê-las
+    if (tiposAulaSelecionados.includes('remota')) {
       payload.link_meet = linkGoogleMeet
     }
+    payload.ativo_remota = statusModalidades?.remota ?? false
     
-    if (tiposAulaSelecionados.includes('presencial') && localizacao) {
+    if (tiposAulaSelecionados.includes('presencial')) {
       payload.localizacao = {
         cidade: localizacao.cidade.trim(),
         estado: localizacao.estado.trim(),
@@ -219,10 +222,9 @@ export const tipoAulaService = {
         complemento: localizacao.complemento ? localizacao.complemento.trim() : null
       }
     }
+    payload.ativo_presencial = statusModalidades?.presencial ?? false
 
-    if (tiposAulaSelecionados.includes('domicilio')) {
-      payload.ativo_domicilio = true
-    }
+    payload.ativo_domicilio = statusModalidades?.domicilio ?? false
 
     return payload
   },
@@ -260,6 +262,11 @@ export const tipoAulaService = {
         
         if (missingFields.length > 0) {
           errors.push(`Campos de localização obrigatórios não preenchidos: ${missingFields.join(', ')}`)
+        }
+
+        // Validar estado (deve ter exatamente 2 letras)
+        if (localizacao.estado && localizacao.estado.length !== 2) {
+          errors.push('O campo Estado deve ter exatamente 2 letras (ex: RN, SP, RJ)')
         }
       }
     })

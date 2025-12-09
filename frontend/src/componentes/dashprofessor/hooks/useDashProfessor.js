@@ -45,36 +45,39 @@ export const useDashProfessor = () => {
       
       if (configs) {
         // Carregar valor da hora
-        if (configs.valor_hora_aula) {
-          setValorHora(configs.valor_hora_aula.toString())
+        if (configs.config_geral?.valor_hora_aula) {
+          setValorHora(configs.config_geral.valor_hora_aula.toString())
         }
 
-        // Carregar tipos de aula configurados
-        if (configs.tipos_aula_configurados && Array.isArray(configs.tipos_aula_configurados)) {
-          setTiposAulaSelecionados(configs.tipos_aula_configurados)
-        }
+        // Determinar tipos de aula configurados E ATIVOS
+        // Só adiciona se a config existe E está ativa
+        const tipos = []
+        if (configs.config_remota?.ativo) tipos.push('remota')
+        if (configs.config_presencial?.ativo) tipos.push('presencial')
+        if (configs.config_domicilio?.ativo) tipos.push('domicilio')
+        setTiposAulaSelecionados(tipos)
 
-        // Carregar status das modalidades
+        // Carregar status das modalidades (todas, mesmo desativadas)
         setStatusModalidades({
-          remota: configs.config_aula_remota?.ativo ?? false,
-          presencial: configs.config_aula_presencial?.ativo ?? false,
-          domicilio: configs.config_aula_domicilio?.ativo ?? false
+          remota: configs.config_remota?.ativo ?? false,
+          presencial: configs.config_presencial?.ativo ?? false,
+          domicilio: configs.config_domicilio?.ativo ?? false
         })
 
-        // Carregar configuração remota (Google Meet)
-        if (configs.config_aula_remota?.link_meet) {
-          setLinkGoogleMeet(configs.config_aula_remota.link_meet)
+        // Carregar configuração remota (Google Meet) - sempre que existir
+        if (configs.config_remota?.link_meet) {
+          setLinkGoogleMeet(configs.config_remota.link_meet)
         }
 
-        // Carregar configuração presencial (localização)
-        if (configs.config_aula_presencial) {
+        // Carregar configuração presencial (localização) - sempre que existir
+        if (configs.config_presencial) {
           setLocalizacao({
-            cidade: configs.config_aula_presencial.cidade || '',
-            estado: configs.config_aula_presencial.estado || '',
-            rua: configs.config_aula_presencial.rua || '',
-            numero: configs.config_aula_presencial.numero || '',
-            bairro: configs.config_aula_presencial.bairro || '',
-            complemento: configs.config_aula_presencial.complemento || ''
+            cidade: configs.config_presencial.cidade || '',
+            estado: configs.config_presencial.estado || '',
+            rua: configs.config_presencial.rua || '',
+            numero: configs.config_presencial.numero || '',
+            bairro: configs.config_presencial.bairro || '',
+            complemento: configs.config_presencial.complemento || ''
           })
         }
       }
@@ -98,18 +101,38 @@ export const useDashProfessor = () => {
    */
   const toggleTipoAula = useCallback((tipo) => {
     setTiposAulaSelecionados(prev => {
-      if (prev.includes(tipo)) {
+      const isCurrentlySelected = prev.includes(tipo)
+      if (isCurrentlySelected) {
+        // Ao desmarcar, também desativa
+        setStatusModalidades(prevStatus => ({
+          ...prevStatus,
+          [tipo]: false
+        }))
         return prev.filter(t => t !== tipo)
       } else {
+        // Ao marcar, ativa por padrão
+        setStatusModalidades(prevStatus => ({
+          ...prevStatus,
+          [tipo]: true
+        }))
         return [...prev, tipo]
       }
     })
+  }, [])
 
-    // Atualizar status da modalidade
-    setStatusModalidades(prev => ({
-      ...prev,
-      [tipo]: !prev[tipo]
-    }))
+  /**
+   * Alterna apenas o status ativo/inativo de uma modalidade
+   */
+  const toggleStatusModalidade = useCallback((tipo, event) => {
+    event.stopPropagation() // Evita que o clique propague para o card pai
+    setStatusModalidades(prev => {
+      const novoStatus = !prev[tipo]
+      console.log(`🔄 Toggle ${tipo}: ${prev[tipo]} → ${novoStatus}`)
+      return {
+        ...prev,
+        [tipo]: novoStatus
+      }
+    })
   }, [])
 
   /**
@@ -144,8 +167,13 @@ export const useDashProfessor = () => {
         tiposAulaSelecionados,
         valorHora,
         linkGoogleMeet,
-        localizacao
+        localizacao,
+        statusModalidades
       )
+
+      // DEBUG: Log para verificar os dados sendo enviados
+      console.log('📊 Status das modalidades:', statusModalidades)
+      console.log('📤 Dados formatados para envio:', dadosFormatados)
 
       await configAulaService.salvarConfiguracao(dadosFormatados)
 
@@ -163,16 +191,22 @@ export const useDashProfessor = () => {
       console.error('Erro ao salvar configurações:', err)
       setError(err.message)
 
+      // Verificar se é erro de validação
+      let errorMessage = err.message || 'Erro ao salvar configurações'
+      if (errorMessage.includes('estado') || errorMessage.includes('state')) {
+        errorMessage = 'O campo Estado deve ter exatamente 2 letras (ex: RN, SP, RJ)'
+      }
+
       Swal.fire({
         title: 'Erro',
-        text: err.message || 'Erro ao salvar configurações',
+        text: errorMessage,
         icon: 'error',
         confirmButtonText: 'Ok'
       })
     } finally {
       setIsSaving(false)
     }
-  }, [tiposAulaSelecionados, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
+  }, [tiposAulaSelecionados, statusModalidades, valorHora, linkGoogleMeet, localizacao, carregarConfiguracoes])
 
   /**
    * Deleta uma configuração de tipo de aula
@@ -267,6 +301,7 @@ export const useDashProfessor = () => {
     setValorHora,
     tiposAulaSelecionados,
     toggleTipoAula,
+    toggleStatusModalidade,
     statusModalidades,
     setStatusModalidades,
     linkGoogleMeet,
