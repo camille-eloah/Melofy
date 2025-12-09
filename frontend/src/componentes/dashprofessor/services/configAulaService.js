@@ -5,6 +5,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export const configAulaService = {
+  API_BASE_URL, // Exportar a URL base
   /**
    * Salva as configurações de modalidade de aula do professor
    */

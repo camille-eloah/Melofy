@@ -847,3 +847,190 @@ input[type="number"]::-webkit-inner-spin-button {
   font-weight: 500;
   border: 1px solid #93c5fd;
 }
+
+/* Estilos para a seção de Pacotes de Aulas */
+.config-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.config-section-header h2 {
+  flex: 1;
+  color: #0f172a;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.config-section-header .section-icon {
+  color: #3b82f6;
+  font-size: 1.5rem;
+}
+
+.btn-criar-pacote {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-criar-pacote:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-criar-pacote:active {
+  transform: translateY(0);
+}
+
+.loading-pacotes,
+.sem-pacotes {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+}
+
+.sem-pacotes p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.sem-pacotes p:first-child {
+  font-weight: 500;
+  color: #475569;
+  font-size: 1rem;
+}
+
+.pacotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.pacote-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s;
+}
+
+.pacote-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.pacote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pacote-header h3 {
+  color: #0f172a;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+}
+
+.pacote-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 0.875rem;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px);
+}
+
+.btn-edit {
+  color: #3b82f6;
+}
+
+.btn-edit:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.btn-delete {
+  color: #ef4444;
+}
+
+.btn-delete:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.pacote-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.info-value {
+  color: #0f172a;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.info-value.destaque {
+  color: #3b82f6;
+  font-size: 1.125rem;
+}
+
+@media (max-width: 768px) {
+  .pacotes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-section-header {
+    flex-wrap: wrap;
+  }
+
+  .btn-criar-pacote {
+    width: 100%;
+    justify-content: center;
+  }
+}
