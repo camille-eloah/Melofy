@@ -74,6 +74,16 @@
     gap: 10px;
 }
 
+.schedule-no-packages {
+    text-align: center;
+    color: #64748b;
+    font-size: 0.95rem;
+    padding: 16px 0;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    margin: 0;
+}
+
 .schedule-horario-btn {
     padding: 10px 16px;
     border-radius: 10px;
@@ -83,6 +93,7 @@
     transition: 0.25s ease;
     font-weight: 600;
     font-size: 0.95rem;
+    width: 100%;
 }
 
 .schedule-horario-btn:hover {
@@ -216,6 +227,7 @@
     transition: 0.25s ease;
     font-weight: 600;
     color: #004a66;
+    background-color: rgba(0, 160, 220, 0.15);
 }
 
 .react-calendar__tile:hover {
@@ -225,160 +237,54 @@
 .react-calendar__tile--now {
     border: 1px solid rgba(0, 160, 220, 0.6);
     background: rgba(0, 160, 220, 0.15);
-    color: #005d7a;
+    color: #0070a0;
     font-weight: 700;
 }
 
 .react-calendar__tile--active {
     background: linear-gradient(135deg, #00baff, #0090cc) !important;
-    color: #fff !important;
+    color: #ffffff !important;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(0, 150, 210, 0.45);
 }
 
-.react-calendar__tile {
-    background: rgba(0, 160, 220, 0.15) !important;
-    border-radius: 8px;
-}
-
-.react-calendar__tile--active,
-.react-calendar__tile:hover {
-    background: rgba(0, 160, 220, 0.35) !important;
-    color: white !important;
-}
-
-/* 🔽 Versão compacta geral */
-.schedule-modal-container {
-    width: 420px;
-    padding: 20px 26px;
-}
-
-.schedule-modal-container h3 {
-    font-size: 1.45rem;
-    margin-bottom: 18px;
-}
-
-.schedule-form-group label {
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-}
-
-.schedule-form-group input {
-    padding: 8px;
-    font-size: 0.9rem;
-}
-
-/* 🔽 Botões de horários menores */
-.schedule-horario-btn {
-    padding: 7px 12px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-}
-
-/* 🔽 Botões principais menores */
-.schedule-btn-confirmar,
-.schedule-btn-cancelar {
-    padding: 9px;
-    font-size: 0.95rem;
-    border-radius: 8px;
-}
-
-/* 🔽 Texto de status menor */
-.schedule-status {
-    font-size: 0.9rem;
-}
-
-/* 🔽 Calendário compacto */
-.react-calendar {
-    padding: 8px 6px;
-    border-radius: 10px;
-}
-
-/* 🔽 Navegação do calendário */
-.react-calendar__navigation button {
-    min-width: 30px;
-    font-size: 0.9rem;
-    padding: 3px;
-}
-
-/* 🔽 Semana (Seg, Ter...) */
-.react-calendar__month-view__weekdays__weekday abbr {
-    font-size: 0.78rem;
-}
-
-/* 🔽 Dia */
-.react-calendar__tile {
-    padding: 6px 0;
-    font-size: 0.85rem;
-    border-radius: 6px;
-}
-
-.schedule-modal-container::-webkit-scrollbar {
-  width: 4px;
-}
-
-.schedule-modal-container::-webkit-scrollbar-thumb {
-  background: rgba(150, 150, 150, 0.25);
-  border-radius: 10px;
-}
-
-.schedule-modal-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(150, 150, 150, 0.4);
-}
-
-.schedule-modal-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-
 /* Container mais organizado para os pacotes */
-.schedule-horarios-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-}
-
-/* Card de pacote alinhado */
 .schedule-package-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-
-  width: 100%;
-  gap: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+    gap: 2px;
 }
 
 /* Nome com destaque */
 .schedule-package-name {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #004a66;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #004a66;
 }
 
 /* Info menor e mais leve */
 .schedule-package-info {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: #006b92;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #006b92;
 }
 
-/* Deixar botão parecendo card */
-.schedule-horario-btn {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background-color: rgba(0, 160, 220, 0.32);
-  border: 1px solid rgba(0, 120, 170, 0.3);
-  cursor: pointer;
-  transition: 0.25s ease;
-  font-size: 0.9rem;
+.schedule-modal-container::-webkit-scrollbar {
+    width: 4px;
 }
 
-/* Quando selecionado continua bonito */
-.schedule-horario-btn.selected {
-  padding: 12px 14px;
+.schedule-modal-container::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.25);
+    border-radius: 10px;
+}
+
+.schedule-modal-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(150, 150, 150, 0.4);
+}
+
+.schedule-modal-container::-webkit-scrollbar-track {
+    background: transparent;
 }

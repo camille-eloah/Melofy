@@ -5,7 +5,7 @@ from datetime import datetime, date
 from enum import Enum
 from pydantic_settings import BaseSettings
 from typing import List
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Numeric
 
 
 # ----------------------------
@@ -233,7 +233,8 @@ class Pacote(SQLModel, table=True):
     pac_prof_id: int = Field(foreign_key="tb_professor.id", nullable=False)
     pac_nome: str = Field(nullable=False)                    # Nome/descrição do pacote
     pac_quantidade_aulas: int = Field(nullable=False, gt=0)  # Quantidade de aulas (> 0)
-    pac_valor_total: float = Field(nullable=False, gt=0, sa_type="DECIMAL(10,2)")  # Valor total
+    pac_valor_total: float = Field(gt=0, sa_column=Column(Numeric(10, 2), nullable=False))  # Valor total
+    pac_valor_hora_aula: Optional[float] = Field(default=None, nullable=True)  # Valor calculado: total / quantidade
     pac_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     pac_ativo: bool = Field(default=True, nullable=False)
 
@@ -335,6 +336,65 @@ class Feedback(SQLModel, table=True):
     assunto: str
     mensagem: str
     criado_em: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ----------------------------
+# Configurações do Professor
+# ----------------------------
+
+class ConfigProfessor(SQLModel, table=True):
+    __tablename__ = "tb_config_professor"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    valor_hora_aula: Optional[float] = Field(default=None, sa_column=Column(Numeric(10, 2), nullable=True))
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaRemota(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_remota"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    link_meet: str = Field(nullable=False)
+    ativo: bool = Field(default=True, nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaPresencial(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_presencial"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    cidade: str = Field(nullable=False)
+    estado: str = Field(nullable=False)  # Ex: "SP", "RJ"
+    rua: str = Field(nullable=False)
+    numero: str = Field(nullable=False)
+    bairro: str = Field(nullable=False)
+    complemento: Optional[str] = Field(default=None, nullable=True)  # Ex: "Sala 203, Bloco B"
+    ativo: bool = Field(default=True, nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
+
+
+class ConfigAulaDomicilio(SQLModel, table=True):
+    __tablename__ = "tb_config_aula_domicilio"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    prof_id: int = Field(foreign_key="tb_professor.id", nullable=False, unique=True)
+    ativo: bool = Field(default=True, nullable=False)
+    criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+    atualizado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)
+
+    professor: Optional[Professor] = Relationship()
 
 
 # ----------------------------
