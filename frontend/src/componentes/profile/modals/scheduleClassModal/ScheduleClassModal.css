@@ -354,3 +354,48 @@
     color: #0f172a;
     font-weight: 600;
 }
+
+.schedule-instrumentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.schedule-instrumento-card {
+    background: #ffffff;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 1rem 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 60px;
+}
+
+.schedule-instrumento-card:hover {
+    border-color: #8338EC;
+    background: #f9f5ff;
+    box-shadow: 0 3px 10px rgba(131, 56, 236, 0.1);
+}
+
+.schedule-instrumento-card.selected {
+    background: linear-gradient(135deg, #f9f5ff 0%, #faf5ff 100%);
+    border-color: #8338EC;
+    box-shadow: 0 3px 10px rgba(131, 56, 236, 0.15);
+}
+
+.schedule-instrumento-label {
+    font-weight: 500;
+    color: #334155;
+    text-align: center;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.schedule-instrumento-card.selected .schedule-instrumento-label {
+    color: #6b21a8;
+    font-weight: 600;
+}

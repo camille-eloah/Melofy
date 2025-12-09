@@ -8,6 +8,7 @@ const ScheduleClassModal = ({
     onClose,
     pacotes = [],
     modalidades = [],
+    instrumentos = [],
     handleConfirmarAgendamento,
 }) => {
     const horariosDisponiveis = ["09:00", "10:30", "14:00", "16:00", "19:00"];
@@ -18,6 +19,7 @@ const ScheduleClassModal = ({
     const [statusMessage, setStatusMessage] = useState("");
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [selectedModalidade, setSelectedModalidade] = useState(null);
+    const [selectedInstrumento, setSelectedInstrumento] = useState(null);
     const [agendamentos, setAgendamentos] = useState([]); // Array de objetos {date, time}
 
     if (!isOpen) return null;
@@ -126,6 +128,7 @@ const ScheduleClassModal = ({
             agendamentos: agendamentos, // Envia array de {date, time}
             pacote: selectedPackage,
             modalidade: selectedModalidade,
+            instrumento: selectedInstrumento,
         });
 
         setStatusMessage("Solicitação enviada ao professor!");
@@ -157,6 +160,23 @@ const ScheduleClassModal = ({
                                         {mod.icon}
                                     </div>
                                     <span className="schedule-modalidade-label">{mod.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {instrumentos.length > 0 && (
+                    <div className="schedule-form-group">
+                        <label>Selecione o instrumento:</label>
+                        <div className="schedule-instrumentos-grid">
+                            {instrumentos.map((inst) => (
+                                <button
+                                    key={inst.id}
+                                    className={`schedule-instrumento-card ${selectedInstrumento?.id === inst.id ? "selected" : ""}`}
+                                    onClick={() => setSelectedInstrumento(inst)}
+                                >
+                                    <span className="schedule-instrumento-label">{inst.nome}</span>
                                 </button>
                             ))}
                         </div>

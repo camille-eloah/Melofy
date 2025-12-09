@@ -923,6 +923,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         onClose={closeScheduleModal}
         pacotes={pacotes}
         modalidades={modalidades}
+        instrumentos={instrumentosProfessor}
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}
