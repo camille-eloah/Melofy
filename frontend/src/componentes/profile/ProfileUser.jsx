@@ -81,6 +81,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   const [isLoadingPacotes, setIsLoadingPacotes] = useState(false);
   const [isEditPackageModalOpen, setIsEditPackageModalOpen] = useState(false);
   const [editingPacote, setEditingPacote] = useState(null);
+  const [modalidades, setModalidades] = useState([]);
   const refreshRatingStats = useCallback(() => {
     if (!usuarioId || !tipoUsuario) {
       setRatingStats({ media: 0, total: 0 });
@@ -121,18 +122,70 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setAgendamento(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleConfirmarAgendamento = () => {
-    console.log("Dados do agendamento enviados:", agendamento);
+  const handleConfirmarAgendamento = async (dadosSolicitacao) => {
+    console.log("Dados da solicitação recebidos:", dadosSolicitacao);
 
-    Swal.fire({
-      title: "Agendamento enviado!",
-      text: "Quando o back estiver pronto irá salvar.",
-      icon: "success",
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "Ok"
-    }).then(() => {
+    try {
+      // Preparar payload para o backend
+      const payload = {
+        agendamentos: dadosSolicitacao.agendamentos,
+        pacote: {
+          pac_id: dadosSolicitacao.pacote.pac_id,
+          pac_nome: dadosSolicitacao.pacote.pac_nome,
+          pac_quantidade_aulas: dadosSolicitacao.pacote.pac_quantidade_aulas,
+          pac_valor_total: dadosSolicitacao.pacote.pac_valor_total,
+        },
+        modalidade: {
+          id: dadosSolicitacao.modalidade.id,
+          label: dadosSolicitacao.modalidade.label,
+        },
+        instrumento: {
+          id: dadosSolicitacao.instrumento.id,
+          nome: dadosSolicitacao.instrumento.nome,
+        },
+        observacao: dadosSolicitacao.observacao,
+        professor_id: usuario.id, // ID do professor
+      };
+
+      console.log("Enviando payload:", payload);
+
+      const response = await fetch("http://localhost:8000/schedule/agendamentos/", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Erro ao criar solicitação");
+      }
+
+      const solicitacaoCriada = await response.json();
+      console.log("Solicitação criada com sucesso:", solicitacaoCriada);
+
+      await Swal.fire({
+        title: "Solicitação enviada!",
+        text: "Sua solicitação de agendamento foi enviada ao professor.",
+        icon: "success",
+        confirmButtonColor: "#8338EC",
+        confirmButtonText: "Ok"
+      });
+
       closeScheduleModal();
-    });
+    } catch (error) {
+      console.error("Erro ao criar solicitação:", error);
+      
+      await Swal.fire({
+        title: "Erro",
+        text: error.message || "Não foi possível enviar a solicitação. Tente novamente.",
+        icon: "error",
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Ok"
+      });
+    }
   };
 
   console.log("[ProfileUser] params", {
@@ -468,6 +521,62 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     setIntroText(usuario?.texto_intro || defaultIntroText);
     setDescText(usuario?.texto_desc || defaultDescText);
   }, [usuario?.id, usuario?.texto_intro, usuario?.texto_desc, defaultIntroText, defaultDescText, hasEditedTexts]);
+
+  useEffect(() => {
+    if (!isProfessor || !usuarioId) {
+      setModalidades([]);
+      return;
+    }
+
+    // Busca as configurações do professor que está sendo visualizado
+    fetch(`${API_BASE_URL}/professor/${usuarioId}/configuracoes`, {
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        if (res.status === 404) {
+          // Professor sem configurações ainda
+          setModalidades([]);
+          return null;
+        }
+        throw new Error("config_error");
+      })
+      .then((data) => {
+        if (!data) return;
+        
+        const modalidadesAtivas = [];
+        
+        if (data?.config_remota?.ativo) {
+          modalidadesAtivas.push({
+            id: 'remota',
+            label: 'Aula Remota',
+            icon: '💻'
+          });
+        }
+        
+        if (data?.config_presencial?.ativo) {
+          modalidadesAtivas.push({
+            id: 'presencial',
+            label: 'Aula Presencial',
+            icon: '🏢'
+          });
+        }
+        
+        if (data?.config_domicilio?.ativo) {
+          modalidadesAtivas.push({
+            id: 'domicilio',
+            label: 'Aula Domiciliar',
+            icon: '🏠'
+          });
+        }
+        
+        setModalidades(modalidadesAtivas);
+      })
+      .catch((err) => {
+        console.error("[ProfileUser] Erro ao carregar modalidades:", err);
+        setModalidades([]);
+      });
+  }, [isProfessor, usuarioId]);
 
   useEffect(() => {
     if (!isProfessor) {
@@ -865,6 +974,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         isOpen={isScheduleModalOpen}
         onClose={closeScheduleModal}
         pacotes={pacotes}
+        modalidades={modalidades}
+        instrumentos={instrumentosProfessor}
         agendamento={agendamento}
         handleChangeAgendamento={handleChangeAgendamento}
         handleConfirmarAgendamento={handleConfirmarAgendamento}

@@ -80,12 +80,20 @@ from app.schemas.config_professor import (
     ConfigProfessorCompleta,
     SalvarConfiguracaoRequest,
 )
+from app.schemas.agendamento import (
+    SolicitacaoAgendamentoCreate,
+    SolicitacaoAgendamentoRead,
+    SolicitacaoHorarioRead,
+)
 from app.services.config_professor_service import ConfigProfessorService
 from app.models import (
     ConfigProfessor,
     ConfigAulaRemota,
     ConfigAulaPresencial,
     ConfigAulaDomicilio,
+    SolicitacaoAgendamento,
+    SolicitacaoHorario,
+    ModalidadeAula,
 )
 
 
@@ -969,6 +977,136 @@ def filtrar_professor_por_aula():
 # ----------------------------
 # 7. Agendamento de Aulas
 # ----------------------------
+@router_schedule.post("/agendamentos/", response_model=SolicitacaoAgendamentoRead, status_code=201)
+def criar_solicitacao_agendamento(
+    solicitacao: SolicitacaoAgendamentoCreate,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """
+    Cria uma nova solicitação de agendamento de aulas.
+    O aluno seleciona múltiplos horários, pacote, modalidade, instrumento e observação.
+    """
+    # 1. Obter usuário autenticado (aluno)
+    tipo_usuario, usuario = _get_current_user(request, db)
+    
+    if tipo_usuario != TipoUsuario.ALUNO:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas alunos podem criar solicitações de agendamento"
+        )
+    
+    # 2. Validar que o professor existe
+    professor = db.get(Professor, solicitacao.professor_id)
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
+    
+    # 3. Validar que o instrumento existe e pertence ao professor
+    instrumento = db.get(Instrumento, solicitacao.instrumento.id)
+    if not instrumento:
+        raise HTTPException(status_code=404, detail="Instrumento não encontrado")
+    
+    # Verificar se o professor oferece este instrumento
+    stmt_prof_instr = select(ProfessorInstrumento).where(
+        ProfessorInstrumento.id_professor == professor.id,
+        ProfessorInstrumento.instrumento_id == instrumento.id
+    )
+    prof_instr = db.exec(stmt_prof_instr).first()
+    if not prof_instr:
+        raise HTTPException(
+            status_code=400,
+            detail="O professor não oferece aulas deste instrumento"
+        )
+    
+    # 4. Validar pacote
+    pacote = db.get(Pacote, solicitacao.pacote.pac_id)
+    if not pacote:
+        raise HTTPException(status_code=404, detail="Pacote não encontrado")
+    
+    if pacote.pac_prof_id != professor.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Este pacote não pertence ao professor selecionado"
+        )
+    
+    # Validar quantidade de horários
+    if len(solicitacao.agendamentos) != pacote.pac_quantidade_aulas:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Você deve selecionar exatamente {pacote.pac_quantidade_aulas} horário(s)"
+        )
+    
+    # 5. Mapear modalidade do frontend para o enum
+    modalidade_map = {
+        "remota": ModalidadeAula.remota,
+        "presencial": ModalidadeAula.presencial,
+        "domicilio": ModalidadeAula.domicilio,
+    }
+    modalidade_enum = modalidade_map.get(solicitacao.modalidade.id)
+    if not modalidade_enum:
+        raise HTTPException(status_code=400, detail="Modalidade inválida")
+    
+    # 6. Criar solicitação de agendamento
+    nova_solicitacao = SolicitacaoAgendamento(
+        sol_prof_id=professor.id,
+        sol_prof_global_uuid=professor.global_uuid,
+        sol_alu_id=usuario.id,
+        sol_alu_global_uuid=usuario.global_uuid,
+        sol_instr_id=instrumento.id,
+        sol_pac_id=pacote.pac_id,
+        sol_modalidade=modalidade_enum,
+        sol_mensagem=solicitacao.observacao,
+    )
+    
+    db.add(nova_solicitacao)
+    db.commit()
+    db.refresh(nova_solicitacao)
+    
+    # 7. Criar registros de horários
+    horarios_criados = []
+    for agendamento in solicitacao.agendamentos:
+        # Converter string "YYYY-MM-DD" para date
+        from datetime import datetime
+        data_obj = datetime.strptime(agendamento.date, "%Y-%m-%d").date()
+        
+        horario = SolicitacaoHorario(
+            sol_id=nova_solicitacao.sol_id,
+            horario_data=data_obj,
+            horario_hora=agendamento.time,
+        )
+        db.add(horario)
+        horarios_criados.append(horario)
+    
+    db.commit()
+    
+    # Refresh para obter os IDs
+    for h in horarios_criados:
+        db.refresh(h)
+    
+    # 8. Retornar resposta
+    return SolicitacaoAgendamentoRead(
+        sol_id=nova_solicitacao.sol_id,
+        sol_prof_id=nova_solicitacao.sol_prof_id,
+        sol_prof_global_uuid=nova_solicitacao.sol_prof_global_uuid,
+        sol_alu_id=nova_solicitacao.sol_alu_id,
+        sol_alu_global_uuid=nova_solicitacao.sol_alu_global_uuid,
+        sol_instr_id=nova_solicitacao.sol_instr_id,
+        sol_pac_id=nova_solicitacao.sol_pac_id,
+        sol_modalidade=nova_solicitacao.sol_modalidade.value,
+        sol_status=nova_solicitacao.sol_status.value,
+        sol_mensagem=nova_solicitacao.sol_mensagem,
+        sol_criado_em=nova_solicitacao.sol_criado_em,
+        horarios=[
+            SolicitacaoHorarioRead(
+                id=h.id,
+                horario_data=h.horario_data,
+                horario_hora=h.horario_hora,
+            )
+            for h in horarios_criados
+        ],
+    )
+
+
 @router_schedule.get("/agendamentos/")
 def listar_agendamentos(id_professor: int | None = None):
     if id_professor:
@@ -978,10 +1116,6 @@ def listar_agendamentos(id_professor: int | None = None):
 @router_schedule.get("/agendamentos/{agendamento_id}")
 def obter_agendamento(agendamento_id: int):
     return {"msg": f"Agendamento {agendamento_id}"}
-
-@router_schedule.post("/agendamentos/")
-def criar_agendamento():
-    return {"msg": "Agendamento criado"}
 
 @router_schedule.patch("/agendamentos/{agendamento_id}/cancelar")
 def cancelar_agendamento(agendamento_id: int):
@@ -1671,6 +1805,21 @@ def obter_configuracoes_professor(
 
     if not isinstance(professor, Professor):
         raise HTTPException(status_code=403, detail="Apenas professores podem acessar configurações")
+
+    configs = ConfigProfessorService.obter_todas_configs(db, professor.id)
+    return configs
+
+
+@router_config_professor.get("/{professor_id}/configuracoes", response_model=ConfigProfessorCompleta)
+def obter_configuracoes_professor_por_id(
+    professor_id: int,
+    db: Session = Depends(get_session),
+):
+    """Obtém as configurações de modalidade de aula de um professor específico (rota pública)"""
+    professor = db.get(Professor, professor_id)
+    
+    if not professor:
+        raise HTTPException(status_code=404, detail="Professor não encontrado")
 
     configs = ConfigProfessorService.obter_todas_configs(db, professor.id)
     return configs
