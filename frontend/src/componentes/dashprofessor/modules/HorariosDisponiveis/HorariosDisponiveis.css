@@ -133,8 +133,8 @@
 }
 
 .horario-option.selected {
-  background: #dcfce7;
-  border-color: #22c55e;
-  color: #166534;
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
   font-weight: 500;
 }
