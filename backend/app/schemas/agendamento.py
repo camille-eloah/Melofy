@@ -48,6 +48,7 @@ class SolicitacaoAgendamentoCreate(BaseModel):
     modalidade: ModalidadeAgendamento = Field(..., description="Modalidade de aula")
     instrumento: InstrumentoAgendamento = Field(..., description="Instrumento escolhido")
     observacao: Optional[str] = Field(None, max_length=500, description="Observação opcional do aluno")
+    nivel: Optional[str] = Field(None, description="Nível de conhecimento: Básico, Intermediário ou Avançado")
     professor_id: int = Field(..., description="ID do professor que receberá a solicitação")
 
     @field_validator('agendamentos')
@@ -88,6 +89,7 @@ class SolicitacaoAgendamentoRead(BaseModel):
     sol_instr_id: int
     sol_pac_id: Optional[int]
     sol_modalidade: str
+    sol_nivel: Optional[str]
     sol_status: str
     sol_mensagem: Optional[str]
     sol_criado_em: datetime

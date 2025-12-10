@@ -47,6 +47,8 @@ class Professor(UserBase, table=True):
     texto_intro: Optional[str] = Field(default=None, nullable=True)
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
+    cidade: Optional[str] = Field(default=None, nullable=True)
+    estado: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -71,6 +73,8 @@ class Aluno(UserBase, table=True):
     texto_intro: Optional[str] = Field(default=None, nullable=True)
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
+    cidade: Optional[str] = Field(default=None, nullable=True)
+    estado: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -206,6 +210,11 @@ class ModalidadeAula(str, Enum):
     presencial = "presencial"
     domicilio = "domicilio"
 
+class NivelConhecimento(str, Enum):
+    Basico = "Basico"
+    Intermediario = "Intermediario"
+    Avancado = "Avancado"
+
 class SolicitacaoAgendamento(SQLModel, table=True):
     __tablename__ = "tb_solicitacao_agendamento"
 
@@ -221,6 +230,7 @@ class SolicitacaoAgendamento(SQLModel, table=True):
     
     # Dados da solicitação
     sol_modalidade: ModalidadeAula = Field(nullable=False)
+    sol_nivel: Optional[NivelConhecimento] = Field(default=None)
     sol_status: StatusSolicitacao = Field(default=StatusSolicitacao.Pendente, nullable=False)
     sol_mensagem: Optional[str] = Field(default=None)
     sol_criado_em: datetime = Field(default_factory=datetime.utcnow, nullable=False)

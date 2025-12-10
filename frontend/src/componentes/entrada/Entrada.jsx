@@ -15,7 +15,6 @@ function Entrada() {
 
 
   const escolherOpcao = (tipo) => {
-    // salva a escolha temporariamente
     localStorage.setItem("tipoCadastro", tipo);
 
     navigate("/cadastro");
@@ -58,12 +57,9 @@ function Entrada() {
         </div>
       </div>
 
-      {/* Modal */}
       {showRoleModal && (
         <div className="role-choice-overlay">
           <div className="role-choice-modal new-role-modal">
-
-            {/* LADO ESQUERDO */}
             <div className="role-left">
               <h1 className="role-title">Aprender música, agora simples e acessível</h1>
 
@@ -98,7 +94,6 @@ function Entrada() {
               </button>
             </div>
 
-            {/* LADO DIREITO */}
             <div className="role-right">
               <img
                 src={jovem_aprendendo}

@@ -74,7 +74,7 @@ function Header() {
     }
   }
 
-  // Função para lidar com o clique no botão de logout
+
   const handleLogoutClick = (e) => {
     e.preventDefault()
     handleLogout()
@@ -82,16 +82,18 @@ function Header() {
 
   return (
     <header className="main-header">
-      <div className="header-left">
-        <span className="brand">
-          <svg className="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18V5l12-2v13M9 18l12-2v3L9 21v-3z" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
-          <span className="brand-text">MELOFY</span>
-        </span>
-      </div>
+     <div className="header-left">
+  <Link to="/home">
+    <span className="brand">
+      <svg className="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M9 18V5l12-2v13M9 18l12-2v3L9 21v-3z" />
+        <circle cx="6" cy="18" r="3" />
+        <circle cx="18" cy="16" r="3" />
+      </svg>
+      <span className="brand-text">MELOFY</span>
+    </span>
+  </Link>
+</div>
 
       <nav className="header-nav">
         <Link
@@ -109,6 +111,27 @@ function Header() {
           <span className="nav-text">Home</span>
           <span className="nav-glow"></span>
         </Link>
+
+        {userTipo === 'professor' && (
+          <Link
+            to="/dashprofessor"
+            className={`nav-link ${activeLink === 'dashboard' ? 'active' : ''}`}
+            onMouseEnter={() => setActiveLink('dashboard')}
+            onMouseLeave={() => setActiveLink('')}
+          >
+            <span className="nav-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+            </span>
+            <span className="nav-text">Dashboard</span>
+            <span className="nav-glow"></span>
+          </Link>
+        )}
+
 
         <Link
           to={profilePath}

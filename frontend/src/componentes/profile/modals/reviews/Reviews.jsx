@@ -287,8 +287,8 @@ const Avaliacoes = ({
         </div>
       )}
 
-      <h3 className="titulo-lista">Avaliacoes de usuarios</h3>
-      {carregando && <p className="texto">Carregando avaliacoes...</p>}
+      <h3 className="titulo-lista">Avaliações de usuários</h3>
+      {carregando && <p className="texto">Carregando avaliações...</p>}
 
       {avaliacoes.map((item, i) => (
         <div className="avaliacao-card" key={i}>

@@ -1,11 +1,14 @@
 from pathlib import Path
 from typing import Union
+import logging
 
 from sqlmodel import Session, select
 
 from app.core.config import get_settings
 from app.models import Professor, Aluno, TipoUsuario
 from app.schemas.user import UserResponse
+
+logger = logging.getLogger(__name__)
 
 
 def _build_profile_picture_url(usuario: Professor | Aluno) -> str | None:
@@ -49,6 +52,8 @@ def montar_resposta_usuario(usuario: Union[Professor, Aluno]) -> UserResponse:
         texto_intro=getattr(usuario, "texto_intro", None),
         texto_desc=getattr(usuario, "texto_desc", None),
         profile_picture=profile_picture_url,
+        cidade=getattr(usuario, "cidade", None),
+        estado=getattr(usuario, "estado", None),
     )
 
 
@@ -61,8 +66,22 @@ def buscar_usuario_por_id(db: Session, user_id: int) -> Professor | Aluno | None
 
 
 def buscar_usuario_por_uuid(db: Session, user_uuid: str) -> Professor | Aluno | None:
+    logger.info(f"🔎 [SERVICE] buscar_usuario_por_uuid chamada com UUID: '{user_uuid}'")
+    logger.info(f"🔎 [SERVICE] UUID repr: {repr(user_uuid)}")
+    
     for model in (Professor, Aluno):
-        usuario = db.exec(select(model).where(model.global_uuid == user_uuid)).first()
+        model_name = model.__name__
+        logger.info(f"🔎 [SERVICE] Buscando em {model_name}...")
+        
+        query = select(model).where(model.global_uuid == user_uuid)
+        logger.info(f"🔎 [SERVICE] Query gerada: {query}")
+        
+        usuario = db.exec(query).first()
+        logger.info(f"🔎 [SERVICE] Resultado {model_name}: {usuario}")
+        
         if usuario:
+            logger.info(f"✅ [SERVICE] Usuário encontrado em {model_name}: ID={usuario.id}, Nome={usuario.nome}")
             return usuario
+    
+    logger.warning(f"❌ [SERVICE] Nenhum usuário encontrado com UUID: '{user_uuid}'")
     return None

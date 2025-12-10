@@ -231,7 +231,7 @@
       animation-delay: 4s;
     }
 
-    /* --- OVERLAY DO MODAL --- */
+    
     .role-choice-overlay {
       position: fixed;
       top: 0;
@@ -257,7 +257,7 @@
       }
     }
 
-    /* --- CONTAINER DO MODAL --- */
+    
     .role-choice-modal {
       background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -281,7 +281,7 @@
       }
     }
 
-    /* --- TÍTULO --- */
+    
     .role-choice-modal h2 {
       font-family: "Inter", sans-serif;
       font-size: 22px;
@@ -291,14 +291,14 @@
       margin-bottom: 22px;
     }
 
-    /* --- BOTÕES DO MODAL --- */
+    
     .role-choice-buttons {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
 
-    /* CONFIGURAÇÃO BASE */
+    
     .role-choice-btn {
       width: 100%;
       padding: 15px 0;
@@ -314,7 +314,7 @@
       background-size: 200% 200%;
     }
 
-    /* BOTÃO DE ALUNO */
+    
     .student-btn {
       background: linear-gradient(45deg, #00d2ff, #0099ff, #0066cc);
       box-shadow: 0 4px 20px rgba(0, 162, 255, 0.4);
@@ -326,7 +326,7 @@
       transform: translateY(-3px);
     }
 
-    /* BOTÃO DE PROFESSOR */
+    
     .teacher-btn {
       background: linear-gradient(45deg, #00d2ff, #00b0ff, #008cff);
     }
@@ -342,7 +342,7 @@
       background-size: 300% 300%;
     }
 
-    /* Diferenciação */
+    
     .role-choice-btn.teacher-btn:hover {
       box-shadow: 0 6px 18px rgba(59, 130, 246, 0.30);
     }
@@ -351,7 +351,7 @@
       box-shadow: 0 6px 18px rgba(14, 165, 233, 0.30);
     }
 
-    /* --- BOTÃO FECHAR --- */
+    
     .role-choice-close {
       margin-top: 12px;
       background: transparent;
@@ -369,7 +369,7 @@
       color: #ffffff;
     }
 
-    /* NOVO LAYOUT DO MODAL EM DUAS COLUNAS */
+
     .new-role-modal {
       width: 800px;
       max-width: 90%;
@@ -382,7 +382,7 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    /* --- LADO ESQUERDO --- */
+    
     .role-left {
       width: 55%;
       padding: 40px 35px;
@@ -407,20 +407,20 @@
       font-weight: 500;
     }
 
-    /* Botões reaproveitam o que você já tinha */
+    
     .role-choice-buttons {
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
 
-    /* Botão fechar no canto esquerdo */
+    
     .close-left {
       margin-top: 12px;
       margin-left: 0;
     }
 
-    /* --- LADO DIREITO (IMAGEM) --- */
+    
     .role-right {
       width: 45%;
       background: linear-gradient(65deg, #00d2ff, #0091ff, #004cff);
@@ -438,7 +438,7 @@
       object-fit: cover;
     }
 
-    /* --- RESPONSIVIDADE --- */
+    
     @media (max-width: 720px) {
       .new-role-modal {
         flex-direction: column;
