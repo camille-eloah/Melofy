@@ -118,6 +118,11 @@ function Instrumentos() {
       }
 
       setMensagem("Instrumentos salvos com sucesso!");
+      
+      // Redirecionar para dashboard do professor após salvar
+      setTimeout(() => {
+        navigate("/dashprofessor");
+      }, 1000);
     } catch (err) {
       console.error(err);
       setMensagem("Erro ao salvar. Tente novamente.");
@@ -226,12 +231,15 @@ function Instrumentos() {
     <div className="instrumentos-page">
       <header className="instrumentos-header">
         <div className="instrumentos-header-left">
-          <span className="brand">MELOFY</span>
+          <span className="brand">
+                 <svg className="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 18V5l12-2v13M9 18l12-2v3L9 21v-3z" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+            MELOFY
+          </span>
         </div>
-
-        <nav className="instrumentos-header-nav">
-          <Link to="/home">Tela Inicial</Link>
-        </nav>
       </header>
 
       <div className="instrumentos-content">
