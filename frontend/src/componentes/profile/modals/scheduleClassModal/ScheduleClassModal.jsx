@@ -187,7 +187,7 @@ const ScheduleClassModal = ({
             showCancelButton: true,
             confirmButtonText: 'Sim, confirmar',
             cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#8338EC',
+            confirmButtonColor: '#3b82f6',
             cancelButtonColor: '#6c757d',
         });
 
