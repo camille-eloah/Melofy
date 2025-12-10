@@ -100,11 +100,11 @@ function UserCard({
       <div className="info">
         <p>
           <span>Email:</span>
-          <span>{usuario.email || "Nao informado"}</span>
+          <span>{usuario.email || "Não informado"}</span>
         </p>
         <p>
           <span>Telefone:</span>
-          <span>{usuario.telefone || "Nao informado"}</span>
+          <span>{usuario.telefone || "Não informado"}</span>
         </p>
         {isProfessor && usuario.link_aula && (
           <p className="link-aula">
@@ -125,7 +125,7 @@ function UserCard({
             </a>
           </p>
         )}
-        <p className="bio-text">{usuario.bio || "Nenhuma descricao informada."}</p>
+        <p className="bio-text">{usuario.bio || "Nenhuma descrição informada."}</p>
       </div>
 
       {isOwner && (

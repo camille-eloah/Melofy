@@ -101,7 +101,7 @@ function TeacherList({ searchTerm = "" }) {
   return (
     <main className="teacher-list">
       <h2 className="teacher-title">
-        Nossa selecao de professores particulares no Brasil
+        Nossa seleção de professores particulares no Brasil
       </h2>
 
       {loading && <p>Carregando professores...</p>}

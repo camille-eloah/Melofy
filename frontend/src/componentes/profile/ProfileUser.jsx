@@ -265,7 +265,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     refreshRatingStats();
   }, [refreshRatingStats]);
 
-  const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
+  const nomeUsuario = usuario?.nome || "Usuário Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
   const absoluteProfilePicture =
     profilePicture && !profilePicture.startsWith("http")

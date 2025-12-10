@@ -71,7 +71,7 @@ function EditProfileTextModal({
           </label>
 
           <label className="edit-profile-text-group">
-            <span className="edit-profile-text-label">Descricao</span>
+            <span className="edit-profile-text-label">Descrição</span>
             <textarea
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
