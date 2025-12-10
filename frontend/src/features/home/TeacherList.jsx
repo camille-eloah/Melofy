@@ -60,17 +60,109 @@ function TeacherList({ searchTerm = "" }) {
             } catch (err) {
               /* ignora erro de instrumentos */
             }
+
+            // Buscar modalidades ativas do professor
+            let modalidades = [];
+            let valorHoraAula = null;
+            try {
+              console.log(`[TeacherList] Buscando configurações do professor ID: ${prof.id}`);
+              const configResp = await fetch(`${API_BASE_URL}/professor/${prof.id}/configuracoes`);
+              console.log(`[TeacherList] Status da resposta: ${configResp.status}`);
+              
+              if (configResp.ok) {
+                const config = await configResp.json();
+                console.log(`[TeacherList] Configurações recebidas:`, config);
+                
+                // Capturar valor_hora_aula da config_geral
+                if (config.config_geral?.valor_hora_aula) {
+                  valorHoraAula = config.config_geral.valor_hora_aula;
+                }
+                
+                if (config.config_remota?.ativo) {
+                  console.log(`[TeacherList] Remota ativa`);
+                  modalidades.push("remoto");
+                }
+                if (config.config_presencial?.ativo) {
+                  console.log(`[TeacherList] Presencial ativa`);
+                  modalidades.push("presencial");
+                }
+                if (config.config_domicilio?.ativo) {
+                  console.log(`[TeacherList] Domicílio ativa`);
+                  modalidades.push("domicílio");
+                }
+                console.log(`[TeacherList] Modalidades encontradas:`, modalidades);
+              } else {
+                console.warn(`[TeacherList] Erro ao buscar configurações: ${configResp.status}`);
+              }
+            } catch (err) {
+              console.error(`[TeacherList] Erro ao buscar configurações:`, err);
+              /* ignora erro de configurações */
+            }
+
+            // Buscar pacotes do professor para obter valores de hora/aula
+            let priceText = "Valor não informado";
+            try {
+              const pacotesResp = await fetch(`${API_BASE_URL}/lessons/professor/${prof.id}/pacotes/`);
+              if (pacotesResp.ok) {
+                const pacotes = await pacotesResp.json();
+                const valoresHoraAula = pacotes
+                  .filter(p => p.pac_ativo && p.pac_valor_hora_aula)
+                  .map(p => Number(p.pac_valor_hora_aula))
+                  .filter(v => v > 0);
+                
+                if (valoresHoraAula.length > 0) {
+                  const menorValor = Math.min(...valoresHoraAula);
+                  const maiorValor = Math.max(...valoresHoraAula);
+                  
+                  if (menorValor === maiorValor) {
+                    priceText = `R$ ${menorValor.toFixed(2).replace('.', ',')}/h`;
+                  } else {
+                    priceText = `R$ ${menorValor.toFixed(2).replace('.', ',')} a R$ ${maiorValor.toFixed(2).replace('.', ',')}/h`;
+                  }
+                } else if (valorHoraAula && valorHoraAula > 0) {
+                  // Usar valor_hora_aula da config_geral se não houver pacotes
+                  priceText = `R$ ${Number(valorHoraAula).toFixed(2).replace('.', ',')}/h`;
+                }
+              }
+            } catch (err) {
+              console.error(`[TeacherList] Erro ao buscar pacotes:`, err);
+              // Se falhar ao buscar pacotes, usar valor_hora_aula da config se disponível
+              if (valorHoraAula && valorHoraAula > 0) {
+                priceText = `R$ ${Number(valorHoraAula).toFixed(2).replace('.', ',')}/h`;
+              }
+            }
+
+            // Formatar modalidades para exibição
+            const formatModalidades = (list) => {
+              if (list.length === 0) return "";
+              if (list.length === 1) return list[0];
+              if (list.length === 2) return `${list[0]} & ${list[1]}`;
+              return `${list.slice(0, -1).join(", ")} & ${list[list.length - 1]}`;
+            };
+
+            // Formatar cidade e estado dinamicamente
+            const cidade = prof.cidade || "Cidade não informada";
+            const estado = prof.estado || "";
+            const location = estado ? `${cidade} - ${estado}` : cidade;
+            const modalidadesText = modalidades.length > 0 ? ` (${formatModalidades(modalidades)})` : "";
+            
+            console.log(`[TeacherList] Professor ${prof.nome}:`);
+            console.log(`  - Localização: ${location}`);
+            console.log(`  - Modalidades: ${modalidadesText}`);
+            console.log(`  - Texto final: ${location}${modalidadesText}`);
+
             return {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
-              city: "Caico - RN",
+              city: location,
+              modalidades: modalidadesText,
               instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
               reviews: `${total} reviews`,
               bio: prof.bio || "Nenhuma bio informada.",
-              price: "R$ 90/h",
+              price: priceText,
               instrumentosNomes,
             };
           })
@@ -107,7 +199,9 @@ function TeacherList({ searchTerm = "" }) {
       {loading && <p>Carregando professores...</p>}
 
       <div className="teacher-grid">
-        {visiveis.map((t) => (
+        {visiveis.map((t) => {
+          console.log(`[TeacherList RENDER] Professor: ${t.name}, City: ${t.city}, Modalidades: ${t.modalidades}`);
+          return (
           <div
             className="teacher-card"
             key={t.id}
@@ -127,7 +221,7 @@ function TeacherList({ searchTerm = "" }) {
               <h3>{t.name}</h3>
 
               <p className="teacher-location">
-                {t.city} (presencial & online)
+                {t.city}{t.modalidades}
               </p>
 
               <p className="teacher-rating">
@@ -141,7 +235,7 @@ function TeacherList({ searchTerm = "" }) {
               <p className="teacher-price">{t.price}</p>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </main>
   );

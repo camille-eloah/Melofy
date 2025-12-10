@@ -52,6 +52,8 @@ def montar_resposta_usuario(usuario: Union[Professor, Aluno]) -> UserResponse:
         texto_intro=getattr(usuario, "texto_intro", None),
         texto_desc=getattr(usuario, "texto_desc", None),
         profile_picture=profile_picture_url,
+        cidade=getattr(usuario, "cidade", None),
+        estado=getattr(usuario, "estado", None),
     )
 
 
