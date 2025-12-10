@@ -60,16 +60,64 @@ function TeacherList({ searchTerm = "" }) {
             } catch (err) {
               /* ignora erro de instrumentos */
             }
+
+            // Buscar modalidades ativas do professor
+            let modalidades = [];
+            try {
+              console.log(`[TeacherList] Buscando configurações do professor ID: ${prof.id}`);
+              const configResp = await fetch(`${API_BASE_URL}/professor/${prof.id}/configuracoes`);
+              console.log(`[TeacherList] Status da resposta: ${configResp.status}`);
+              
+              if (configResp.ok) {
+                const config = await configResp.json();
+                console.log(`[TeacherList] Configurações recebidas:`, config);
+                
+                if (config.config_remota?.ativo) {
+                  console.log(`[TeacherList] Remota ativa`);
+                  modalidades.push("remoto");
+                }
+                if (config.config_presencial?.ativo) {
+                  console.log(`[TeacherList] Presencial ativa`);
+                  modalidades.push("presencial");
+                }
+                if (config.config_domicilio?.ativo) {
+                  console.log(`[TeacherList] Domicílio ativa`);
+                  modalidades.push("domicílio");
+                }
+                console.log(`[TeacherList] Modalidades encontradas:`, modalidades);
+              } else {
+                console.warn(`[TeacherList] Erro ao buscar configurações: ${configResp.status}`);
+              }
+            } catch (err) {
+              console.error(`[TeacherList] Erro ao buscar configurações:`, err);
+              /* ignora erro de configurações */
+            }
+
+            // Formatar modalidades para exibição
+            const formatModalidades = (list) => {
+              if (list.length === 0) return "";
+              if (list.length === 1) return list[0];
+              if (list.length === 2) return `${list[0]} & ${list[1]}`;
+              return `${list.slice(0, -1).join(", ")} & ${list[list.length - 1]}`;
+            };
+
             // Formatar cidade e estado dinamicamente
             const cidade = prof.cidade || "Cidade não informada";
             const estado = prof.estado || "";
             const location = estado ? `${cidade} - ${estado}` : cidade;
+            const modalidadesText = modalidades.length > 0 ? ` (${formatModalidades(modalidades)})` : "";
+            
+            console.log(`[TeacherList] Professor ${prof.nome}:`);
+            console.log(`  - Localização: ${location}`);
+            console.log(`  - Modalidades: ${modalidadesText}`);
+            console.log(`  - Texto final: ${location}${modalidadesText}`);
 
             return {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
               city: location,
+              modalidades: modalidadesText,
               instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
@@ -112,7 +160,9 @@ function TeacherList({ searchTerm = "" }) {
       {loading && <p>Carregando professores...</p>}
 
       <div className="teacher-grid">
-        {visiveis.map((t) => (
+        {visiveis.map((t) => {
+          console.log(`[TeacherList RENDER] Professor: ${t.name}, City: ${t.city}, Modalidades: ${t.modalidades}`);
+          return (
           <div
             className="teacher-card"
             key={t.id}
@@ -132,7 +182,7 @@ function TeacherList({ searchTerm = "" }) {
               <h3>{t.name}</h3>
 
               <p className="teacher-location">
-                {t.city} (presencial & online)
+                {t.city}{t.modalidades}
               </p>
 
               <p className="teacher-rating">
@@ -146,7 +196,7 @@ function TeacherList({ searchTerm = "" }) {
               <p className="teacher-price">{t.price}</p>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </main>
   );
