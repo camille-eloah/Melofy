@@ -266,7 +266,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     refreshRatingStats();
   }, [refreshRatingStats]);
 
-  const nomeUsuario = usuario?.nome || "Usuario Desconhecido";
+  const nomeUsuario = usuario?.nome || "Usuário Desconhecido";
   const profilePicture = usuario?.profile_picture || null;
   const absoluteProfilePicture =
     profilePicture && !profilePicture.startsWith("http")
@@ -785,6 +785,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
       email: values?.email ?? usuario.email ?? "",
       telefone: values?.telefone ?? "",
       bio: values?.bio ?? "",
+      cidade: values?.cidade ?? "",
+      estado: values?.estado ?? "",
       link_aula: values?.link_aula ?? usuario.link_aula ?? "",
     };
 
@@ -954,6 +956,8 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           initialEmail={usuario?.email || ""}
           initialPhone={usuario?.telefone || ""}
           initialBio={usuario?.bio || ""}
+          initialCidade={usuario?.cidade || ""}
+          initialEstado={usuario?.estado || ""}
           initialLinkAula={usuario?.link_aula || ""}
           onSave={handleSaveProfileInfo}
           isSaving={isSavingProfileInfo}

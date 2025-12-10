@@ -19,6 +19,8 @@ class UserCreate(BaseModel):
     bio: str | None = None
     texto_intro: str | None = None
     texto_desc: str | None = None
+    cidade: str | None = None
+    estado: str | None = None
 
     @field_validator("tipo", mode="before")
     @classmethod
@@ -57,6 +59,8 @@ class UserResponse(BaseModel):
     texto_intro: str | None = None
     texto_desc: str | None = None
     profile_picture: str | None = None
+    cidade: str | None = None
+    estado: str | None = None
 
 
 class UserUpdate(BaseModel):
@@ -66,6 +70,8 @@ class UserUpdate(BaseModel):
     bio: str | None = None
     texto_intro: str | None = None
     texto_desc: str | None = None
+    cidade: str | None = None
+    estado: str | None = None
 
     @field_validator("telefone", mode="before")
     @classmethod
