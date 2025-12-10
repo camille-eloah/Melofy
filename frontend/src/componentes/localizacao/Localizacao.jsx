@@ -103,11 +103,41 @@ function Localizacao() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      if (!userLocation) {
-        setShowLocationPrompt(true);
+    const checkLocationPermission = async () => {
+      if (!navigator.permissions) {
+        // Navegador não suporta a API de Permissions
+        setTimeout(() => {
+          if (!userLocation) {
+            setShowLocationPrompt(true);
+          }
+        }, 1000);
+        return;
       }
-    }, 1000);
+
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        
+        if (permissionStatus.state === 'granted') {
+          // Se já tem permissão, busca a localização automaticamente
+          requestUserLocation();
+        } else if (permissionStatus.state === 'prompt') {
+          // Se ainda não perguntou, mostra o modal customizado
+          setTimeout(() => {
+            setShowLocationPrompt(true);
+          }, 1000);
+        }
+        // Se state === 'denied', não faz nada (usuário já negou)
+      } catch (error) {
+        // Fallback se a API falhar
+        setTimeout(() => {
+          if (!userLocation) {
+            setShowLocationPrompt(true);
+          }
+        }, 1000);
+      }
+    };
+
+    checkLocationPermission();
   }, []);
 
   useEffect(() => {

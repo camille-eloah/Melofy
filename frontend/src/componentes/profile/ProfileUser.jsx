@@ -171,7 +171,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         title: "Solicitação enviada!",
         text: "Sua solicitação de agendamento foi enviada ao professor.",
         icon: "success",
-        confirmButtonColor: "#8338EC",
+        confirmButtonColor: "#3b82f6",
         confirmButtonText: "Ok"
       });
 
@@ -356,6 +356,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         title: "Sucesso!",
         text: "Pacote cadastrado com sucesso!",
         icon: "success",
+        confirmButtonColor: "#3b82f6",
         didRender: (modal) => {
           const backdrop = document.querySelector(".swal2-container");
           if (backdrop) backdrop.style.zIndex = "9999";
