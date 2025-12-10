@@ -239,7 +239,9 @@ export const useDashProfessor = () => {
           id: sol.sol_id,
           aluno: {
             nome: alunoData.nome || 'Aluno',
-            foto: alunoData.profile_picture || 'https://via.placeholder.com/100',
+            foto: alunoData.profile_picture 
+              ? `http://localhost:8000${alunoData.profile_picture}` 
+              : 'https://via.placeholder.com/100',
             instrumento: instrumentoData.nome || 'Instrumento',
             nivel: sol.sol_nivel || 'Não informado'
           },
