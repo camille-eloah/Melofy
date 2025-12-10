@@ -47,6 +47,8 @@ class Professor(UserBase, table=True):
     texto_intro: Optional[str] = Field(default=None, nullable=True)
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
+    cidade: Optional[str] = Field(default=None, nullable=True)
+    estado: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -71,6 +73,8 @@ class Aluno(UserBase, table=True):
     texto_intro: Optional[str] = Field(default=None, nullable=True)
     texto_desc: Optional[str] = Field(default=None, nullable=True)
     telefone: Optional[str] = Field(default=None, nullable=True)
+    cidade: Optional[str] = Field(default=None, nullable=True)
+    estado: Optional[str] = Field(default=None, nullable=True)
     hashed_password: str
     profile_picture: Optional[str] = Field(default=None, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)

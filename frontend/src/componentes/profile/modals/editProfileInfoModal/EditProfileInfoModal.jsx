@@ -12,6 +12,8 @@ function EditProfileInfoModal({
   initialEmail = "",
   initialPhone = "",
   initialBio = "",
+  initialCidade = "",
+  initialEstado = "",
   onSave,
   isSaving = false,
 }) {
@@ -19,6 +21,8 @@ function EditProfileInfoModal({
   const [email, setEmail] = useState(initialEmail || "");
   const [telefone, setTelefone] = useState(initialPhone || "");
   const [bio, setBio] = useState(initialBio || "");
+  const [cidade, setCidade] = useState(initialCidade || "");
+  const [estado, setEstado] = useState(initialEstado || "");
 
   useEffect(() => {
     if (open) {
@@ -26,8 +30,10 @@ function EditProfileInfoModal({
       setEmail(initialEmail || "");
       setTelefone(initialPhone || "");
       setBio(initialBio || "");
+      setCidade(initialCidade || "");
+      setEstado(initialEstado || "");
     }
-  }, [open, initialName, initialEmail, initialPhone, initialBio]);
+  }, [open, initialName, initialEmail, initialPhone, initialBio, initialCidade, initialEstado]);
 
   const handlePhotoKeyDown = (event) => {
     if (!onPhotoClick) return;
@@ -45,6 +51,8 @@ function EditProfileInfoModal({
         email: email?.trim() || "",
         telefone: telefone?.trim() || "",
         bio: bio?.trim() || "",
+        cidade: cidade?.trim() || "",
+        estado: estado?.trim() || "",
       });
     }
   };
@@ -135,6 +143,27 @@ function EditProfileInfoModal({
               placeholder="(00) 00000-0000"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
+            />
+          </label>
+
+          <label className="edit-profile-info-input-group">
+            <span className="edit-profile-info-label">Cidade</span>
+            <input
+              type="text"
+              placeholder="Sua cidade"
+              value={cidade}
+              onChange={(e) => setCidade(e.target.value)}
+            />
+          </label>
+
+          <label className="edit-profile-info-input-group">
+            <span className="edit-profile-info-label">Estado</span>
+            <input
+              type="text"
+              placeholder="UF"
+              maxLength="2"
+              value={estado}
+              onChange={(e) => setEstado(e.target.value.toUpperCase())}
             />
           </label>
 
