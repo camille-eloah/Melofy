@@ -9,12 +9,14 @@ function Header() {
   const [userId, setUserId] = useState(null)
   const [userUuid, setUserUuid] = useState(null)
   const [userTipo, setUserTipo] = useState(null)
+  const [isLoadingUser, setIsLoadingUser] = useState(true)
   const [showNotifications, setShowNotifications] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [activeLink, setActiveLink] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
+    setIsLoadingUser(true)
     fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -26,6 +28,7 @@ function Header() {
         }
       })
       .catch(() => { })
+      .finally(() => setIsLoadingUser(false))
   }, [])
 
   const profilePath = userUuid && userTipo ? `/${userTipo}/${userUuid}` : '/profile'
@@ -197,7 +200,7 @@ function Header() {
           <span className="nav-glow"></span>
         </Link>
 
-        {userTipo === 'professor' && (
+        {!isLoadingUser && userTipo === 'professor' && (
           <Link
             to="/dashprofessor"
             className={`nav-link ${activeLink === 'dashboard' ? 'active' : ''}`}

@@ -13,6 +13,7 @@ import EditPackageModal from "./modals/editPackageModal/EditPackageModal";
 import ScheduleClassModal from "./modals/scheduleClassModal/ScheduleClassModal";
 import Reviews from "./modals/reviews/Reviews";
 import UserCard from "./user-card/UserCard";
+import SpinnerLoading from "../ui/SpinnerLoading";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -110,6 +111,7 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   }, []);
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [agendamento, setAgendamento] = useState({
     data: "",
     horario: "",
@@ -201,8 +203,12 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
   });
 
   useEffect(() => {
-    if (!userIdentifier) return;
+    if (!userIdentifier) {
+      setIsLoadingProfile(false);
+      return;
+    }
 
+    setIsLoadingProfile(true);
     const identifierPath = isUuid ? `uuid/${userIdentifier}` : userIdentifier;
     console.log("[ProfileUser] fetch perfil", { userIdentifier, isUuid, tipoPath, identifierPath });
     const url = tipoPath
@@ -229,6 +235,9 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
         if (err.message === "not_found") {
           navigate("/home");
         }
+      })
+      .finally(() => {
+        setIsLoadingProfile(false);
       });
   }, [userIdentifier, navigate, tipoPath, isUuid]);
 
@@ -863,7 +872,11 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
     <div className="profile-page">
       <Header />
 
-      <div className="profile-container">
+      {isLoadingProfile ? (
+        <SpinnerLoading fullScreen={false} message="Carregando perfil..." size="large" />
+      ) : (
+        <>
+        <div className="profile-container" style={{ animation: 'fadeIn 0.5s ease-in' }}>
         <div className="lado-esquerdo-profile">
           <div className="top-items">
             <div className="categorias">
@@ -974,38 +987,40 @@ function ProfileUser({ usuario: usuarioProp = {}, activities = [], currentUser: 
           currentUser={currentUser}
           onRatingChange={refreshRatingStats}
         />
-      </div>
+        </div>
 
-      <ScheduleClassModal
-        isOpen={isScheduleModalOpen}
-        onClose={closeScheduleModal}
-        pacotes={pacotes}
-        modalidades={modalidades}
-        instrumentos={instrumentosProfessor}
-        agendamento={agendamento}
-        handleChangeAgendamento={handleChangeAgendamento}
-        handleConfirmarAgendamento={handleConfirmarAgendamento}
-        professorId={usuarioIdState}
-      />
+        <ScheduleClassModal
+          isOpen={isScheduleModalOpen}
+          onClose={closeScheduleModal}
+          pacotes={pacotes}
+          modalidades={modalidades}
+          instrumentos={instrumentosProfessor}
+          agendamento={agendamento}
+          handleChangeAgendamento={handleChangeAgendamento}
+          handleConfirmarAgendamento={handleConfirmarAgendamento}
+          professorId={usuarioIdState}
+        />
 
-      <CreatePackageModal
-        open={isPackageModalOpen}
-        onClose={() => setIsPackageModalOpen(false)}
-        pacote={pacote}
-        onChange={setPacote}
-        onSubmit={handleSubmitPacote}
-      />
+        <CreatePackageModal
+          open={isPackageModalOpen}
+          onClose={() => setIsPackageModalOpen(false)}
+          pacote={pacote}
+          onChange={setPacote}
+          onSubmit={handleSubmitPacote}
+        />
 
-      <EditPackageModal
-        open={isEditPackageModalOpen}
-        onClose={closeEditPackageModal}
-        pacote={editingPacote}
-        onChange={setEditingPacote}
-        onSubmit={handleEditPacote}
-      />
+        <EditPackageModal
+          open={isEditPackageModalOpen}
+          onClose={closeEditPackageModal}
+          pacote={editingPacote}
+          onChange={setEditingPacote}
+          onSubmit={handleEditPacote}
+        />
 
-      <ButtonChat />
-      <Footer />
+        <ButtonChat />
+        <Footer />
+        </>
+      )}
     </div>
   );
 }
