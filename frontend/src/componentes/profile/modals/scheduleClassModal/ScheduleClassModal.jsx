@@ -123,8 +123,13 @@ const ScheduleClassModal = ({
         ? selectedPackage.pac_quantidade_aulas - agendamentos.length 
         : 0;
 
-    // Verificar se pode confirmar (todos os horários foram selecionados)
-    const podeConfirmar = selectedPackage && agendamentos.length === selectedPackage.pac_quantidade_aulas;
+    // Verificar se pode confirmar (todos os campos obrigatórios preenchidos)
+    const podeConfirmar = 
+        selectedModalidade && 
+        selectedInstrumento && 
+        selectedNivel && 
+        selectedPackage && 
+        agendamentos.length === selectedPackage.pac_quantidade_aulas;
 
     // Verificar se um horário específico está selecionado para a data atual
     const isHorarioSelecionado = (time) => {
