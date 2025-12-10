@@ -60,11 +60,16 @@ function TeacherList({ searchTerm = "" }) {
             } catch (err) {
               /* ignora erro de instrumentos */
             }
+            // Formatar cidade e estado dinamicamente
+            const cidade = prof.cidade || "Cidade não informada";
+            const estado = prof.estado || "";
+            const location = estado ? `${cidade} - ${estado}` : cidade;
+
             return {
               id: prof.id,
               uuid: prof.global_uuid,
               name: prof.nome,
-              city: "Caico - RN",
+              city: location,
               instrument: formatInstruments(instrumentosNomes),
               image: foto,
               rating: media.toFixed(1),
