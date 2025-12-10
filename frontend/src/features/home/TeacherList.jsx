@@ -63,6 +63,7 @@ function TeacherList({ searchTerm = "" }) {
 
             // Buscar modalidades ativas do professor
             let modalidades = [];
+            let valorHoraAula = null;
             try {
               console.log(`[TeacherList] Buscando configurações do professor ID: ${prof.id}`);
               const configResp = await fetch(`${API_BASE_URL}/professor/${prof.id}/configuracoes`);
@@ -71,6 +72,11 @@ function TeacherList({ searchTerm = "" }) {
               if (configResp.ok) {
                 const config = await configResp.json();
                 console.log(`[TeacherList] Configurações recebidas:`, config);
+                
+                // Capturar valor_hora_aula da config_geral
+                if (config.config_geral?.valor_hora_aula) {
+                  valorHoraAula = config.config_geral.valor_hora_aula;
+                }
                 
                 if (config.config_remota?.ativo) {
                   console.log(`[TeacherList] Remota ativa`);
@@ -91,6 +97,39 @@ function TeacherList({ searchTerm = "" }) {
             } catch (err) {
               console.error(`[TeacherList] Erro ao buscar configurações:`, err);
               /* ignora erro de configurações */
+            }
+
+            // Buscar pacotes do professor para obter valores de hora/aula
+            let priceText = "Valor não informado";
+            try {
+              const pacotesResp = await fetch(`${API_BASE_URL}/lessons/professor/${prof.id}/pacotes/`);
+              if (pacotesResp.ok) {
+                const pacotes = await pacotesResp.json();
+                const valoresHoraAula = pacotes
+                  .filter(p => p.pac_ativo && p.pac_valor_hora_aula)
+                  .map(p => Number(p.pac_valor_hora_aula))
+                  .filter(v => v > 0);
+                
+                if (valoresHoraAula.length > 0) {
+                  const menorValor = Math.min(...valoresHoraAula);
+                  const maiorValor = Math.max(...valoresHoraAula);
+                  
+                  if (menorValor === maiorValor) {
+                    priceText = `R$ ${menorValor.toFixed(2).replace('.', ',')}/h`;
+                  } else {
+                    priceText = `R$ ${menorValor.toFixed(2).replace('.', ',')} a R$ ${maiorValor.toFixed(2).replace('.', ',')}/h`;
+                  }
+                } else if (valorHoraAula && valorHoraAula > 0) {
+                  // Usar valor_hora_aula da config_geral se não houver pacotes
+                  priceText = `R$ ${Number(valorHoraAula).toFixed(2).replace('.', ',')}/h`;
+                }
+              }
+            } catch (err) {
+              console.error(`[TeacherList] Erro ao buscar pacotes:`, err);
+              // Se falhar ao buscar pacotes, usar valor_hora_aula da config se disponível
+              if (valorHoraAula && valorHoraAula > 0) {
+                priceText = `R$ ${Number(valorHoraAula).toFixed(2).replace('.', ',')}/h`;
+              }
             }
 
             // Formatar modalidades para exibição
@@ -123,7 +162,7 @@ function TeacherList({ searchTerm = "" }) {
               rating: media.toFixed(1),
               reviews: `${total} reviews`,
               bio: prof.bio || "Nenhuma bio informada.",
-              price: "R$ 90/h",
+              price: priceText,
               instrumentosNomes,
             };
           })
