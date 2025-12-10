@@ -1,6 +1,7 @@
 ﻿import "./TeacherList.css";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SpinnerLoading from "../../componentes/ui/SpinnerLoading";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -196,7 +197,7 @@ function TeacherList({ searchTerm = "" }) {
         Nossa seleção de professores particulares no Brasil
       </h2>
 
-      {loading && <p>Carregando professores...</p>}
+      {loading && <SpinnerLoading message="Carregando professores..." />}
 
       <div className="teacher-grid">
         {visiveis.map((t) => {

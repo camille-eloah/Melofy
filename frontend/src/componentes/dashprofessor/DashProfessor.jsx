@@ -9,6 +9,7 @@ import PacotesAula from './modules/PacotesAula/PacotesAula'
 import ModalidadesAula from './modules/ModalidadesAula/ModalidadesAula'
 import HorariosDisponiveis from './modules/HorariosDisponiveis/HorariosDisponiveis'
 import SolicitacoesAula from './modules/SolicitacoesAula/SolicitacoesAula'
+import SpinnerLoading from '../ui/SpinnerLoading'
 import { 
   FaSave,
   FaInfoCircle,
@@ -20,6 +21,7 @@ import {
 
 function DashProfessor() {
   const [abaAtiva, setAbaAtiva] = useState('precos-pacotes')
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
 
   const {
     valorHora,
@@ -63,9 +65,16 @@ function DashProfessor() {
   } = useDashProfessor()
 
   useEffect(() => {
-    carregarConfiguracoes()
-    carregarSolicitacoes()
-    carregarPacotes()
+    const loadInitialData = async () => {
+      setIsInitialLoading(true)
+      await Promise.all([
+        carregarConfiguracoes(),
+        carregarSolicitacoes(),
+        carregarPacotes()
+      ])
+      setIsInitialLoading(false)
+    }
+    loadInitialData()
   }, [carregarConfiguracoes, carregarSolicitacoes, carregarPacotes])
 
   const isModalidadeConfigured = (tipoAulaId) => {
@@ -84,7 +93,10 @@ function DashProfessor() {
   return (
     <>
       <Header />
-      <div className="dashboard-container">
+      {isInitialLoading ? (
+        <SpinnerLoading fullScreen={true} message="Carregando configurações..." size="large" />
+      ) : (
+        <div className="dashboard-container" style={{ animation: 'fadeIn 0.5s ease-in' }}>
         <div className="dashboard-wrapper">
           <div className="dashboard-header">
             <div className="dashboard-header-content">
@@ -296,6 +308,7 @@ function DashProfessor() {
           </div>
         </div>
       </div>
+      )}
       <ChatButton />
       <Footer />
     </>
