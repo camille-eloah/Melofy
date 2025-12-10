@@ -129,7 +129,9 @@ function SolicitacoesAula({
                       <div className="aluno-metadata">
                         <span className="metadata-item">
                           <FaUser className="metadata-icon" />
-                          {solicitacao.aluno.nivel}
+                          {solicitacao.aluno.nivel === 'Basico' ? 'Básico' : 
+                           solicitacao.aluno.nivel === 'Intermediario' ? 'Intermediário' : 
+                           solicitacao.aluno.nivel}
                         </span>
                         <span className="metadata-item">
                           <FaMusic className="metadata-icon" />
