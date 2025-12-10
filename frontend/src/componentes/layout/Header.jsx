@@ -159,7 +159,7 @@ function Header() {
     }
   }
 
-  // Função para lidar com o clique no botão de logout
+
   const handleLogoutClick = (e) => {
     e.preventDefault()
     handleLogout()

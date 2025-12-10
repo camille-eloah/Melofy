@@ -8,9 +8,7 @@ const API_BASE_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8000";
 
 const resolverFoto = (fotoPath) => {
   if (!fotoPath) return null;
-  // Se já é URL absoluta, retorna como está
   if (fotoPath.startsWith('http')) return fotoPath;
-  // Se é caminho relativo, adiciona a base do API
   return `${API_BASE_URL}${fotoPath.startsWith('/') ? '' : '/'}${fotoPath}`;
 };
 
@@ -37,7 +35,7 @@ useEffect(() => {
       const data = await resp.json();
 
       setMeuUuid(data.global_uuid);
-      setMeuTipo(data.tipo_usuario); // 🔥 salva o tipo (aluno ou professor)
+      setMeuTipo(data.tipo_usuario); 
 
       console.log(
         "%c🔎 DEBUG — Usuário logado:",
@@ -107,7 +105,7 @@ useEffect(() => {
   const enviarMensagem = async () => {
     if (!novaMensagem.trim() || !chatAtivo) return;
     
-    // Validar se UUID é real (não temporário)
+
     if (chatAtivo.uuid.startsWith('tmp-')) {
       alert('⚠️ Você precisa selecionar um contato real para enviar mensagens');
       return;
@@ -201,9 +199,9 @@ useEffect(() => {
   }, [contato]);
 
   useEffect(() => {
-    if (!chatAtivo || !meuUuid) return; // aguarda UUID ser carregado
+    if (!chatAtivo || !meuUuid) return; 
     
-    // Não fazer requisição se for UUID temporário
+    
     if (chatAtivo.uuid.startsWith('tmp-')) {
       console.warn("⚠️ Chat temporário, ignorando carregamento de histórico");
       return;
@@ -218,7 +216,7 @@ useEffect(() => {
         if (!resp.ok) throw new Error("Erro ao carregar histórico");
         const data = await resp.json();
 
-        // mensagens
+
         const mensagensFormatadas = data.mensagens.map(msg => ({
           id: msg.id,
           texto: msg.texto,
@@ -227,7 +225,6 @@ useEffect(() => {
           status: "sent"
         }));
 
-        // atualizar dados do chat ativo com nome/foto/instrumentos atualizados
         setChatAtivo(prev => ({
           ...prev,
           nome: data.pessoa.nome,
@@ -235,7 +232,7 @@ useEffect(() => {
           instrumentos: data.pessoa.instrumentos || []
         }));
 
-        // salvar histórico
+
         setHistoricoPorChat(prev => ({
           ...prev,
           [chatAtivo.uuid]: mensagensFormatadas
@@ -385,7 +382,6 @@ useEffect(() => {
                     <div className="conversation-details">
                     <div className="instrument-tags">
                     {(chat.instrumentos || []).slice(0, 3).map((inst, index) => {
-                     /*console.log(`🎸 Renderizando instrumento ${index}:`, inst, "tipo:", typeof inst);*/
                       return (
                         <span key={index} className="instrument-tag">{inst}</span>
                       );
@@ -398,8 +394,6 @@ useEffect(() => {
             ))}
             </div>
         </div>
-
-        {/* Área do Chat */}
         <div className="chat-area">
             {chatAtivo ? (
             <>

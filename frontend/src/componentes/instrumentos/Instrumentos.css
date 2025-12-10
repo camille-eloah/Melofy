@@ -6,7 +6,7 @@
   flex-direction: column;
   align-items: center;
 }
-/* ===== Cabeçalho azul ===== */
+
 .instrumentos-header {
   background-color: #020b2b;    
   padding: 18px 80px;
@@ -63,7 +63,7 @@
   opacity: 0.9;
 }
 
-/* ===== Parte central ===== */
+
 
 h1 , h2 {
   color: rgb(255, 255, 255);
@@ -179,7 +179,7 @@ h1 , h2 {
   flex-wrap: wrap;
 }
 
-/* Menino ao lado das fotos */
+
 .menino-instrumento{
     margin-top: -200px;
     margin-left: 40px;
