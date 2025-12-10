@@ -68,6 +68,25 @@
     box-shadow: 0 0 10px rgba(40, 160, 220, 0.3);
 }
 
+.schedule-nivel-select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 140, 200, 0.4);
+    background: rgba(246, 250, 255, 0.9);
+    color: #003a4f;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.schedule-nivel-select:focus {
+    border-color: #0099cc;
+    background: #ffffff;
+    box-shadow: 0 0 10px rgba(40, 160, 220, 0.3);
+}
+
 .schedule-horarios-grid {
     display: flex;
     flex-wrap: wrap;

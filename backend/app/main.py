@@ -110,6 +110,7 @@ from app.models import (
     SolicitacaoAgendamento,
     SolicitacaoHorario,
     ModalidadeAula,
+    NivelConhecimento,
     HorarioProfessor,
     DiaSemana,
 )
@@ -420,26 +421,64 @@ def obter_professor(user_id: int, db: Session = Depends(get_session)):
 
 @router_user.get("/professor/uuid/{user_uuid}", response_model=UserResponse)
 def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"📚 [PROFESSOR/UUID] Endpoint chamado com UUID: {user_uuid}")
     professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
     if not professor:
+        logger.warning(f"❌ [PROFESSOR/UUID] Professor não encontrado: {user_uuid}")
         raise HTTPException(status_code=404, detail="Professor não encontrado")
+    logger.info(f"✅ [PROFESSOR/UUID] Professor encontrado: {professor.nome}")
     return montar_resposta_usuario(professor)
 
 
 @router_user.get("/aluno/{user_id}", response_model=UserResponse)
 def obter_aluno(user_id: int, db: Session = Depends(get_session)):
-    aluno = db.get(Aluno, user_id)
+    logger.info(f"🔍 [ALUNO/ID] Buscando aluno com ID: {user_id}")
+    # Usar select explícito em vez de db.get para evitar problemas de cache
+    aluno = db.exec(select(Aluno).where(Aluno.id == user_id)).first()
+    logger.info(f"🔍 [ALUNO/ID] Resultado: {aluno}")
     if not aluno:
+        # Listar todos os alunos para debug
+        todos_alunos = db.exec(select(Aluno.id, Aluno.nome, Aluno.global_uuid)).all()
+        logger.warning(f"❌ [ALUNO/ID] Aluno ID {user_id} não encontrado. Alunos existentes: {[(id, nome, uuid) for id, nome, uuid in todos_alunos]}")
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    logger.info(f"✅ [ALUNO/ID] Aluno encontrado: {aluno.nome} (UUID: {aluno.global_uuid})")
     return montar_resposta_usuario(aluno)
 
 @router_user.get("/aluno/uuid/{user_uuid}", response_model=UserResponse)
 def obter_aluno_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"🎓 [ALUNO/UUID] Endpoint chamado com UUID: {user_uuid}")
     aluno = db.exec(select(Aluno).where(Aluno.global_uuid == user_uuid)).first()
+    logger.info(f"🎓 [ALUNO/UUID] Resultado da query: {aluno}")
     if not aluno:
+        # Listar todos os UUIDs de alunos
+        todos_uuids = db.exec(select(Aluno.global_uuid, Aluno.nome)).all()
+        logger.warning(f"❌ [ALUNO/UUID] Aluno não encontrado. UUID buscado: '{user_uuid}'")
+        logger.warning(f"❌ [ALUNO/UUID] UUIDs existentes: {[(str(uuid), nome) for uuid, nome in todos_uuids]}")
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    logger.info(f"✅ [ALUNO/UUID] Aluno encontrado: {aluno.nome}")
     return montar_resposta_usuario(aluno)
 
+
+@router_user.get("/uuid/{user_uuid}", response_model=UserResponse)
+def obter_usuario_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"🔍 [UUID] Iniciando busca por UUID: {user_uuid}")
+    logger.info(f"🔍 [UUID] Tipo do UUID: {type(user_uuid)}")
+    logger.info(f"🔍 [UUID] Comprimento do UUID: {len(user_uuid)}")
+    
+    # Verificar se existem alunos no banco
+    total_alunos = db.exec(select(func.count(Aluno.id))).first()
+    logger.info(f"📊 [UUID] Total de alunos no banco: {total_alunos}")
+    
+    # Buscar todos os UUIDs para debug
+    alunos_uuids = db.exec(select(Aluno.global_uuid, Aluno.nome)).all()
+    logger.info(f"📊 [UUID] UUIDs no banco: {[(uuid, nome) for uuid, nome in alunos_uuids]}")
+    
+    usuario = buscar_usuario_por_uuid(db, user_uuid)
+    if not usuario:
+        logger.warning(f"❌ [UUID] Usuário NÃO encontrado com UUID: {user_uuid}")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    logger.info(f"✅ [UUID] Usuário encontrado: {usuario.nome} (ID: {usuario.id})")
+    return montar_resposta_usuario(usuario)
 
 @router_user.get("/{user_id}", response_model=UserResponse)
 def obter_usuario(user_id: int, db: Session = Depends(get_session)):
@@ -1076,6 +1115,14 @@ def criar_solicitacao_agendamento(
     if not modalidade_enum:
         raise HTTPException(status_code=400, detail="Modalidade inválida")
     
+    # Mapear nível de conhecimento (remover acentos para o banco)
+    nivel_map = {
+        "Básico": NivelConhecimento.Basico,
+        "Intermediário": NivelConhecimento.Intermediario,
+        "Avançado": NivelConhecimento.Avancado,
+    }
+    nivel_enum = nivel_map.get(solicitacao.nivel) if solicitacao.nivel else None
+    
     # 6. Criar solicitação de agendamento
     nova_solicitacao = SolicitacaoAgendamento(
         sol_prof_id=professor.id,
@@ -1085,6 +1132,7 @@ def criar_solicitacao_agendamento(
         sol_instr_id=instrumento.id,
         sol_pac_id=pacote.pac_id,
         sol_modalidade=modalidade_enum,
+        sol_nivel=nivel_enum,
         sol_mensagem=solicitacao.observacao,
     )
     
@@ -1123,6 +1171,7 @@ def criar_solicitacao_agendamento(
         sol_instr_id=nova_solicitacao.sol_instr_id,
         sol_pac_id=nova_solicitacao.sol_pac_id,
         sol_modalidade=nova_solicitacao.sol_modalidade.value,
+        sol_nivel=nova_solicitacao.sol_nivel.value if nova_solicitacao.sol_nivel else None,
         sol_status=nova_solicitacao.sol_status.value,
         sol_mensagem=nova_solicitacao.sol_mensagem,
         sol_criado_em=nova_solicitacao.sol_criado_em,
@@ -1137,19 +1186,147 @@ def criar_solicitacao_agendamento(
     )
 
 
-@router_schedule.get("/agendamentos/")
-def listar_agendamentos(id_professor: int | None = None):
-    if id_professor:
-        return {"msg": f"Lista de agendamentos do professor {id_professor}"}
-    return {"msg": "Lista de todos os agendamentos"}
+@router_schedule.get("/agendamentos/", response_model=List[SolicitacaoAgendamentoRead])
+def listar_agendamentos(
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """
+    Lista todas as solicitações de agendamento do professor autenticado.
+    """
+    # Obter usuário autenticado
+    tipo_usuario, usuario = _get_current_user(request, db)
+    
+    if tipo_usuario != TipoUsuario.PROFESSOR:
+        raise HTTPException(
+            status_code=403,
+            detail="Apenas professores podem acessar suas solicitações"
+        )
+    
+    # Buscar todas as solicitações do professor
+    stmt = select(SolicitacaoAgendamento).where(
+        SolicitacaoAgendamento.sol_prof_id == usuario.id
+    ).order_by(SolicitacaoAgendamento.sol_criado_em.desc())
+    
+    solicitacoes = db.exec(stmt).all()
+    
+    logger.info(f"Professor {usuario.id} tem {len(solicitacoes)} solicitações")
+    
+    # Montar resposta com horários
+    resultado = []
+    for sol in solicitacoes:
+        logger.info(f"Solicitação {sol.sol_id} - Aluno UUID: {sol.sol_alu_global_uuid}")
+        # Buscar horários da solicitação
+        stmt_horarios = select(SolicitacaoHorario).where(
+            SolicitacaoHorario.sol_id == sol.sol_id
+        )
+        horarios = db.exec(stmt_horarios).all()
+        
+        resultado.append(SolicitacaoAgendamentoRead(
+            sol_id=sol.sol_id,
+            sol_prof_id=sol.sol_prof_id,
+            sol_prof_global_uuid=sol.sol_prof_global_uuid,
+            sol_alu_id=sol.sol_alu_id,
+            sol_alu_global_uuid=sol.sol_alu_global_uuid,
+            sol_instr_id=sol.sol_instr_id,
+            sol_pac_id=sol.sol_pac_id,
+            sol_modalidade=sol.sol_modalidade.value,
+            sol_nivel=sol.sol_nivel.value if sol.sol_nivel else None,
+            sol_status=sol.sol_status.value,
+            sol_mensagem=sol.sol_mensagem,
+            sol_criado_em=sol.sol_criado_em,
+            horarios=[
+                SolicitacaoHorarioRead(
+                    id=h.id,
+                    horario_data=h.horario_data,
+                    horario_hora=h.horario_hora,
+                )
+                for h in horarios
+            ],
+        ))
+    
+    return resultado
 
-@router_schedule.get("/agendamentos/{agendamento_id}")
-def obter_agendamento(agendamento_id: int):
-    return {"msg": f"Agendamento {agendamento_id}"}
+@router_schedule.patch("/agendamentos/{agendamento_id}/aceitar")
+def aceitar_solicitacao(
+    agendamento_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Aceita uma solicitação de agendamento (altera status para Confirmada)"""
+    tipo_usuario, usuario = _get_current_user(request, db)
+    
+    if tipo_usuario != TipoUsuario.PROFESSOR:
+        raise HTTPException(status_code=403, detail="Apenas professores podem aceitar solicitações")
+    
+    solicitacao = db.get(SolicitacaoAgendamento, agendamento_id)
+    if not solicitacao:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada")
+    
+    if solicitacao.sol_prof_id != usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para aceitar esta solicitação")
+    
+    from app.models import StatusSolicitacao
+    solicitacao.sol_status = StatusSolicitacao.Confirmada
+    db.add(solicitacao)
+    db.commit()
+    db.refresh(solicitacao)
+    
+    return {"msg": "Solicitação aceita com sucesso", "status": solicitacao.sol_status.value}
+
+@router_schedule.patch("/agendamentos/{agendamento_id}/recusar")
+def recusar_solicitacao(
+    agendamento_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Recusa uma solicitação de agendamento (altera status para Recusada)"""
+    tipo_usuario, usuario = _get_current_user(request, db)
+    
+    if tipo_usuario != TipoUsuario.PROFESSOR:
+        raise HTTPException(status_code=403, detail="Apenas professores podem recusar solicitações")
+    
+    solicitacao = db.get(SolicitacaoAgendamento, agendamento_id)
+    if not solicitacao:
+        raise HTTPException(status_code=404, detail="Solicitação não encontrada")
+    
+    if solicitacao.sol_prof_id != usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para recusar esta solicitação")
+    
+    from app.models import StatusSolicitacao
+    solicitacao.sol_status = StatusSolicitacao.Recusada
+    db.add(solicitacao)
+    db.commit()
+    db.refresh(solicitacao)
+    
+    return {"msg": "Solicitação recusada", "status": solicitacao.sol_status.value}
 
 @router_schedule.patch("/agendamentos/{agendamento_id}/cancelar")
-def cancelar_agendamento(agendamento_id: int):
-    return {"msg": f"Agendamento {agendamento_id} cancelado"}
+def cancelar_agendamento(
+    agendamento_id: int,
+    request: Request,
+    db: Session = Depends(get_session),
+):
+    """Cancela um agendamento confirmado (altera status para Cancelada)"""
+    tipo_usuario, usuario = _get_current_user(request, db)
+    
+    if tipo_usuario != TipoUsuario.PROFESSOR:
+        raise HTTPException(status_code=403, detail="Apenas professores podem cancelar agendamentos")
+    
+    solicitacao = db.get(SolicitacaoAgendamento, agendamento_id)
+    if not solicitacao:
+        raise HTTPException(status_code=404, detail="Agendamento não encontrado")
+    
+    if solicitacao.sol_prof_id != usuario.id:
+        raise HTTPException(status_code=403, detail="Você não tem permissão para cancelar este agendamento")
+    
+    from app.models import StatusSolicitacao
+    solicitacao.sol_status = StatusSolicitacao.Cancelada
+    db.add(solicitacao)
+    db.commit()
+    db.refresh(solicitacao)
+    
+    return {"msg": "Agendamento cancelado com sucesso", "status": solicitacao.sol_status.value}
 
 # ----------------------------
 # 8. Dados Bancários

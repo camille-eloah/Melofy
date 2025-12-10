@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import './DashProfessor.css'
 import Header from "../layout/Header"
 import Footer from '../layout/Footer'
@@ -11,10 +11,16 @@ import HorariosDisponiveis from './modules/HorariosDisponiveis/HorariosDisponive
 import SolicitacoesAula from './modules/SolicitacoesAula/SolicitacoesAula'
 import { 
   FaSave,
-  FaInfoCircle
+  FaInfoCircle,
+  FaMoneyBillWave,
+  FaClock,
+  FaChalkboardTeacher,
+  FaClipboardList
 } from 'react-icons/fa'
 
 function DashProfessor() {
+  const [abaAtiva, setAbaAtiva] = useState('precos-pacotes')
+
   const {
     valorHora,
     setValorHora,
@@ -90,75 +96,128 @@ function DashProfessor() {
           </div>
 
           <div className="dashboard-content">
+            {/* Menu de navegação por abas */}
+            <div className="dashboard-tabs">
+              <button
+                className={`tab-button ${abaAtiva === 'precos-pacotes' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('precos-pacotes')}
+                type="button"
+              >
+                <FaMoneyBillWave className="tab-icon" />
+                <span>Preços e Pacotes</span>
+              </button>
+              <button
+                className={`tab-button ${abaAtiva === 'horarios' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('horarios')}
+                type="button"
+              >
+                <FaClock className="tab-icon" />
+                <span>Horários</span>
+              </button>
+              <button
+                className={`tab-button ${abaAtiva === 'modalidades' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('modalidades')}
+                type="button"
+              >
+                <FaChalkboardTeacher className="tab-icon" />
+                <span>Modalidades</span>
+              </button>
+              <button
+                className={`tab-button ${abaAtiva === 'solicitacoes' ? 'active' : ''}`}
+                onClick={() => setAbaAtiva('solicitacoes')}
+                type="button"
+              >
+                <FaClipboardList className="tab-icon" />
+                <span>Solicitações de Aula</span>
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit} className="config-form">
-              <ValoresAula 
-                valorHora={valorHora}
-                setValorHora={setValorHora}
-              />
+              {/* Preços e Pacotes */}
+              {abaAtiva === 'precos-pacotes' && (
+                <>
+                  <ValoresAula 
+                    valorHora={valorHora}
+                    setValorHora={setValorHora}
+                  />
 
-              <PacotesAula
-                pacotes={pacotes}
-                isLoadingPacotes={isLoadingPacotes}
-                handleCreatePackage={handleCreatePackage}
-                handleEditPackage={handleEditPackage}
-                handleDeletePackage={handleDeletePackage}
-              />
+                  <PacotesAula
+                    pacotes={pacotes}
+                    isLoadingPacotes={isLoadingPacotes}
+                    handleCreatePackage={handleCreatePackage}
+                    handleEditPackage={handleEditPackage}
+                    handleDeletePackage={handleDeletePackage}
+                  />
+                </>
+              )}
 
-              <HorariosDisponiveis
-                horariosDisponiveis={horariosDisponiveis}
-                toggleDiaSemana={toggleDiaSemana}
-                toggleHorario={toggleHorario}
-                diasSemana={diasSemana}
-                horariosDoDia={horariosDoDia}
-              />
+              {/* Horários */}
+              {abaAtiva === 'horarios' && (
+                <HorariosDisponiveis
+                  horariosDisponiveis={horariosDisponiveis}
+                  toggleDiaSemana={toggleDiaSemana}
+                  toggleHorario={toggleHorario}
+                  diasSemana={diasSemana}
+                  horariosDoDia={horariosDoDia}
+                />
+              )}
 
-              <ModalidadesAula
-                tiposAulaSelecionados={tiposAulaSelecionados}
-                toggleTipoAula={toggleTipoAula}
-                statusModalidades={statusModalidades}
-                toggleStatusModalidade={toggleStatusModalidade}
-                isModalidadeConfigured={isModalidadeConfigured}
-                linkGoogleMeet={linkGoogleMeet}
-                setLinkGoogleMeet={setLinkGoogleMeet}
-                localizacao={localizacao}
-                handleLocalizacaoChange={handleLocalizacaoChange}
-                raioAtendimento={raioAtendimento}
-                setRaioAtendimento={setRaioAtendimento}
-                taxaPorKm={taxaPorKm}
-                setTaxaPorKm={setTaxaPorKm}
-              />
+              {/* Modalidades */}
+              {abaAtiva === 'modalidades' && (
+                <ModalidadesAula
+                  tiposAulaSelecionados={tiposAulaSelecionados}
+                  toggleTipoAula={toggleTipoAula}
+                  statusModalidades={statusModalidades}
+                  toggleStatusModalidade={toggleStatusModalidade}
+                  isModalidadeConfigured={isModalidadeConfigured}
+                  linkGoogleMeet={linkGoogleMeet}
+                  setLinkGoogleMeet={setLinkGoogleMeet}
+                  localizacao={localizacao}
+                  handleLocalizacaoChange={handleLocalizacaoChange}
+                  raioAtendimento={raioAtendimento}
+                  setRaioAtendimento={setRaioAtendimento}
+                  taxaPorKm={taxaPorKm}
+                  setTaxaPorKm={setTaxaPorKm}
+                />
+              )}
 
-              <SolicitacoesAula
-                solicitacoes={solicitacoes}
-                loadingSolicitacoes={loadingSolicitacoes}
-                filtroStatus={filtroStatus}
-                setFiltroStatus={setFiltroStatus}
-                carregarSolicitacoes={carregarSolicitacoes}
-                aceitarSolicitacao={aceitarSolicitacao}
-                recusarSolicitacao={recusarSolicitacao}
-                cancelarSolicitacao={cancelarSolicitacao}
-                solicitacoesFiltradas={solicitacoesFiltradas}
-              />
+              {/* Solicitações de Aula */}
+              {abaAtiva === 'solicitacoes' && (
+                <SolicitacoesAula
+                  solicitacoes={solicitacoes}
+                  loadingSolicitacoes={loadingSolicitacoes}
+                  filtroStatus={filtroStatus}
+                  setFiltroStatus={setFiltroStatus}
+                  carregarSolicitacoes={carregarSolicitacoes}
+                  aceitarSolicitacao={aceitarSolicitacao}
+                  recusarSolicitacao={recusarSolicitacao}
+                  cancelarSolicitacao={cancelarSolicitacao}
+                  solicitacoesFiltradas={solicitacoesFiltradas}
+                />
+              )}
 
-              <div className="form-actions">
-                <button
-                  type="submit"
-                  className="save-button"
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <>
-                      <span className="loading-spinner"></span>
-                      Salvando...
-                    </>
-                  ) : (
-                    <>
-                      <FaSave className="save-button-icon" />
-                      Salvar Configurações
-                    </>
-                  )}
-                </button>
-              </div>
+              {/* Botão de salvar - aparece apenas nas abas de configuração */}
+              {(abaAtiva === 'precos-pacotes' || abaAtiva === 'horarios' || abaAtiva === 'modalidades') && (
+                <div className="form-actions">
+                  <button
+                    type="submit"
+                    className="save-button"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="loading-spinner"></span>
+                        Salvando...
+                      </>
+                    ) : (
+                      <>
+                        <FaSave className="save-button-icon" />
+                        Salvar Configurações
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </form>
 
             <div className="info-card-sidebar">
