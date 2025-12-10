@@ -220,12 +220,19 @@ export const useDashProfessor = () => {
           }
         }
         
-        // Formatar horários agrupados por data
-        const horariosFormatados = sol.horarios.map(h => {
-          const data = new Date(h.horario_data + 'T00:00:00');
-          const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][data.getDay()];
-          return `${diaSemana} ${h.horario_hora}`;
-        });
+        // Formatar horários agrupados por data e ordenar cronologicamente
+        const horariosFormatados = sol.horarios
+          .map(h => {
+            const data = new Date(h.horario_data + 'T' + h.horario_hora);
+            const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][data.getDay()];
+            const dataFormatada = data.toLocaleDateString('pt-BR');
+            return {
+              texto: `${dataFormatada} - ${diaSemana} ${h.horario_hora}`,
+              timestamp: data.getTime()
+            };
+          })
+          .sort((a, b) => a.timestamp - b.timestamp) // Ordenar do mais antigo para o mais recente
+          .map(h => h.texto);
         
         console.log('Dados finais da solicitação:', {
           id: sol.sol_id,
