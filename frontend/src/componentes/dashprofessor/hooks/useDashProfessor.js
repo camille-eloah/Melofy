@@ -154,17 +154,39 @@ export const useDashProfessor = () => {
       
       // Transformar dados da API para o formato do componente
       const solicitacoesFormatadas = await Promise.all(solicitacoesData.map(async (sol) => {
-        // Buscar informações do aluno
+        console.log('Processando solicitação:', sol.sol_id, 'Aluno UUID:', sol.sol_alu_global_uuid, 'Aluno ID:', sol.sol_alu_id);
+        
+        // Buscar informações do aluno - tentar primeiro por ID, depois por UUID
         let alunoData = { nome: 'Aluno', profile_picture: null };
         try {
-          const alunoResponse = await fetch(`http://localhost:8000/users/uuid/${sol.sol_alu_global_uuid}`, {
+          // Tentar buscar por ID primeiro (mais confiável)
+          let alunoResponse = await fetch(`http://localhost:8000/user/aluno/${sol.sol_alu_id}`, {
             credentials: 'include',
           });
+          
+          // Se não encontrar por ID, tentar por UUID
+          if (!alunoResponse.ok) {
+            console.log('Tentando buscar por UUID...');
+            alunoResponse = await fetch(`http://localhost:8000/user/uuid/${sol.sol_alu_global_uuid}`, {
+              credentials: 'include',
+            });
+          }
+          
+          console.log('Response do aluno:', alunoResponse.status, alunoResponse.ok);
           if (alunoResponse.ok) {
             alunoData = await alunoResponse.json();
+            console.log('✅ Dados do aluno carregados:', alunoData);
+          } else {
+            const errorText = await alunoResponse.text();
+            console.error('❌ Erro ao buscar aluno:', {
+              id: sol.sol_alu_id,
+              uuid: sol.sol_alu_global_uuid,
+              status: alunoResponse.status,
+              error: errorText
+            });
           }
         } catch (error) {
-          console.error('Erro ao buscar aluno:', error);
+          console.error('❌ Exceção ao buscar aluno:', error);
         }
         
         // Buscar informações do instrumento
@@ -203,6 +225,14 @@ export const useDashProfessor = () => {
           const data = new Date(h.horario_data + 'T00:00:00');
           const diaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][data.getDay()];
           return `${diaSemana} ${h.horario_hora}`;
+        });
+        
+        console.log('Dados finais da solicitação:', {
+          id: sol.sol_id,
+          alunoNome: alunoData.nome,
+          instrumentoNome: instrumentoData.nome,
+          pacoteNome: pacoteData?.pac_nome,
+          valor: pacoteData?.pac_valor_total
         });
         
         return {

@@ -421,37 +421,68 @@ def obter_professor(user_id: int, db: Session = Depends(get_session)):
 
 @router_user.get("/professor/uuid/{user_uuid}", response_model=UserResponse)
 def obter_professor_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"📚 [PROFESSOR/UUID] Endpoint chamado com UUID: {user_uuid}")
     professor = db.exec(select(Professor).where(Professor.global_uuid == user_uuid)).first()
     if not professor:
+        logger.warning(f"❌ [PROFESSOR/UUID] Professor não encontrado: {user_uuid}")
         raise HTTPException(status_code=404, detail="Professor não encontrado")
+    logger.info(f"✅ [PROFESSOR/UUID] Professor encontrado: {professor.nome}")
     return montar_resposta_usuario(professor)
 
 
 @router_user.get("/aluno/{user_id}", response_model=UserResponse)
 def obter_aluno(user_id: int, db: Session = Depends(get_session)):
-    aluno = db.get(Aluno, user_id)
+    logger.info(f"🔍 [ALUNO/ID] Buscando aluno com ID: {user_id}")
+    # Usar select explícito em vez de db.get para evitar problemas de cache
+    aluno = db.exec(select(Aluno).where(Aluno.id == user_id)).first()
+    logger.info(f"🔍 [ALUNO/ID] Resultado: {aluno}")
     if not aluno:
+        # Listar todos os alunos para debug
+        todos_alunos = db.exec(select(Aluno.id, Aluno.nome, Aluno.global_uuid)).all()
+        logger.warning(f"❌ [ALUNO/ID] Aluno ID {user_id} não encontrado. Alunos existentes: {[(id, nome, uuid) for id, nome, uuid in todos_alunos]}")
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    logger.info(f"✅ [ALUNO/ID] Aluno encontrado: {aluno.nome} (UUID: {aluno.global_uuid})")
     return montar_resposta_usuario(aluno)
 
 @router_user.get("/aluno/uuid/{user_uuid}", response_model=UserResponse)
 def obter_aluno_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"🎓 [ALUNO/UUID] Endpoint chamado com UUID: {user_uuid}")
     aluno = db.exec(select(Aluno).where(Aluno.global_uuid == user_uuid)).first()
+    logger.info(f"🎓 [ALUNO/UUID] Resultado da query: {aluno}")
     if not aluno:
+        # Listar todos os UUIDs de alunos
+        todos_uuids = db.exec(select(Aluno.global_uuid, Aluno.nome)).all()
+        logger.warning(f"❌ [ALUNO/UUID] Aluno não encontrado. UUID buscado: '{user_uuid}'")
+        logger.warning(f"❌ [ALUNO/UUID] UUIDs existentes: {[(str(uuid), nome) for uuid, nome in todos_uuids]}")
         raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    logger.info(f"✅ [ALUNO/UUID] Aluno encontrado: {aluno.nome}")
     return montar_resposta_usuario(aluno)
 
+
+@router_user.get("/uuid/{user_uuid}", response_model=UserResponse)
+def obter_usuario_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
+    logger.info(f"🔍 [UUID] Iniciando busca por UUID: {user_uuid}")
+    logger.info(f"🔍 [UUID] Tipo do UUID: {type(user_uuid)}")
+    logger.info(f"🔍 [UUID] Comprimento do UUID: {len(user_uuid)}")
+    
+    # Verificar se existem alunos no banco
+    total_alunos = db.exec(select(func.count(Aluno.id))).first()
+    logger.info(f"📊 [UUID] Total de alunos no banco: {total_alunos}")
+    
+    # Buscar todos os UUIDs para debug
+    alunos_uuids = db.exec(select(Aluno.global_uuid, Aluno.nome)).all()
+    logger.info(f"📊 [UUID] UUIDs no banco: {[(uuid, nome) for uuid, nome in alunos_uuids]}")
+    
+    usuario = buscar_usuario_por_uuid(db, user_uuid)
+    if not usuario:
+        logger.warning(f"❌ [UUID] Usuário NÃO encontrado com UUID: {user_uuid}")
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    logger.info(f"✅ [UUID] Usuário encontrado: {usuario.nome} (ID: {usuario.id})")
+    return montar_resposta_usuario(usuario)
 
 @router_user.get("/{user_id}", response_model=UserResponse)
 def obter_usuario(user_id: int, db: Session = Depends(get_session)):
     usuario = buscar_usuario_por_id(db, user_id)
-    if not usuario:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado")
-    return montar_resposta_usuario(usuario)
-
-@router_user.get("/uuid/{user_uuid}", response_model=UserResponse)
-def obter_usuario_por_uuid(user_uuid: str, db: Session = Depends(get_session)):
-    usuario = buscar_usuario_por_uuid(db, user_uuid)
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return montar_resposta_usuario(usuario)
@@ -1179,9 +1210,12 @@ def listar_agendamentos(
     
     solicitacoes = db.exec(stmt).all()
     
+    logger.info(f"Professor {usuario.id} tem {len(solicitacoes)} solicitações")
+    
     # Montar resposta com horários
     resultado = []
     for sol in solicitacoes:
+        logger.info(f"Solicitação {sol.sol_id} - Aluno UUID: {sol.sol_alu_global_uuid}")
         # Buscar horários da solicitação
         stmt_horarios = select(SolicitacaoHorario).where(
             SolicitacaoHorario.sol_id == sol.sol_id
