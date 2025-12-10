@@ -1,5 +1,4 @@
 // src/components/RequireAuth.jsx
-{/*
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -46,4 +45,3 @@ function RequireAuth({ children }) {
 }
 
 export default RequireAuth
-*/}
